@@ -1,9 +1,13 @@
-//@ts-nocheck
+import { Request,Response } from 'express'
 import Plan from '../models/Plan'
+import Params from "../interfaces/Params"
+import ResponseMessage from '../interfaces/ResponseMessage'
+import { DaysOfPlan, PlanSession, SharedPlan } from '../interfaces/Plan'
+import User from '../models/User'
 require("dotenv").config()
 
-exports.setPlanConfig=async(req,res)=>{
-    const days = +req.body.days
+exports.setPlanConfig=async(req:Request<Params,{},PlanSession>,res:Response<ResponseMessage>)=>{
+    const days = +req.body.days!
     const name = req.body.name
     const id = req.params.id
     if(!name || !days) return res.send({msg:'All fields are required'})
@@ -14,21 +18,21 @@ exports.setPlanConfig=async(req,res)=>{
     return res.send({msg:"Created"})
 }
 
-exports.getPlanConfig=async(req,res)=>{
+exports.getPlanConfig=async(req:Request<Params>,res:Response<{count:number}>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     const findPlan = await Plan.findOne({user:findUser})
     return res.send({count:findPlan.trainingDays})
 }
 
-exports.setPlanShared=async(user,planConfig)=>{
+exports.setPlanShared=async(user:typeof User,planConfig:SharedPlan,res:Response<ResponseMessage>)=>{
     const currentPlan = await Plan.create({user:user,name:planConfig.name,trainingDays:planConfig.trainingDays})
     await user.updateOne({plan:currentPlan})
     const days = planConfig.days
     const findPlan = await Plan.findOne({user:user})
     if(planConfig.trainingDays === 1){
         await findPlan.updateOne({planA:days[0].exercises})
-        return res.send({msg:'Updated'})
+        return res.send({msg:'Updated'}) 
     }
     else if(planConfig.trainingDays === 2){
         await findPlan.updateOne({planA:days[0].exercises,planB:days[1].exercises})
@@ -59,7 +63,7 @@ exports.setPlanShared=async(user,planConfig)=>{
     }
 }
 
-exports.setPlan=async(req,res,next)=>{
+exports.setPlan=async(req:Request<Params,{},{days:DaysOfPlan}>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     const findPlan = await Plan.findOne({user:findUser})
@@ -99,7 +103,7 @@ exports.setPlan=async(req,res,next)=>{
 
 }
 
-exports.getPlan= async(req,res,next)=>{
+exports.getPlan= async(req:Request<Params>,res:Response<{data:PlanSession} | {data:string}>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     const findPlan = await Plan.findOne({user:findUser})
@@ -115,16 +119,16 @@ exports.getPlan= async(req,res,next)=>{
     else return res.status(404).send({data:'Didnt find'})
 }
 
-exports.deletePlan=async(req,res)=>{
+exports.deletePlan=async(req:Request<Params>,res:Response<ResponseMessage>)=>{
    const id = req.params.id
    const findUser = await User.findById(id)
    const deletedPlan = await Plan.findOneAndDelete({user:findUser})
    await findUser.updateOne({ $unset: { plan: 1 } }, { new: true })
    if(deletedPlan) return res.status(200).send({msg: 'Deleted!'})
-   else return res.stauts(404).send({msg:'Didnt find!'})
+   else return res.status(404).send({msg:'Didnt find!'})
 }
 
-exports.getSharedPlan=async(req,res)=>{
+exports.getSharedPlan=async(req:Request<Params>)=>{
     const user = await User.findById(req.params.id)
     const id = req.body.user_id
     const findUser = await User.findById(id)
@@ -143,6 +147,7 @@ exports.getSharedPlan=async(req,res)=>{
         ],
         trainingDays:userPlan.trainingDays
     }
+    //@ts-ignore
     this.setPlanShared(user,sharedPlan)
 
 }

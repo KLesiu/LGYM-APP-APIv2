@@ -3,9 +3,11 @@ import { Request,Response } from "express"
 import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
-import { addTrainingBody } from "../interfaces/Training"
+import { AddTrainingBody,TrainingHistory,Training as FoundTraining } from "../interfaces/Training"
+import ResponseMessage from "../interfaces/ResponseMessage"
 
-exports.addTraining=async(req:Request<Params,{},addTrainingBody>,res:Response)=>{
+
+exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     const day = req.body.day
@@ -18,7 +20,7 @@ exports.addTraining=async(req:Request<Params,{},addTrainingBody>,res:Response)=>
     else res.status(404).send({msg:'Error, We didnt add your training!'})
 }
 
-exports.getTrainingHistory=async(req:Request<Params>,res:Response)=>{
+exports.getTrainingHistory=async(req:Request<Params>,res:Response<ResponseMessage | TrainingHistory>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(findUser){
@@ -30,7 +32,7 @@ exports.getTrainingHistory=async(req:Request<Params>,res:Response)=>{
     else return res.status(404).send({msg:'Error, we dont find You in our database. Please logout and login one more time.'})
 }
 
-exports.getCurrentTrainingSession=async(req:Request<Params>,res:Response)=>{
+exports.getCurrentTrainingSession=async(req:Request<Params>,res:Response<FoundTraining | ResponseMessage>)=>{
     const id = req.params.id 
     const findTraining = await Training.findById(id)
     if(findTraining){
@@ -39,7 +41,7 @@ exports.getCurrentTrainingSession=async(req:Request<Params>,res:Response)=>{
     else return res.status(404).send({msg:'We dont find your training session!, Please logout and login one more time'})
 }
 
-exports.getPreviousTrainingSession=async(req:Request<Params>,res:Response)=>{
+exports.getPreviousTrainingSession=async(req:Request<Params>,res:Response<FoundTraining | ResponseMessage>)=>{
     const userId = req.params.id
     const findUser = await User.findById(userId)
     const trainingType = req.params.day
@@ -48,7 +50,7 @@ exports.getPreviousTrainingSession=async(req:Request<Params>,res:Response)=>{
     return res.status(404).send({msg: 'Didnt find previous session training'})
 
 }
-exports.checkPreviousTrainingSession=async(req:Request<Params>,res:Response)=>{
+exports.checkPreviousTrainingSession=async(req:Request<Params>,res:Response<ResponseMessage>)=>{
     const userId = req.params.id
     const findUser = await User.findById(userId)
     const trainingType = req.params.day
