@@ -1,5 +1,3 @@
-//@ts-nocheck
-
 import User from "../models/User"
 import { RequestUser, User as UserInterface, UserRecords } from "../interfaces/User"
 import ResponseMessage from "../interfaces/ResponseMessage"
@@ -10,12 +8,16 @@ const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
+interface CustomRequestUser extends Request{
+    user: typeof User
+}
+
 exports.register=[
     body("name").trim().isLength({min:1}).withMessage("Name is required, and has to have minimum one character"),
     body('email').isEmail().withMessage('This email is not valid!'),
     body('password').isLength({min:6}).withMessage('Passwword need to have minimum six characters'),
-    body('cpassword').custom((value,{req})=>value===req.body.password).withMessage('Passwords need to be same'),
-    asyncHandler(async(req:Request<{},{},UserInterface>,res:Response<ResponseMessage>)=>{
+    body('cpassword').custom((value:string,{req}:{req:Request<{},{},{password:string}>})=>value===req.body.password).withMessage('Passwords need to be same'),
+    asyncHandler(async(req:Request<{},{},UserInterface>,res:Response<ResponseMessage | {errors:string[] | ResponseMessage[]} >)=>{
         const errors = validationResult(req)
         
         if(!errors.isEmpty()){
@@ -57,7 +59,7 @@ exports.register=[
         res.status(200).send({msg:"User created successfully!"})
     })]
 
-exports.login = async function(req:Request<RequestUser>,res:Response<{token:string,req:{req:typeof User}}>){
+exports.login = async function(req:CustomRequestUser,res:Response<{token:string,req:{req:typeof User}}>){
     const token = jwt.sign({id:req.user._id},process.env.JWT_SECRET,{expiresIn:50000})
     return res.status(200).send({token:token,req:req.user})
 }
