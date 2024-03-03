@@ -22,6 +22,6 @@ export interface DaysOfPlan{
 }
 export interface SharedPlan{
     name:string,
-    days:{exercises:DaysOfPlan[]}[]
+    days:{exercises:Plan[]}[]
     trainingDays:number,
 }
