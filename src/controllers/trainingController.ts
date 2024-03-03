@@ -5,6 +5,7 @@ import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
 import { AddTrainingBody,TrainingHistory,Training as FoundTraining } from "../interfaces/Training"
 import ResponseMessage from "../interfaces/ResponseMessage"
+import User from "../models/User"
 
 
 exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<ResponseMessage>)=>{
