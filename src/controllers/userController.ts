@@ -60,7 +60,7 @@ exports.register=[
     })]
 
 exports.login = async function(req:CustomRequestUser,res:Response<{token:string,req:{req:typeof User}}>){
-    const token = jwt.sign({id:req.user._id},process.env.JWT_SECRET,{expiresIn:50000})
+    const token = jwt.sign({id:req.user._id},process.env.JWT_SECRET,{expiresIn:'1d'})
     return res.status(200).send({token:token,req:req.user})
 }
 

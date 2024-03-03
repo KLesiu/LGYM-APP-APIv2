@@ -6,5 +6,7 @@ export enum Message{
     TryAgain = 'Error, try again',
     Deleted = 'Deleted!',
     DidntFind = 'Didnt find!',
+    InvalidToken = 'Invalid JWT Token',
+    ExpiredToken = 'Token expired'
     
 }
