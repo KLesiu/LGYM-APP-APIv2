@@ -27,13 +27,13 @@ exports.getPlanConfig=async(req:Request<Params>,res:Response<{count:number}>)=>{
     return res.send({count:findPlan.trainingDays})
 }
 
-exports.setPlanShared=async(user:typeof User,planConfig:SharedPlan,res:Response<ResponseMessage>)=>{
+const setPlanShared=async(user:typeof User,planConfig:SharedPlan)=>{
     const currentPlan = await Plan.create({user:user,name:planConfig.name,trainingDays:planConfig.trainingDays})
     await user.updateOne({plan:currentPlan})
     const days = planConfig.days
     const findPlan = await Plan.findOne({user:user})
-    const result = await updatePlan(findPlan,planConfig.trainingDays,days)
-    return res.send(result as ResponseMessage)
+    await updatePlan(findPlan,planConfig.trainingDays,days)
+   
 }
 
 exports.setPlan=async(req:Request<Params,{},{days:DaysOfPlan}>,res:Response<ResponseMessage>)=>{
@@ -70,9 +70,9 @@ exports.deletePlan=async(req:Request<Params>,res:Response<ResponseMessage>)=>{
    else return res.status(404).send({msg:Message.DidntFind})
 }
 
-exports.getSharedPlan=async(req:Request<Params>)=>{
+exports.getSharedPlan=async(req:Request<Params>,res:Response<ResponseMessage>)=>{
     const user = await User.findById(req.params.id)
-    const id = req.body.user_id
+    const id = req.body.userId
     const findUser = await User.findById(id)
     const userPlan = await Plan.findOne({user:findUser})
     const sharedPlan = {
@@ -89,8 +89,9 @@ exports.getSharedPlan=async(req:Request<Params>)=>{
         ],
         trainingDays:userPlan.trainingDays
     }
-    //@ts-ignore
-    this.setPlanShared(user,sharedPlan)
+    
+    await setPlanShared(user,sharedPlan)
+    return res.status(200).send({msg:'Added'})
 
 }
 
