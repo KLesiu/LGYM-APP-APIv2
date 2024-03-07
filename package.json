@@ -5,8 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx tsc",
-    "serve": "npm run build && node dist/index.js"
+    "build:dev": "npx tsc",
+    "serve": "npm run build:dev && node dist/index.js",
+    "build": "rimraf dist && tsc",
+    "ts.check": "tsc --project tsconfig.json",
+    "add-build": "git add dist",
+    "pre-commit": [
+      "ts.check",
+      "build",
+      "add-build"
+  ]
   },
   "author": "",
   "license": "ISC",
@@ -31,6 +39,7 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^8.0.0",
+    "pre-commit": "^1.2.2",
     "rimraf": "^5.0.5"
   }
 }
