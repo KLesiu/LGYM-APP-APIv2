@@ -60,7 +60,7 @@ exports.register = [
 ];
 exports.login = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
         return res.status(200).send({ token: token, req: req.user });
     });
 };

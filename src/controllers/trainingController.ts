@@ -3,9 +3,10 @@ import { Request,Response } from "express"
 import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
-import { AddTrainingBody,TrainingHistory,Training as FoundTraining } from "../interfaces/Training"
+import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession } from "../interfaces/Training"
 import ResponseMessage from "../interfaces/ResponseMessage"
 import User from "../models/User"
+import FieldScore from "../interfaces/FieldScore"
 
 
 exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<ResponseMessage>)=>{
@@ -16,7 +17,10 @@ exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<Re
     const createdAt = req.body.createdAt
     const plan = await Plan.findOne({user:findUser})
     const date = new Date(createdAt).toString()
+    const prevSessions = await Training.find({user:findUser,type:day})
+    const prevSession = prevSessions[prevSessions.length-1]
     const newTraining = await Training.create({user:findUser,type:day,exercises:exercises,createdAt:date,plan:plan})
+    calculateElo(newTraining,prevSession)
     if(newTraining) res.status(200).send({msg:'Training added'})
     else res.status(404).send({msg:'Error, We didnt add your training!'})
 }
@@ -60,4 +64,15 @@ exports.checkPreviousTrainingSession=async(req:Request<Params>,res:Response<Resp
     const prevSession = prevSessions[prevSessions.length-1]
     if(prevSession) return res.status(200).send({msg:'Yes'})
     else return res.status(404).send({msg:'No'})
+}
+
+const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession)=>{
+    let score:number = 0
+    newTraining.exercises.forEach((ele:FieldScore,index:number)=>{
+        const currentScore = parseFloat(ele.score)-parseFloat(prevTraining.exercises[index].score)
+        score += currentScore
+
+    })
+    console.log(score)
+
 }
