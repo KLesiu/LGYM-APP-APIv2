@@ -13,3 +13,7 @@ export interface UserRecords{
     // user id
     id:string
 }
+export interface Rank{
+    name:string,
+    maxElo:number
+}

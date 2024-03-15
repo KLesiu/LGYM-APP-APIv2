@@ -1,5 +1,5 @@
 import User from "../models/User"
-import { RequestUser, User as UserInterface, UserRecords } from "../interfaces/User"
+import { RequestUser, User as UserInterface, UserRecords,Rank } from "../interfaces/User"
 import ResponseMessage from "../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
@@ -89,6 +89,32 @@ exports.setUserRank = async function(req:Request<Params,{},{rank:string}>,res:Re
     const rank = req.body.rank
     await User.findByIdAndUpdate(id,{rank:rank})
     return res.status(200).send({msg:'Updated'})
+}
+exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
+    const id = req.params.id
+    const user = await User.findById(id)
+    const ranks:Rank[] = [
+        {name:'Junior 1',maxElo:1000},
+        {name:'Junior 2',maxElo:2500},
+        {name:'Junior 3',maxElo:4000},
+        {name:'Mid 1',maxElo:6000},
+        {name:'Mid 2',maxElo:8000},
+        {name:'Mid 3',maxElo:10000},
+        {name:'Pro 1',maxElo:15000},
+        {name:'Pro 2',maxElo:20000},
+        {name:'Pro 3',maxElo:25000},
+        {name:'Champ',maxElo:50000}
+    ]
+    const userElo = user.elo
+    let userRank=''
+    for (let i = 0; i < ranks.length; i++) {
+    if (userElo <= ranks[i].maxElo) {
+        userRank = ranks[i].name;
+        break;
+    }
+    await User.findByIdAndUpdate(id,{profileRank:userRank})
+    return res.send({msg:userRank})
+}
 }
 
 
