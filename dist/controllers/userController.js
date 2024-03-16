@@ -96,3 +96,31 @@ exports.setUserRank = function (req, res) {
         return res.status(200).send({ msg: 'Updated' });
     });
 };
+exports.updateUserRank = function (req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const id = req.params.id;
+        const user = yield User_1.default.findById(id);
+        const ranks = [
+            { name: 'Junior 1', maxElo: 1000 },
+            { name: 'Junior 2', maxElo: 2500 },
+            { name: 'Junior 3', maxElo: 4000 },
+            { name: 'Mid 1', maxElo: 6000 },
+            { name: 'Mid 2', maxElo: 8000 },
+            { name: 'Mid 3', maxElo: 10000 },
+            { name: 'Pro 1', maxElo: 15000 },
+            { name: 'Pro 2', maxElo: 20000 },
+            { name: 'Pro 3', maxElo: 25000 },
+            { name: 'Champ', maxElo: 50000 }
+        ];
+        const userElo = user.elo;
+        let userRank = '';
+        for (let i = 0; i < ranks.length; i++) {
+            if (userElo <= ranks[i].maxElo) {
+                userRank = ranks[i].name;
+                break;
+            }
+        }
+        yield User_1.default.findByIdAndUpdate(id, { profileRank: userRank });
+        return res.send({ msg: userRank });
+    });
+};

@@ -17,4 +17,5 @@ configRouter_1.default.get('/checkToken', auth_1.checkJwtToken, (req, res) => {
     //@ts-ignore
     return res.json({ isValid: true, user: req.user });
 });
+configRouter_1.default.get('/userInfo/:id/userElo', userController.updateUserRank);
 module.exports = configRouter_1.default;
