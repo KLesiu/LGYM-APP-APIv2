@@ -112,8 +112,9 @@ exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<R
         userRank = ranks[i].name;
         break;
     }}
+    
     await User.findByIdAndUpdate(id,{profileRank:userRank})
-    return res.send({msg:userRank})
+    return res.send({msg:userRank,isNew:user.profileRank === userRank?false:true})
 }
 
 

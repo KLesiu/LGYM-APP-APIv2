@@ -121,6 +121,6 @@ exports.updateUserRank = function (req, res) {
             }
         }
         yield User_1.default.findByIdAndUpdate(id, { profileRank: userRank });
-        return res.send({ msg: userRank });
+        return res.send({ msg: userRank, isNew: user.profileRank === userRank ? false : true });
     });
 };
