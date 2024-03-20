@@ -81,8 +81,15 @@ exports.checkPreviousTrainingSession = (req, res) => __awaiter(void 0, void 0, v
 const calculateElo = (newTraining, prevTraining) => {
     let score = 0;
     newTraining.exercises.forEach((ele, index) => {
-        const currentScore = parseFloat(ele.score) - parseFloat(prevTraining.exercises[index].score);
+        let currentScore;
+        try {
+            currentScore = parseFloat(ele.score) - parseFloat(prevTraining.exercises[index].score);
+        }
+        catch (_a) {
+            currentScore = 0;
+        }
         score += currentScore;
     });
+    console.log(score);
     return score;
 };

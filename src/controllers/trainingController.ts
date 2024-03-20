@@ -70,7 +70,13 @@ exports.checkPreviousTrainingSession=async(req:Request<Params>,res:Response<Resp
 const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):number=>{
     let score:number = 0
     newTraining.exercises.forEach((ele:FieldScore,index:number)=>{
-        const currentScore = parseFloat(ele.score)-parseFloat(prevTraining.exercises[index].score)
+        let currentScore;
+        try{
+         currentScore = parseFloat(ele.score)-parseFloat(prevTraining.exercises[index].score)
+        }catch{
+            currentScore = 0
+        }
+        
         score += currentScore
 
     })

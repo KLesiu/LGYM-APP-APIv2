@@ -101,8 +101,8 @@ exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<R
         {name:'Mid 2',maxElo:8000},
         {name:'Mid 3',maxElo:10000},
         {name:'Pro 1',maxElo:15000},
-        {name:'Pro 2',maxElo:20000},
-        {name:'Pro 3',maxElo:25000},
+        {name:'Pro 2',maxElo:30000},
+        {name:'Pro 3',maxElo:40000},
         {name:'Champ',maxElo:50000}
     ]
     const userElo = user.elo
