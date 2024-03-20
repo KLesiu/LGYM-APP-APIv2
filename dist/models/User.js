@@ -15,7 +15,8 @@ const UserSchema = new configModels_1.default({
     Sq: { type: Number, required: false },
     Dl: { type: Number, required: false },
     Bp: { type: Number, required: false },
-    profileRank: { type: String, required: false }
+    profileRank: { type: String, required: false },
+    elo: { type: Number, required: false }
 }, {
     timestamps: true
 });

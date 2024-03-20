@@ -24,7 +24,11 @@ exports.addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const createdAt = req.body.createdAt;
     const plan = yield Plan_1.default.findOne({ user: findUser });
     const date = new Date(createdAt).toString();
+    const prevSessions = yield Training_1.default.find({ user: findUser, type: day });
+    const prevSession = prevSessions[prevSessions.length - 1];
     const newTraining = yield Training_1.default.create({ user: findUser, type: day, exercises: exercises, createdAt: date, plan: plan });
+    if (prevSession)
+        yield User_1.default.findByIdAndUpdate(id, { elo: findUser.elo += calculateElo(newTraining, prevSession) });
     if (newTraining)
         res.status(200).send({ msg: 'Training added' });
     else
@@ -74,3 +78,18 @@ exports.checkPreviousTrainingSession = (req, res) => __awaiter(void 0, void 0, v
     else
         return res.status(404).send({ msg: 'No' });
 });
+const calculateElo = (newTraining, prevTraining) => {
+    let score = 0;
+    newTraining.exercises.forEach((ele, index) => {
+        let currentScore;
+        try {
+            currentScore = parseFloat(ele.score) - parseFloat(prevTraining.exercises[index].score);
+        }
+        catch (_a) {
+            currentScore = 0;
+        }
+        score += currentScore;
+    });
+    console.log(score);
+    return score;
+};

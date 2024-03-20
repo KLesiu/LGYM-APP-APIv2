@@ -1,3 +1,4 @@
 export default interface ResponseMessage{
-    msg:string
+    msg:string,
+    isNew?:boolean
 }

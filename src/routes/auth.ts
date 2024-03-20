@@ -14,5 +14,6 @@ Router.get('/checkToken',checkJwtToken,(req:Request,res:Response<{isValid:boolea
     //@ts-ignore
     return res.json({isValid:true,user:req.user})
 })
+Router.get('/userInfo/:id/userElo',userController.updateUserRank)
 
 module.exports = Router
