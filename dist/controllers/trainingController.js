@@ -90,6 +90,5 @@ const calculateElo = (newTraining, prevTraining) => {
         }
         score += currentScore;
     });
-    console.log(score);
     return score;
 };
