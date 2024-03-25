@@ -76,7 +76,7 @@ const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):
         }catch{
             currentScore = 0
         }
-        
+        if(currentScore > 200) score=200
         score += currentScore
 
     })
