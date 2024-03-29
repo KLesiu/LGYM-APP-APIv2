@@ -72,7 +72,8 @@ const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):
     newTraining.exercises.forEach((ele:FieldScore,index:number)=>{
         let currentScore;
         try{
-         currentScore = parseFloat(ele.score)-parseFloat(prevTraining.exercises[index].score)
+        prevTraining.exercises[index].score==="0"?
+         currentScore = parseFloat(ele.score)-parseFloat(prevTraining.exercises[index].score): currentScore=0
         }catch{
             currentScore = 0
         }
