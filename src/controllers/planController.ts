@@ -72,8 +72,9 @@ exports.deletePlan=async(req:Request<Params>,res:Response<ResponseMessage>)=>{
 
 exports.getSharedPlan=async(req:Request<Params>,res:Response<ResponseMessage>)=>{
     const user = await User.findById(req.params.id)
-    const id = req.body.userId
-    const findUser = await User.findById(id)
+    const name = req.body.userName
+    const findUser = await User.findOne({name:name})
+    if(!findUser || name === user.name) return
     const userPlan = await Plan.findOne({user:findUser})
     const sharedPlan = {
         name: userPlan.name,

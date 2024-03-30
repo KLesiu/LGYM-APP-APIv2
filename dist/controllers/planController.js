@@ -79,8 +79,11 @@ exports.deletePlan = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.getSharedPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.default.findById(req.params.id);
-    const id = req.body.userId;
-    const findUser = yield User_1.default.findById(id);
+    const name = req.body.userName;
+    const findUser = yield User_1.default.findOne({ name: name });
+    if (!findUser || name === user.name)
+        return;
+    console.log(findUser);
     const userPlan = yield Plan_1.default.findOne({ user: findUser });
     const sharedPlan = {
         name: userPlan.name,

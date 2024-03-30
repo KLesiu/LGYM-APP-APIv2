@@ -83,7 +83,8 @@ const calculateElo = (newTraining, prevTraining) => {
     newTraining.exercises.forEach((ele, index) => {
         let currentScore;
         try {
-            currentScore = parseFloat(ele.score) - parseFloat(prevTraining.exercises[index].score);
+            prevTraining.exercises[index].score === "0" ?
+                currentScore = parseFloat(ele.score) - parseFloat(prevTraining.exercises[index].score) : currentScore = 0;
         }
         catch (_a) {
             currentScore = 0;
