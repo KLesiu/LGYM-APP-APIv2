@@ -17,7 +17,7 @@ exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<Re
     const createdAt = req.body.createdAt
     const plan = await Plan.findOne({user:findUser})
     const date = new Date(createdAt).toString()
-    const prevSessions = await Training.find({user:findUser,type:day})
+    const prevSessions = await Training.find({user:findUser,type:day,plan:plan})
     const prevSession = prevSessions[prevSessions.length-1]
     const newTraining = await Training.create({user:findUser,type:day,exercises:exercises,createdAt:date,plan:plan})
     if(prevSession)await User.findByIdAndUpdate(id,{elo:findUser.elo += calculateElo(newTraining,prevSession)}) 
@@ -72,12 +72,12 @@ const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):
     newTraining.exercises.forEach((ele:FieldScore,index:number)=>{
         let currentScore;
         try{
-        prevTraining.exercises[index].score==="0"?
+        prevTraining.exercises[index].score!=="0"?
          currentScore = parseFloat(ele.score)-parseFloat(prevTraining.exercises[index].score): currentScore=0
         }catch{
             currentScore = 0
         }
-        if(currentScore > 200) score=200
+        if(currentScore > 100) currentScore=100
         score += currentScore
 
     })
