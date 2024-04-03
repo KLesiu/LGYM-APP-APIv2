@@ -20,7 +20,7 @@ exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<Re
     const prevSessions = await Training.find({user:findUser,type:day,plan:plan})
     const prevSession = prevSessions[prevSessions.length-1]
     const newTraining = await Training.create({user:findUser,type:day,exercises:exercises,createdAt:date,plan:plan})
-    if(prevSession)await User.findByIdAndUpdate(id,{elo:findUser.elo += calculateElo(newTraining,prevSession)}) 
+    if(prevSessions.length >0)await User.findByIdAndUpdate(id,{elo:findUser.elo += calculateElo(newTraining,prevSession)}) 
     if(newTraining) res.status(200).send({msg:'Training added'})
     else res.status(404).send({msg:'Error, We didnt add your training!'})
 }

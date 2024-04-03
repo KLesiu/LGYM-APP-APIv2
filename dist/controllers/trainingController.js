@@ -24,9 +24,13 @@ exports.addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const createdAt = req.body.createdAt;
     const plan = yield Plan_1.default.findOne({ user: findUser });
     const date = new Date(createdAt).toString();
-    const prevSessions = yield Training_1.default.find({ user: findUser, type: day });
+    const prevSessions = yield Training_1.default.find({ user: findUser, type: day, plan: plan });
     const prevSession = prevSessions[prevSessions.length - 1];
     const newTraining = yield Training_1.default.create({ user: findUser, type: day, exercises: exercises, createdAt: date, plan: plan });
+    console.log(prevSessions);
+    console.log(prevSessions.length);
+    console.log(prevSession);
+    console.log(typeof prevSession);
     if (prevSession)
         yield User_1.default.findByIdAndUpdate(id, { elo: findUser.elo += calculateElo(newTraining, prevSession) });
     if (newTraining)
@@ -83,14 +87,14 @@ const calculateElo = (newTraining, prevTraining) => {
     newTraining.exercises.forEach((ele, index) => {
         let currentScore;
         try {
-            prevTraining.exercises[index].score === "0" ?
+            prevTraining.exercises[index].score !== "0" ?
                 currentScore = parseFloat(ele.score) - parseFloat(prevTraining.exercises[index].score) : currentScore = 0;
         }
         catch (_a) {
             currentScore = 0;
         }
-        if (currentScore > 200)
-            score = 200;
+        if (currentScore > 100)
+            currentScore = 100;
         score += currentScore;
     });
     return score;
