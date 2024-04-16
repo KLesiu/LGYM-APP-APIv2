@@ -27,11 +27,7 @@ exports.addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const prevSessions = yield Training_1.default.find({ user: findUser, type: day, plan: plan });
     const prevSession = prevSessions[prevSessions.length - 1];
     const newTraining = yield Training_1.default.create({ user: findUser, type: day, exercises: exercises, createdAt: date, plan: plan });
-    console.log(prevSessions);
-    console.log(prevSessions.length);
-    console.log(prevSession);
-    console.log(typeof prevSession);
-    if (prevSession)
+    if (prevSessions.length > 0)
         yield User_1.default.findByIdAndUpdate(id, { elo: findUser.elo += calculateElo(newTraining, prevSession) });
     if (newTraining)
         res.status(200).send({ msg: 'Training added' });
@@ -51,6 +47,17 @@ exports.getTrainingHistory = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
     else
         return res.status(404).send({ msg: 'Error, we dont find You in our database. Please logout and login one more time.' });
+});
+exports.getTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findUser = yield User_1.default.findById(id);
+    if (!findUser)
+        return res.status(404).send({ msg: 'Error, we dont find you in our database.' });
+    const trainings = yield Training_1.default.find({ user: findUser });
+    const training = trainings.filter((training) => compareDates(new Date(req.body.createdAt), new Date(training.createdAt)));
+    if (training.length < 1)
+        return res.status(404).send({ msg: 'Error, we dont find training with send date' });
+    return res.status(200).send(training[0]);
 });
 exports.getCurrentTrainingSession = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
@@ -99,3 +106,6 @@ const calculateElo = (newTraining, prevTraining) => {
     });
     return score;
 };
+const compareDates = (firstDate, secondDate) => (firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth() &&
+    firstDate.getDate() === secondDate.getDate());
