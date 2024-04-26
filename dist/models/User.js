@@ -16,7 +16,8 @@ const UserSchema = new configModels_1.default({
     Dl: { type: Number, required: false },
     Bp: { type: Number, required: false },
     profileRank: { type: String, required: false },
-    elo: { type: Number, required: false }
+    elo: { type: Number, required: false },
+    measurements: { type: configModels_1.default.Types.ObjectId, ref: 'Measurements', required: false }
 }, {
     timestamps: true
 });

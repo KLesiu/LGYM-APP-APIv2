@@ -11,7 +11,8 @@ const UserSchema = new Schema({
     Dl: {type:Number,required:false},
     Bp: {type:Number,required:false},
     profileRank:{type:String,required:false},
-    elo:{type:Number,required:false}
+    elo:{type:Number,required:false},
+    measurements:{type:Schema.Types.ObjectId,ref:'Measurements',required:false}
     
 
 
