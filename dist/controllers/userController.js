@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const User_1 = __importDefault(require("../models/User"));
+const Message_1 = require("../enums/Message");
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
@@ -85,7 +86,7 @@ exports.setUserRecords = function (req, res) {
         yield User_1.default.findByIdAndUpdate(id, { Sq: req.body.sq });
         yield User_1.default.findByIdAndUpdate(id, { Dl: req.body.dl });
         yield User_1.default.findByIdAndUpdate(id, { Bp: req.body.bp });
-        return res.status(200).send({ msg: 'Updated' });
+        return res.status(200).send({ msg: Message_1.Message.Updated });
     });
 };
 exports.setUserRank = function (req, res) {
@@ -93,7 +94,7 @@ exports.setUserRank = function (req, res) {
         const id = req.params.id;
         const rank = req.body.rank;
         yield User_1.default.findByIdAndUpdate(id, { rank: rank });
-        return res.status(200).send({ msg: 'Updated' });
+        return res.status(200).send({ msg: Message_1.Message.Updated });
     });
 };
 exports.updateUserRank = function (req, res) {
@@ -122,5 +123,16 @@ exports.updateUserRank = function (req, res) {
         }
         yield User_1.default.findByIdAndUpdate(id, { profileRank: userRank });
         return res.send({ msg: userRank, isNew: user.profileRank === userRank ? false : true });
+    });
+};
+exports.getUserElo = function (req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const id = req.params.id;
+        const result = yield User_1.default.findById(id);
+        if (!result)
+            return res.status(404).send({ msg: Message_1.Message.DidntFind });
+        return res.status(200).send({
+            elo: result.elo
+        });
     });
 };

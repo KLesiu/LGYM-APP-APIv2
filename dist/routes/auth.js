@@ -18,4 +18,5 @@ configRouter_1.default.get('/checkToken', auth_1.checkJwtToken, (req, res) => {
     return res.json({ isValid: true, user: req.user });
 });
 configRouter_1.default.get('/userInfo/:id/userElo', userController.updateUserRank);
+configRouter_1.default.get('/userInfo/:id/getUserEloPoints', userController.getUserElo);
 module.exports = configRouter_1.default;

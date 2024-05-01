@@ -1,8 +1,9 @@
 import User from "../models/User"
-import { RequestUser, User as UserInterface, UserRecords,Rank } from "../interfaces/User"
-import ResponseMessage from "../interfaces/ResponseMessage"
+import { RequestUser, User as UserInterface, UserRecords,Rank,UserElo } from "./../interfaces/User"
+import ResponseMessage from "./../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
+import { Message } from "../enums/Message"
 const {body, validationResult}= require("express-validator")
 const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")
@@ -81,14 +82,14 @@ exports.setUserRecords = async function(req:Request<{},{},UserRecords>,res:Respo
     await User.findByIdAndUpdate(id,{Sq:req.body.sq})
     await User.findByIdAndUpdate(id,{Dl:req.body.dl})
     await User.findByIdAndUpdate(id,{Bp:req.body.bp})
-    return res.status(200).send({msg:'Updated'})
+    return res.status(200).send({msg:Message.Updated})
 }
 
 exports.setUserRank = async function(req:Request<Params,{},{rank:string}>,res:Response<ResponseMessage>){
     const id = req.params.id
     const rank = req.body.rank
     await User.findByIdAndUpdate(id,{rank:rank})
-    return res.status(200).send({msg:'Updated'})
+    return res.status(200).send({msg:Message.Updated})
 }
 exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
     const id = req.params.id
@@ -115,6 +116,16 @@ exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<R
     
     await User.findByIdAndUpdate(id,{profileRank:userRank})
     return res.send({msg:userRank,isNew:user.profileRank === userRank?false:true})
+}
+
+exports.getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserElo | ResponseMessage>){
+    const id:string = req.params.id
+    const result:typeof User = await User.findById(id)
+    if(!result) return res.status(404).send({msg:Message.DidntFind}) 
+    return res.status(200).send({
+        elo: result.elo
+    })
+
 }
 
 

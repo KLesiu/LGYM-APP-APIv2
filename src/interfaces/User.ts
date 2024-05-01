@@ -17,3 +17,6 @@ export interface Rank{
     name:string,
     maxElo:number
 }
+export interface UserElo{
+    elo: number
+}
