@@ -12,6 +12,8 @@ const MeasurementsSchema = new Schema({
     thigh:{type:Number,required:false},
     calf:{type:Number,required:false}
 
+},{
+    timestamps:true
 })
 const Measurements = mongoose.model('Measurements',MeasurementsSchema)
 export default Measurements

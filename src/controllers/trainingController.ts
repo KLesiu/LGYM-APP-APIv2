@@ -4,9 +4,10 @@ import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
 import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession } from "../interfaces/Training"
-import ResponseMessage from "../interfaces/ResponseMessage"
-import User from "../models/User"
-import FieldScore from "../interfaces/FieldScore"
+import ResponseMessage from "./../interfaces/ResponseMessage"
+import User from "./../models/User"
+import FieldScore from "./../interfaces/FieldScore"
+import { compareDates } from "./../helpers/DatesHelpers"
 
 
 exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<ResponseMessage>)=>{
@@ -94,10 +95,3 @@ const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):
     
 
 }
-
-const compareDates = (firstDate:Date,secondDate:Date):boolean=>
-    (
-        firstDate.getFullYear() === secondDate.getFullYear() &&
-        firstDate.getMonth() === secondDate.getMonth() &&
-        firstDate.getDate() === secondDate.getDate()
-    )

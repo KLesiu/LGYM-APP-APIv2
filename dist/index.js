@@ -19,6 +19,7 @@ const cors = require("cors");
 const auth = require("./routes/auth");
 const plan = require('./routes/plan');
 const training = require("./routes/training");
+const measurements = require("./routes/measurements");
 const mongoose = require("mongoose");
 // Mongoose connection
 mongoose.set("strictQuery", false);
@@ -42,6 +43,7 @@ passport();
 app.use('/api', auth);
 app.use('/api', plan);
 app.use('/api', training);
+app.use("/api", measurements);
 module.exports = app;
 // Server
 const server = require('./server');

@@ -15,7 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const Training_1 = __importDefault(require("../models/Training"));
 const Plan_1 = __importDefault(require("../models/Plan"));
-const User_1 = __importDefault(require("../models/User"));
+const User_1 = __importDefault(require("./../models/User"));
+const DatesHelpers_1 = require("./../helpers/DatesHelpers");
 exports.addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
@@ -54,7 +55,7 @@ exports.getTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     if (!findUser)
         return res.status(404).send({ msg: 'Error, we dont find you in our database.' });
     const trainings = yield Training_1.default.find({ user: findUser });
-    const training = trainings.filter((training) => compareDates(new Date(req.body.createdAt), new Date(training.createdAt)));
+    const training = trainings.filter((training) => (0, DatesHelpers_1.compareDates)(new Date(req.body.createdAt), new Date(training.createdAt)));
     if (training.length < 1)
         return res.status(404).send({ msg: 'Error, we dont find training with send date' });
     return res.status(200).send(training[0]);
@@ -106,6 +107,3 @@ const calculateElo = (newTraining, prevTraining) => {
     });
     return score;
 };
-const compareDates = (firstDate, secondDate) => (firstDate.getFullYear() === secondDate.getFullYear() &&
-    firstDate.getMonth() === secondDate.getMonth() &&
-    firstDate.getDate() === secondDate.getDate());
