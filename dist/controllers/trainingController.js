@@ -17,6 +17,7 @@ const Training_1 = __importDefault(require("../models/Training"));
 const Plan_1 = __importDefault(require("../models/Plan"));
 const User_1 = __importDefault(require("./../models/User"));
 const DatesHelpers_1 = require("./../helpers/DatesHelpers");
+const userController_1 = require("./userController");
 exports.addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
@@ -69,6 +70,16 @@ exports.getCurrentTrainingSession = (req, res) => __awaiter(void 0, void 0, void
     else
         return res.status(404).send({ msg: 'We dont find your training session!, Please logout and login one more time' });
 });
+exports.getLastTrainingSession = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findUser = yield User_1.default.findById(id);
+    if (!findUser)
+        return res.status(404).send({ msg: 'Error we dont find you! Please logout and login one more time' });
+    const trainings = yield Training_1.default.find({ user: findUser });
+    if (!trainings || trainings.length === 0)
+        return res.status(404).send({ msg: 'You dont have trainings!' });
+    return res.status(200).send(trainings.reverse()[0]);
+});
 exports.getPreviousTrainingSession = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const findUser = yield User_1.default.findById(userId);
@@ -90,6 +101,26 @@ exports.checkPreviousTrainingSession = (req, res) => __awaiter(void 0, void 0, v
     else
         return res.status(404).send({ msg: 'No' });
 });
+exports.getInfoAboutRankAndElo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.id;
+    const findUser = yield User_1.default.findById(userId);
+    const userRank = findUser.profileRank;
+    const userElo = findUser.elo;
+    const nextRankLevel = findRank(userElo);
+    return res.status(200).send({ elo: userElo, rank: userRank, nextRank: nextRankLevel === null || nextRankLevel === void 0 ? void 0 : nextRankLevel.rank, nextRankElo: nextRankLevel === null || nextRankLevel === void 0 ? void 0 : nextRankLevel.elo, startRankElo: nextRankLevel === null || nextRankLevel === void 0 ? void 0 : nextRankLevel.startElo });
+});
+const findRank = (elo) => {
+    for (let i = 0; i < userController_1.ranks.length; i++) {
+        if (elo <= userController_1.ranks[i].maxElo) {
+            return {
+                elo: userController_1.ranks[i].maxElo,
+                rank: userController_1.ranks[i + 1].name,
+                startElo: i === 0 ? 0 : userController_1.ranks[i - 1].maxElo
+            };
+        }
+    }
+    return null;
+};
 const calculateElo = (newTraining, prevTraining) => {
     let score = 0;
     newTraining.exercises.forEach((ele, index) => {

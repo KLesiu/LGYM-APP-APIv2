@@ -3,11 +3,12 @@ import { Request,Response } from "express"
 import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
-import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession } from "../interfaces/Training"
+import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo } from "../interfaces/Training"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import User from "./../models/User"
 import FieldScore from "./../interfaces/FieldScore"
 import { compareDates } from "./../helpers/DatesHelpers"
+import { ranks } from "./userController"
 
 
 exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<ResponseMessage>)=>{
@@ -55,7 +56,15 @@ exports.getCurrentTrainingSession=async(req:Request<Params>,res:Response<FoundTr
     }
     else return res.status(404).send({msg:'We dont find your training session!, Please logout and login one more time'})
 }
+exports.getLastTrainingSession=async(req:Request<Params>,res:Response<TrainingSession | ResponseMessage>)=>{
+    const id = req.params.id
+    const findUser = await User.findById(id)
+    if(!findUser)return res.status(404).send({msg:'Error we dont find you! Please logout and login one more time'})
+    const trainings = await Training.find({user:findUser})
+    if(!trainings || trainings.length === 0) return res.status(404).send({msg:'You dont have trainings!'})
+    return res.status(200).send(trainings.reverse()[0])
 
+}
 exports.getPreviousTrainingSession=async(req:Request<Params>,res:Response<FoundTraining | ResponseMessage>)=>{
     const userId = req.params.id
     const findUser = await User.findById(userId)
@@ -76,7 +85,28 @@ exports.checkPreviousTrainingSession=async(req:Request<Params>,res:Response<Resp
     else return res.status(404).send({msg:'No'})
 }
 
+exports.getInfoAboutRankAndElo=async(req:Request<Params>,res:Response<RankInfo>)=>{
+    const userId = req.params.id
+    const findUser = await User.findById(userId)
+    const userRank = findUser.profileRank
+    const userElo = findUser.elo
+    const nextRankLevel = findRank(userElo)
+    return res.status(200).send({elo:userElo,rank:userRank,nextRank:nextRankLevel?.rank!,nextRankElo:nextRankLevel?.elo!,startRankElo:nextRankLevel?.startElo!})
+}
 
+
+const findRank=(elo:number)=> {
+    for (let i = 0; i < ranks.length; i++) {
+      if (elo <= ranks[i].maxElo) {
+        return {
+            elo:ranks[i].maxElo,
+            rank:ranks[i+1].name,
+            startElo:i===0?0:ranks[i-1].maxElo
+        }
+      }
+    }
+    return null
+  }
 const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):number=>{
     let score:number = 0
     newTraining.exercises.forEach((ele:FieldScore,index:number)=>{

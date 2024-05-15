@@ -19,3 +19,11 @@ export interface TrainingSession{
     createdAt:string,
     plan:string
 }
+
+export interface RankInfo{
+    rank:string,
+    elo:number,
+    nextRank:string,
+    nextRankElo:number,
+    startRankElo:number
+}

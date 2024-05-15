@@ -12,12 +12,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+exports.ranks = [
+    { name: 'Junior 1', maxElo: 1000 },
+    { name: 'Junior 2', maxElo: 2500 },
+    { name: 'Junior 3', maxElo: 4000 },
+    { name: 'Mid 1', maxElo: 6000 },
+    { name: 'Mid 2', maxElo: 8000 },
+    { name: 'Mid 3', maxElo: 10000 },
+    { name: 'Pro 1', maxElo: 15000 },
+    { name: 'Pro 2', maxElo: 30000 },
+    { name: 'Pro 3', maxElo: 40000 },
+    { name: 'Champ', maxElo: 50000 }
+];
 exports.register = [
     body("name").trim().isLength({ min: 1 }).withMessage("Name is required, and has to have minimum one character"),
     body('email').isEmail().withMessage('This email is not valid!'),
@@ -101,23 +114,11 @@ exports.updateUserRank = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
         const user = yield User_1.default.findById(id);
-        const ranks = [
-            { name: 'Junior 1', maxElo: 1000 },
-            { name: 'Junior 2', maxElo: 2500 },
-            { name: 'Junior 3', maxElo: 4000 },
-            { name: 'Mid 1', maxElo: 6000 },
-            { name: 'Mid 2', maxElo: 8000 },
-            { name: 'Mid 3', maxElo: 10000 },
-            { name: 'Pro 1', maxElo: 15000 },
-            { name: 'Pro 2', maxElo: 30000 },
-            { name: 'Pro 3', maxElo: 40000 },
-            { name: 'Champ', maxElo: 50000 }
-        ];
         const userElo = user.elo;
         let userRank = '';
-        for (let i = 0; i < ranks.length; i++) {
-            if (userElo <= ranks[i].maxElo) {
-                userRank = ranks[i].name;
+        for (let i = 0; i < exports.ranks.length; i++) {
+            if (userElo <= exports.ranks[i].maxElo) {
+                userRank = exports.ranks[i].name;
                 break;
             }
         }

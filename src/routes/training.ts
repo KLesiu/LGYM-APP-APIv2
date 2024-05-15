@@ -6,5 +6,7 @@ Router.get('/:id/getTrainingSession',trainingController.getCurrentTrainingSessio
 Router.get('/:id/getPrevSessionTraining/:day',trainingController.getPreviousTrainingSession)
 Router.get(`/:id/checkPrevSessionTraining/:day`,trainingController.checkPreviousTrainingSession)
 Router.post('/:id/getTraining',trainingController.getTraining)
+Router.get('/:id/getLastTraining',trainingController.getLastTrainingSession)
+Router.get('/:id/getInfoAboutRankAndElo',trainingController.getInfoAboutRankAndElo)
 
 module.exports = Router

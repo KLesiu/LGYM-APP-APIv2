@@ -9,6 +9,19 @@ const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
+export const ranks:Rank[] = [
+    {name:'Junior 1',maxElo:1000},
+    {name:'Junior 2',maxElo:2500},
+    {name:'Junior 3',maxElo:4000},
+    {name:'Mid 1',maxElo:6000},
+    {name:'Mid 2',maxElo:8000},
+    {name:'Mid 3',maxElo:10000},
+    {name:'Pro 1',maxElo:15000},
+    {name:'Pro 2',maxElo:30000},
+    {name:'Pro 3',maxElo:40000},
+    {name:'Champ',maxElo:50000}
+]
+
 interface CustomRequestUser extends Request{
     user: typeof User
 }
@@ -94,18 +107,6 @@ exports.setUserRank = async function(req:Request<Params,{},{rank:string}>,res:Re
 exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
     const id = req.params.id
     const user = await User.findById(id)
-    const ranks:Rank[] = [
-        {name:'Junior 1',maxElo:1000},
-        {name:'Junior 2',maxElo:2500},
-        {name:'Junior 3',maxElo:4000},
-        {name:'Mid 1',maxElo:6000},
-        {name:'Mid 2',maxElo:8000},
-        {name:'Mid 3',maxElo:10000},
-        {name:'Pro 1',maxElo:15000},
-        {name:'Pro 2',maxElo:30000},
-        {name:'Pro 3',maxElo:40000},
-        {name:'Champ',maxElo:50000}
-    ]
     const userElo = user.elo
     let userRank=''
     for (let i = 0; i < ranks.length; i++) {
