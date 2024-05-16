@@ -10,16 +10,16 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
 export const ranks:Rank[] = [
-    {name:'Junior 1',maxElo:1000},
-    {name:'Junior 2',maxElo:2500},
-    {name:'Junior 3',maxElo:4000},
-    {name:'Mid 1',maxElo:6000},
-    {name:'Mid 2',maxElo:8000},
-    {name:'Mid 3',maxElo:10000},
-    {name:'Pro 1',maxElo:15000},
-    {name:'Pro 2',maxElo:30000},
-    {name:'Pro 3',maxElo:40000},
-    {name:'Champ',maxElo:50000}
+    {name:'Junior 1',maxElo:1000},// 0-1000
+    {name:'Junior 2',maxElo:2500}, //1000 - 2500
+    {name:'Junior 3',maxElo:4000}, //2500 - 4000
+    {name:'Mid 1',maxElo:5000}, //4000 - 5000
+    {name:'Mid 2',maxElo:6000}, // 5000 - 6000
+    {name:'Mid 3',maxElo:7000}, // 6000 - 7000
+    {name:'Pro 1',maxElo:10000},// 7000 - 10000
+    {name:'Pro 2',maxElo:13000},// 10 000 - 13 000
+    {name:'Pro 3',maxElo:17000}, // 13 000 - 17 000
+    {name:'Champ',maxElo:20000} // 17 000 - to the sky
 ]
 
 interface CustomRequestUser extends Request{
