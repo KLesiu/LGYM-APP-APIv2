@@ -48,6 +48,11 @@ exports.setPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const findUser = yield User_1.default.findById(id);
     const findPlan = yield Plan_1.default.findOne({ user: findUser });
     const days = req.body.days.days;
+    days.forEach(day => {
+        if (day.exercises.length === 0) {
+            return res.status(500).send({ msg: 'Error you have empty day training!' });
+        }
+    });
     const result = yield (0, PlanHelpers_1.updatePlan)(findPlan, days.length, days);
     return res.send(result);
 });
