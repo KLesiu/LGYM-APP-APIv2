@@ -27,3 +27,7 @@ export interface RankInfo{
     nextRankElo:number,
     startRankElo:number
 }
+
+export interface TrainingsDates{
+    dates: Date[]
+}

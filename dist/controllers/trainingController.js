@@ -18,6 +18,7 @@ const Plan_1 = __importDefault(require("../models/Plan"));
 const User_1 = __importDefault(require("./../models/User"));
 const DatesHelpers_1 = require("./../helpers/DatesHelpers");
 const userController_1 = require("./userController");
+const Message_1 = require("../enums/Message");
 exports.addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
@@ -109,6 +110,19 @@ exports.getInfoAboutRankAndElo = (req, res) => __awaiter(void 0, void 0, void 0,
     const nextRankLevel = findRank(userElo);
     return res.status(200).send({ elo: userElo, rank: userRank, nextRank: nextRankLevel === null || nextRankLevel === void 0 ? void 0 : nextRankLevel.rank, nextRankElo: nextRankLevel === null || nextRankLevel === void 0 ? void 0 : nextRankLevel.elo, startRankElo: nextRankLevel === null || nextRankLevel === void 0 ? void 0 : nextRankLevel.startElo });
 });
+exports.getTrainingDates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.id;
+    // const interval= changeDays(req.body.date,10)
+    const trainings = yield Training_1.default.find({ user: userId }); // Pobierz wszystkie treningi użytkownika
+    if (trainings.length < 1)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const trainingsDates = {
+        dates: trainings.map((ele) => new Date(ele.createdAt))
+    };
+    return res.status(200).send({
+        dates: trainingsDates.dates
+    });
+});
 const findRank = (elo) => {
     for (let i = 0; i < userController_1.ranks.length; i++) {
         if (elo <= userController_1.ranks[i].maxElo) {
@@ -137,4 +151,13 @@ const calculateElo = (newTraining, prevTraining) => {
         score += currentScore;
     });
     return score;
+};
+const changeDays = (date, difference) => {
+    const result = new Date(date);
+    const startDate = result.setDate(result.getDate() - difference);
+    const endDate = result.setDate(result.getDate() + difference);
+    return {
+        startDate: startDate,
+        endDate: endDate
+    };
 };

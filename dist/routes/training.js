@@ -13,4 +13,5 @@ configRouter_1.default.get(`/:id/checkPrevSessionTraining/:day`, trainingControl
 configRouter_1.default.post('/:id/getTraining', trainingController.getTraining);
 configRouter_1.default.get('/:id/getLastTraining', trainingController.getLastTrainingSession);
 configRouter_1.default.get('/:id/getInfoAboutRankAndElo', trainingController.getInfoAboutRankAndElo);
+configRouter_1.default.post("/:id/getTrainingDates", trainingController.getTrainingDates);
 module.exports = configRouter_1.default;

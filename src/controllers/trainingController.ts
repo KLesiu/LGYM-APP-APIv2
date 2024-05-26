@@ -3,12 +3,13 @@ import { Request,Response } from "express"
 import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
-import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo } from "../interfaces/Training"
+import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo, TrainingsDates } from "../interfaces/Training"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import User from "./../models/User"
 import FieldScore from "./../interfaces/FieldScore"
 import { compareDates } from "./../helpers/DatesHelpers"
 import { ranks } from "./userController"
+import { Message } from "../enums/Message"
 
 
 exports.addTraining=async(req:Request<Params,{},AddTrainingBody>,res:Response<ResponseMessage>)=>{
@@ -94,6 +95,20 @@ exports.getInfoAboutRankAndElo=async(req:Request<Params>,res:Response<RankInfo>)
     return res.status(200).send({elo:userElo,rank:userRank,nextRank:nextRankLevel?.rank!,nextRankElo:nextRankLevel?.elo!,startRankElo:nextRankLevel?.startElo!})
 }
 
+exports.getTrainingDates=async(req:Request<Params,{},{date:Date}>,res:Response<TrainingsDates | ResponseMessage>)=>{
+    const userId = req.params.id
+    // const interval= changeDays(req.body.date,10)
+    const trainings= await Training.find({ user: userId }); // Pobierz wszystkie treningi użytkownika
+    if(trainings.length < 1) return res.status(404).send({msg:Message.DidntFind})
+    const trainingsDates:TrainingsDates = {
+        dates:trainings.map((ele:any)=>new Date(ele.createdAt))
+    }
+    return res.status(200).send({
+        dates:trainingsDates.dates
+    })
+    
+}
+
 
 const findRank=(elo:number)=> {
     for (let i = 0; i < ranks.length; i++) {
@@ -124,4 +139,14 @@ const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):
     return score
     
 
+}
+
+const changeDays = (date:Date,difference:number)=>{
+    const result = new Date(date)
+    const startDate = result.setDate(result.getDate()-difference)
+    const endDate = result.setDate(result.getDate()+difference)
+    return  {
+        startDate:startDate,
+        endDate:endDate
+    }
 }
