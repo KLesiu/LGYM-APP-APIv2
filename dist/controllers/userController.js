@@ -15,6 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
+const Training_1 = __importDefault(require("../models/Training"));
+const Measurements_1 = __importDefault(require("../models/Measurements"));
+const Plan_1 = __importDefault(require("../models/Plan"));
+const passport = require('passport');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
@@ -75,7 +79,15 @@ exports.register = [
 exports.login = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-        return res.status(200).send({ token: token, req: req.user });
+        const userInfo = {
+            name: req.user.name,
+            _id: req.user._id,
+            email: req.user.email,
+            Bp: req.user.Bp,
+            Dl: req.user.Dl,
+            Sq: req.user.Sq
+        };
+        return res.status(200).send({ token: token, req: userInfo });
     });
 };
 exports.isAdmin = function (req, res) {
@@ -135,5 +147,21 @@ exports.getUserElo = function (req, res) {
         return res.status(200).send({
             elo: result.elo
         });
+    });
+};
+exports.deleteAccount = function (req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const currentUser = req.user;
+        if (currentUser.email !== req.body.email)
+            return res.status(401).send({ msg: 'Wrong email!' });
+        const trainings = yield Training_1.default.find({ user: currentUser._id });
+        const measurements = yield Measurements_1.default.find({ user: currentUser._id });
+        const plans = yield Plan_1.default.find({ user: currentUser._id });
+        const trainingDeletions = trainings.map((training) => Training_1.default.findByIdAndDelete(training._id).exec());
+        const measurementDeletions = measurements.map((measurement) => Measurements_1.default.findByIdAndDelete(measurement._id).exec());
+        const planDeletions = plans.map((plan) => Plan_1.default.findByIdAndDelete(plan._id).exec());
+        yield Promise.all([...trainingDeletions, ...measurementDeletions, ...planDeletions]);
+        yield User_1.default.findByIdAndDelete(currentUser._id);
+        return res.send({ msg: Message_1.Message.Deleted });
     });
 };

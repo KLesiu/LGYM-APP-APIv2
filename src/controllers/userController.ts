@@ -4,6 +4,10 @@ import ResponseMessage from "./../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
 import { Message } from "../enums/Message"
+import Training from "../models/Training"
+import Measurements from "../models/Measurements"
+import Plan from "../models/Plan"
+const passport = require('passport')
 const {body, validationResult}= require("express-validator")
 const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")
@@ -134,6 +138,28 @@ exports.getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserE
     return res.status(200).send({
         elo: result.elo
     })
+
+}
+
+exports.deleteAccount = async function(req:Request<{},{},{email:string}>,res:Response<ResponseMessage>){
+    const currentUser = req.user
+    if(currentUser.email !== req.body.email) return res.status(401).send({msg:'Wrong email!'})
+    const trainings:typeof Training[] = await Training.find({user:currentUser._id})
+    const measurements:typeof Measurements[] =await  Measurements.find({user:currentUser._id})
+    const plans:typeof Plan =await  Plan.find({user:currentUser._id})
+    const trainingDeletions = trainings.map((training) =>
+        Training.findByIdAndDelete(training._id).exec()
+      );
+      const measurementDeletions = measurements.map((measurement) =>
+        Measurements.findByIdAndDelete(measurement._id).exec()
+      );
+      const planDeletions = plans.map((plan:typeof Plan) =>
+        Plan.findByIdAndDelete(plan._id).exec()
+      );
+    await Promise.all([...trainingDeletions, ...measurementDeletions, ...planDeletions]);
+    await User.findByIdAndDelete(currentUser._id)
+    return res.send({msg:Message.Deleted})
+
 
 }
 

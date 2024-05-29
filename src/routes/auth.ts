@@ -11,10 +11,10 @@ Router.get('/userInfo/:id',userController.getUserInfo)
 Router.post('/userRecords',userController.setUserRecords)
 Router.post('/userInfo/:id/rank',userController.setUserRank)
 Router.get('/checkToken',checkJwtToken,(req:Request,res:Response<{isValid:boolean,user:typeof User}>)=>{
-    //@ts-ignore
     return res.json({isValid:true,user:req.user})
 })
 Router.get('/userInfo/:id/userElo',userController.updateUserRank)
 Router.get('/userInfo/:id/getUserEloPoints',userController.getUserElo)
+Router.post('/deleteAccount',checkJwtToken,userController.deleteAccount)
 
 module.exports = Router
