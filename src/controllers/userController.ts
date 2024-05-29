@@ -1,5 +1,5 @@
 import User from "../models/User"
-import { RequestUser, User as UserInterface, UserRecords,Rank,UserElo } from "./../interfaces/User"
+import { RequestUser, User as UserInterface, UserRecords,Rank,UserElo, UserLoginInfo } from "./../interfaces/User"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
@@ -73,9 +73,17 @@ exports.register=[
         res.status(200).send({msg:"User created successfully!"})
     })]
 
-exports.login = async function(req:CustomRequestUser,res:Response<{token:string,req:{req:typeof User}}>){
+exports.login = async function(req:CustomRequestUser,res:Response<{token:string,req:UserLoginInfo}>){
     const token = jwt.sign({id:req.user._id},process.env.JWT_SECRET,{expiresIn:'30d'})
-    return res.status(200).send({token:token,req:req.user})
+    const userInfo = {
+        name: req.user.name,
+        _id:req.user._id,
+        email:req.user.email,
+        Bp:req.user.Bp,
+        Dl:req.user.Dl,
+        Sq:req.user.Sq
+    }
+    return res.status(200).send({token:token,req:userInfo})
 }
 
 exports.isAdmin = async function(req:Request<{},{},RequestUser>,res:Response<typeof User>){

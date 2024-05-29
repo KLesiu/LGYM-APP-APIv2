@@ -20,3 +20,11 @@ export interface Rank{
 export interface UserElo{
     elo: number
 }
+export interface UserLoginInfo{
+    name:string,
+    _id:string,
+    email:string,
+    Bp:number,
+    Dl:number,
+    Sq:number
+}
