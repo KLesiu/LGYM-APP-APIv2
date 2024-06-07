@@ -85,7 +85,8 @@ exports.getPreviousTrainingSession = (req, res) => __awaiter(void 0, void 0, voi
     const userId = req.params.id;
     const findUser = yield User_1.default.findById(userId);
     const trainingType = req.params.day;
-    const prevSession = yield Training_1.default.find({ user: findUser, type: trainingType });
+    const currentPlan = yield Plan_1.default.find({ user: userId });
+    const prevSession = yield Training_1.default.find({ user: findUser, type: trainingType, plan: currentPlan });
     if (prevSession)
         return res.status(200).send({ prevSession: prevSession[prevSession.length - 1] });
     return res.status(404).send({ msg: 'Didnt find previous session training' });
