@@ -70,7 +70,8 @@ exports.getPreviousTrainingSession=async(req:Request<Params>,res:Response<FoundT
     const userId = req.params.id
     const findUser = await User.findById(userId)
     const trainingType = req.params.day
-    const prevSession = await Training.find({user:findUser,type:trainingType})
+    const currentPlan = await Plan.find({user:userId})
+    const prevSession = await Training.find({user:findUser,type:trainingType,plan:currentPlan})
     if(prevSession) return res.status(200).send({prevSession:prevSession[prevSession.length-1]})
     return res.status(404).send({msg: 'Didnt find previous session training'})
 
