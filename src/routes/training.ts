@@ -9,5 +9,6 @@ Router.post('/:id/getTraining',trainingController.getTraining)
 Router.get('/:id/getLastTraining',trainingController.getLastTrainingSession)
 Router.get('/:id/getInfoAboutRankAndElo',trainingController.getInfoAboutRankAndElo)
 Router.post("/:id/getTrainingDates",trainingController.getTrainingDates)
+Router.get("/getBestTenUsersFromElo",trainingController.getBestTenUsersFromElo)
 
 module.exports = Router

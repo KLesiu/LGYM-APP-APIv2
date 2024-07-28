@@ -1,4 +1,5 @@
 import FieldScore from "./FieldScore"
+import User from "./../models/User"
 export interface AddTrainingBody{
     day:string,
     training:FieldScore[],
@@ -30,4 +31,10 @@ export interface RankInfo{
 
 export interface TrainingsDates{
     dates: Date[]
+}
+
+export interface UserRanking{
+    user: typeof User,
+    position:number
+
 }

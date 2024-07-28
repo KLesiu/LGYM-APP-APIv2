@@ -3,7 +3,7 @@ import { Request,Response } from "express"
 import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
-import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo, TrainingsDates } from "../interfaces/Training"
+import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo, TrainingsDates,UserRanking } from "../interfaces/Training"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import User from "./../models/User"
 import FieldScore from "./../interfaces/FieldScore"
@@ -109,6 +109,14 @@ exports.getTrainingDates=async(req:Request<Params,{},{date:Date}>,res:Response<T
     
 }
 
+exports.getBestTenUsersFromElo=async(req:Request,res:Response<UserRanking[] | ResponseMessage>)=>{
+    const users = await User.find().sort({elo:-1}).limit(10)
+    if(users.length < 1) return res.status(404).send({msg:Message.DidntFind})
+    const usersRanking =  users.map((ele:typeof User,index:number)=>{return {user:ele,position:index+1}})
+    return res.status(200).send(usersRanking)
+    
+}
+
 
 const findRank=(elo:number)=> {
     for (let i = 0; i < ranks.length; i++) {
@@ -141,12 +149,3 @@ const calculateElo = (newTraining:TrainingSession,prevTraining:TrainingSession):
 
 }
 
-const changeDays = (date:Date,difference:number)=>{
-    const result = new Date(date)
-    const startDate = result.setDate(result.getDate()-difference)
-    const endDate = result.setDate(result.getDate()+difference)
-    return  {
-        startDate:startDate,
-        endDate:endDate
-    }
-}

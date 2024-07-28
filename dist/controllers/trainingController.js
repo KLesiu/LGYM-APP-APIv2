@@ -123,6 +123,13 @@ exports.getTrainingDates = (req, res) => __awaiter(void 0, void 0, void 0, funct
         dates: trainingsDates.dates
     });
 });
+exports.getBestTenUsersFromElo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const users = yield User_1.default.find().sort({ elo: -1 }).limit(10);
+    if (users.length < 1)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const usersRanking = users.map((ele, index) => { return { user: ele, position: index + 1 }; });
+    return res.status(200).send(usersRanking);
+});
 const findRank = (elo) => {
     for (let i = 0; i < userController_1.ranks.length; i++) {
         if (elo <= userController_1.ranks[i].maxElo) {
@@ -151,13 +158,4 @@ const calculateElo = (newTraining, prevTraining) => {
         score += currentScore;
     });
     return score;
-};
-const changeDays = (date, difference) => {
-    const result = new Date(date);
-    const startDate = result.setDate(result.getDate() - difference);
-    const endDate = result.setDate(result.getDate() + difference);
-    return {
-        startDate: startDate,
-        endDate: endDate
-    };
 };
