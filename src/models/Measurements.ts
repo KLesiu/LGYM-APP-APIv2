@@ -10,7 +10,8 @@ const MeasurementsSchema = new Schema({
     abdomen:{type:Number,required:false},
     hips:{type:Number,required:false},
     thigh:{type:Number,required:false},
-    calf:{type:Number,required:false}
+    calf:{type:Number,required:false},
+    unit:{type:String,required:true},
 
 },{
     timestamps:true

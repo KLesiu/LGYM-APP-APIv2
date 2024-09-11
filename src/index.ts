@@ -6,6 +6,7 @@ const auth = require("./routes/auth")
 const plan = require('./routes/plan')
 const training = require("./routes/training")
 const measurements = require("./routes/measurements")
+const mainRecords = require("./routes/mainRecords")
 const mongoose = require("mongoose")
 
 
@@ -34,6 +35,7 @@ app.use('/api',auth)
 app.use('/api',plan)
 app.use('/api',training)
 app.use("/api",measurements)
+app.use("/api",mainRecords)
 
 
 module.exports = app

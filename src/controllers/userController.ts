@@ -72,7 +72,7 @@ exports.register=[
             
         }
        
-        const user = new User({name:name,admin:admin,email:email,rank:'Junior',profileRank:'Junior I',elo:1000})
+        const user = new User({name:name,admin:admin,email:email,profileRank:'Junior I',elo:1000})
         await User.register(user,password)
         res.status(200).send({msg:"User created successfully!"})
     })]
