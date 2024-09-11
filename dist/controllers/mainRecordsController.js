@@ -32,3 +32,54 @@ exports.addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function
     else
         res.status(404).send({ msg: Message_1.Message.TryAgain });
 });
+exports.getMainRecordsHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findUser = yield User_1.default.findById(id);
+    if (!findUser || !Object.keys(findUser).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const mainRecordsHistory = yield MainRecords_1.default.find({ user: findUser });
+    if (mainRecordsHistory.length < 1)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    return res.status(200).send(mainRecordsHistory.reverse());
+});
+exports.getLastMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findUser = yield User_1.default.findById(id);
+    if (!findUser || !Object.keys(findUser).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const mainRecordsHistory = yield MainRecords_1.default.find({ user: findUser });
+    if (mainRecordsHistory.length < 1)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const lastMainRecords = mainRecordsHistory.reduce((acc, curr) => {
+        if (!acc || curr.date > acc.date) {
+            return curr;
+        }
+        else {
+            return acc;
+        }
+    });
+    return res.status(200).send(lastMainRecords);
+});
+exports.deleteMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findMainRecords = yield MainRecords_1.default.findByIdAndDelete(id);
+    if (!findMainRecords)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    return res.status(200).send({ msg: Message_1.Message.Deleted });
+});
+exports.updateMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findMainRecords = yield MainRecords_1.default.findById(id);
+    if (!findMainRecords)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const updatedMainRecords = yield MainRecords_1.default.findByIdAndUpdate(id, {
+        benchPress: req.body.benchPress,
+        squat: req.body.squat,
+        deadLift: req.body.deadLift,
+        date: req.body.date
+    });
+    if (updatedMainRecords)
+        return res.status(200).send({ msg: Message_1.Message.Updated });
+    else
+        return res.status(404).send({ msg: Message_1.Message.TryAgain });
+});
