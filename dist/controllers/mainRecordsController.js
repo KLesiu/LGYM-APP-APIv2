@@ -15,16 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const MainRecords_1 = __importDefault(require("../models/MainRecords"));
+const Exercise_1 = __importDefault(require("../models/Exercise"));
 exports.addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser || !Object.keys(findUser).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const findExercise = yield Exercise_1.default.findById(req.body.exercise);
+    if (!findExercise || !Object.keys(findExercise).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const mainRecords = yield MainRecords_1.default.create({
         user: findUser,
-        benchPress: req.body.benchPress,
-        squat: req.body.squat,
-        deadLift: req.body.deadLift,
+        exercise: findExercise,
+        weight: req.body.weight,
         date: req.body.date
     });
     if (mainRecords)
@@ -69,13 +72,19 @@ exports.deleteMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.updateMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    const findMainRecords = yield MainRecords_1.default.findById(id);
+    const findUser = yield User_1.default.findById(id);
+    if (!findUser || !Object.keys(findUser).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const findMainRecords = yield MainRecords_1.default.findById(req.body._id);
     if (!findMainRecords)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const findExercise = yield Exercise_1.default.findById(req.body.exercise);
+    if (!findExercise || !Object.keys(findExercise).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const updatedMainRecords = yield MainRecords_1.default.findByIdAndUpdate(id, {
-        benchPress: req.body.benchPress,
-        squat: req.body.squat,
-        deadLift: req.body.deadLift,
+        user: findUser,
+        exercise: findExercise,
+        weight: req.body.weight,
         date: req.body.date
     });
     if (updatedMainRecords)

@@ -7,6 +7,8 @@ const plan = require('./routes/plan')
 const training = require("./routes/training")
 const measurements = require("./routes/measurements")
 const mainRecords = require("./routes/mainRecords")
+const exercise = require("./routes/exercise")
+const planDay = require("./routes/planDay")
 const mongoose = require("mongoose")
 
 
@@ -36,6 +38,8 @@ app.use('/api',plan)
 app.use('/api',training)
 app.use("/api",measurements)
 app.use("/api",mainRecords)
+app.use("/api",exercise)
+app.use("/api",planDay)
 
 
 module.exports = app

@@ -30,7 +30,7 @@ interface CustomRequestUser extends Request{
     user: typeof User
 }
 
-exports.register=[
+const register=[
     body("name").trim().isLength({min:1}).withMessage("Name is required, and has to have minimum one character"),
     body('email').isEmail().withMessage('This email is not valid!'),
     body('password').isLength({min:6}).withMessage('Passwword need to have minimum six characters'),
@@ -77,7 +77,7 @@ exports.register=[
         res.status(200).send({msg:"User created successfully!"})
     })]
 
-exports.login = async function(req:CustomRequestUser,res:Response<{token:string,req:UserLoginInfo}>){
+const login = async function(req:CustomRequestUser,res:Response<{token:string,req:UserLoginInfo}>){
     const token = jwt.sign({id:req.user._id},process.env.JWT_SECRET,{expiresIn:'30d'})
     const userInfo = {
         name: req.user.name,
@@ -89,18 +89,18 @@ exports.login = async function(req:CustomRequestUser,res:Response<{token:string,
     return res.status(200).send({token:token,req:userInfo})
 }
 
-exports.isAdmin = async function(req:Request<{},{},RequestUser>,res:Response<typeof User>){
+const isAdmin = async function(req:Request<{},{},RequestUser>,res:Response<typeof User>){
     const admin = await User.findById(req.body._id)
     return res.status(200).send(admin)
 }
 
-exports.getUserInfo = async function(req:Request<Params>,res:Response<string|typeof User>){
+const getUserInfo = async function(req:Request<Params>,res:Response<string|typeof User>){
     const id = req.params.id
     const UserInfo = await User.findById(id)
     if(UserInfo) return res.status(200).send(UserInfo)
     return res.status(404).send("Didnt find")   
 }
-exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
+const updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
     const id = req.params.id
     const user = await User.findById(id)
     const userElo = user.elo
@@ -114,7 +114,7 @@ exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<R
     await User.findByIdAndUpdate(id,{profileRank:userRank})
     return res.send({msg:userRank,isNew:user.profileRank === userRank?false:true})
 }
-exports.getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserElo | ResponseMessage>){
+const getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserElo | ResponseMessage>){
     const id:string = req.params.id
     const result:typeof User = await User.findById(id)
     if(!result) return res.status(404).send({msg:Message.DidntFind}) 
@@ -125,7 +125,7 @@ exports.getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserE
 }
 
 //TODO : Do poprawy
-exports.deleteAccount = async function(req:Request<{},{},{email:string}>,res:Response<ResponseMessage>){
+const deleteAccount = async function(req:Request<{},{},{email:string}>,res:Response<ResponseMessage>){
     const currentUser = req.user
     if(currentUser.email !== req.body.email) return res.status(401).send({msg:'Wrong email!'})
     const trainings:typeof Training[] = await Training.find({user:currentUser._id})
@@ -146,5 +146,7 @@ exports.deleteAccount = async function(req:Request<{},{},{email:string}>,res:Res
 
 
 }
+
+export {register,login,isAdmin,getUserInfo,updateUserRank,getUserElo,deleteAccount}
 
 

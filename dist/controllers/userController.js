@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ranks = void 0;
+exports.deleteAccount = exports.getUserElo = exports.updateUserRank = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const Training_1 = __importDefault(require("../models/Training"));
@@ -35,7 +35,7 @@ exports.ranks = [
     { name: 'Pro 3', maxElo: 17000 }, // 13 000 - 17 000
     { name: 'Champ', maxElo: 20000 } // 17 000 - to the sky
 ];
-exports.register = [
+const register = [
     body("name").trim().isLength({ min: 1 }).withMessage("Name is required, and has to have minimum one character"),
     body('email').isEmail().withMessage('This email is not valid!'),
     body('password').isLength({ min: 6 }).withMessage('Passwword need to have minimum six characters'),
@@ -76,27 +76,28 @@ exports.register = [
         res.status(200).send({ msg: "User created successfully!" });
     }))
 ];
-exports.login = function (req, res) {
+exports.register = register;
+const login = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
         const userInfo = {
             name: req.user.name,
             _id: req.user._id,
             email: req.user.email,
-            Bp: req.user.Bp,
-            Dl: req.user.Dl,
-            Sq: req.user.Sq
+            avatar: req.user.avatar
         };
         return res.status(200).send({ token: token, req: userInfo });
     });
 };
-exports.isAdmin = function (req, res) {
+exports.login = login;
+const isAdmin = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const admin = yield User_1.default.findById(req.body._id);
         return res.status(200).send(admin);
     });
 };
-exports.getUserInfo = function (req, res) {
+exports.isAdmin = isAdmin;
+const getUserInfo = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
         const UserInfo = yield User_1.default.findById(id);
@@ -105,24 +106,8 @@ exports.getUserInfo = function (req, res) {
         return res.status(404).send("Didnt find");
     });
 };
-exports.setUserRecords = function (req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const id = req.body.id;
-        yield User_1.default.findByIdAndUpdate(id, { Sq: req.body.sq });
-        yield User_1.default.findByIdAndUpdate(id, { Dl: req.body.dl });
-        yield User_1.default.findByIdAndUpdate(id, { Bp: req.body.bp });
-        return res.status(200).send({ msg: Message_1.Message.Updated });
-    });
-};
-exports.setUserRank = function (req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
-        const rank = req.body.rank;
-        yield User_1.default.findByIdAndUpdate(id, { rank: rank });
-        return res.status(200).send({ msg: Message_1.Message.Updated });
-    });
-};
-exports.updateUserRank = function (req, res) {
+exports.getUserInfo = getUserInfo;
+const updateUserRank = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
         const user = yield User_1.default.findById(id);
@@ -138,7 +123,8 @@ exports.updateUserRank = function (req, res) {
         return res.send({ msg: userRank, isNew: user.profileRank === userRank ? false : true });
     });
 };
-exports.getUserElo = function (req, res) {
+exports.updateUserRank = updateUserRank;
+const getUserElo = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
         const result = yield User_1.default.findById(id);
@@ -149,7 +135,9 @@ exports.getUserElo = function (req, res) {
         });
     });
 };
-exports.deleteAccount = function (req, res) {
+exports.getUserElo = getUserElo;
+//TODO : Do poprawy
+const deleteAccount = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const currentUser = req.user;
         if (currentUser.email !== req.body.email)
@@ -165,3 +153,4 @@ exports.deleteAccount = function (req, res) {
         return res.send({ msg: Message_1.Message.Deleted });
     });
 };
+exports.deleteAccount = deleteAccount;
