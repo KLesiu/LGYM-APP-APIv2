@@ -1,5 +1,5 @@
 import User from "../models/User"
-import { RequestUser, User as UserInterface, UserRecords,Rank,UserElo, UserLoginInfo } from "./../interfaces/User"
+import { RequestUser, User as UserInterface,Rank,UserElo, UserLoginInfo } from "./../interfaces/User"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
@@ -83,9 +83,8 @@ exports.login = async function(req:CustomRequestUser,res:Response<{token:string,
         name: req.user.name,
         _id:req.user._id,
         email:req.user.email,
-        Bp:req.user.Bp,
-        Dl:req.user.Dl,
-        Sq:req.user.Sq
+        avatar:req.user.avatar
+
     }
     return res.status(200).send({token:token,req:userInfo})
 }
@@ -101,21 +100,6 @@ exports.getUserInfo = async function(req:Request<Params>,res:Response<string|typ
     if(UserInfo) return res.status(200).send(UserInfo)
     return res.status(404).send("Didnt find")   
 }
-
-exports.setUserRecords = async function(req:Request<{},{},UserRecords>,res:Response<ResponseMessage>){
-    const id = req.body.id
-    await User.findByIdAndUpdate(id,{Sq:req.body.sq})
-    await User.findByIdAndUpdate(id,{Dl:req.body.dl})
-    await User.findByIdAndUpdate(id,{Bp:req.body.bp})
-    return res.status(200).send({msg:Message.Updated})
-}
-
-exports.setUserRank = async function(req:Request<Params,{},{rank:string}>,res:Response<ResponseMessage>){
-    const id = req.params.id
-    const rank = req.body.rank
-    await User.findByIdAndUpdate(id,{rank:rank})
-    return res.status(200).send({msg:Message.Updated})
-}
 exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
     const id = req.params.id
     const user = await User.findById(id)
@@ -130,7 +114,6 @@ exports.updateUserRank = async function(req:Request<Params,{},{}>,res:Response<R
     await User.findByIdAndUpdate(id,{profileRank:userRank})
     return res.send({msg:userRank,isNew:user.profileRank === userRank?false:true})
 }
-
 exports.getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserElo | ResponseMessage>){
     const id:string = req.params.id
     const result:typeof User = await User.findById(id)
@@ -141,6 +124,7 @@ exports.getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserE
 
 }
 
+//TODO : Do poprawy
 exports.deleteAccount = async function(req:Request<{},{},{email:string}>,res:Response<ResponseMessage>){
     const currentUser = req.user
     if(currentUser.email !== req.body.email) return res.status(401).send({msg:'Wrong email!'})

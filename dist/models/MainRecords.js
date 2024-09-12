@@ -7,9 +7,8 @@ const configModels_1 = __importDefault(require("./configModels"));
 const mongoose = require('mongoose');
 const MainRecordsSchema = new configModels_1.default({
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
-    squat: { type: Number, required: true },
-    deadLift: { type: Number, required: true },
-    benchPress: { type: Number, required: true },
+    exercise: { type: configModels_1.default.Types.ObjectId, ref: "Exercise", required: true },
+    weight: { type: Number, required: true },
     date: { type: Date, required: true },
 }, {
     timestamps: true

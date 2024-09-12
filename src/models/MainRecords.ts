@@ -2,9 +2,8 @@ import Schema from "./configModels";
 const mongoose = require('mongoose');
 const MainRecordsSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    squat: { type: Number, required: true },
-    deadLift: { type: Number, required: true },
-    benchPress: { type: Number, required: true },
+    exercise:{ type: Schema.Types.ObjectId, ref: "Exercise", required: true },
+    weight: { type: Number, required: true },
     date: { type: Date, required: true },
     
 }, {
