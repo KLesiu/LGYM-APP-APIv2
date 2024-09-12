@@ -1,6 +1,6 @@
 export interface MainRecordsForm{
-    benchPress : number,
-    squat : number,
-    deadLift : number,
-    date: Date
+    _id:string,
+    weight:number,
+    date: Date,
+    exercise:string
 }

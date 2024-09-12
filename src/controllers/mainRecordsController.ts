@@ -5,16 +5,18 @@ import { MainRecordsForm } from "../interfaces/MainRecords";
 import User from "../models/User";
 import { Message } from "../enums/Message";
 import MainRecords from "../models/MainRecords";
+import Exercise from "../models/Exercise";
 
 exports.addNewRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind})
+    const findExercise = await Exercise.findById(req.body.exercise)
+    if(!findExercise || !Object.keys(findExercise).length) return res.status(404).send({msg:Message.DidntFind})
     const mainRecords: typeof MainRecords = await MainRecords.create({
         user:findUser,
-        benchPress:req.body.benchPress,
-        squat:req.body.squat,
-        deadLift:req.body.deadLift,
+        exercise:findExercise,
+        weight:req.body.weight,
         date:req.body.date})
     if(mainRecords)res.status(200).send({msg:Message.Created});
     else res.status(404).send({msg:Message.TryAgain})
@@ -54,12 +56,16 @@ exports.deleteMainRecords = async(req:Request<Params>,res:Response<ResponseMessa
 
 exports.updateMainRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
-    const findMainRecords = await MainRecords.findById(id)
+    const findUser = await User.findById(id)
+    if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind}) 
+    const findMainRecords = await MainRecords.findById(req.body._id)
     if(!findMainRecords) return res.status(404).send({msg:Message.DidntFind})
+    const findExercise = await Exercise.findById(req.body.exercise)
+    if(!findExercise || !Object.keys(findExercise).length) return res.status(404).send({msg:Message.DidntFind})
     const updatedMainRecords = await MainRecords.findByIdAndUpdate(id,{
-        benchPress:req.body.benchPress,
-        squat:req.body.squat,
-        deadLift:req.body.deadLift,
+        user:findUser,
+        exercise:findExercise,
+        weight:req.body.weight,
         date:req.body.date
     })
     if(updatedMainRecords) return res.status(200).send({msg:Message.Updated})
