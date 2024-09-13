@@ -1,7 +1,7 @@
-const measurementsController = require("./../controllers/measurementsController")
+import { addMeasurements,getLastMeasurements,getMeasurementsHistory } from "../controllers/measurementsController"
 import Router from "./configRouter"
-Router.post("/measurements/:id/addNew",measurementsController.addMeasurements)
-Router.get("/measurements:/:id/getHistory",measurementsController.getMeasurementsHistory)
-Router.get("/measurements/:id/getLast",measurementsController.getLastMeasurements)
+Router.post("/measurements/:id/addNew",addMeasurements)
+Router.get("/measurements:/:id/getHistory",getMeasurementsHistory)
+Router.get("/measurements/:id/getLast",getLastMeasurements)
 
 module.exports = Router

@@ -7,7 +7,6 @@ import { Message } from "../enums/Message"
 import Training from "../models/Training"
 import Measurements from "../models/Measurements"
 import Plan from "../models/Plan"
-const passport = require('passport')
 const {body, validationResult}= require("express-validator")
 const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")

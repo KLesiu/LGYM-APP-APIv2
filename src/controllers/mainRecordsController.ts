@@ -1,5 +1,5 @@
 import Params from "../interfaces/Params";
-import e, { Request,Response } from "express";
+import  { Request,Response } from "express";
 import ResponseMessage from "../interfaces/ResponseMessage";
 import { MainRecordsForm } from "../interfaces/MainRecords";
 import User from "../models/User";
@@ -7,7 +7,7 @@ import { Message } from "../enums/Message";
 import MainRecords from "../models/MainRecords";
 import Exercise from "../models/Exercise";
 
-exports.addNewRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
+const addNewRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind})
@@ -22,7 +22,7 @@ exports.addNewRecords = async(req:Request<Params,{},MainRecordsForm>,res:Respons
     else res.status(404).send({msg:Message.TryAgain})
 }
 
-exports.getMainRecordsHistory= async(req:Request<Params>,res:Response<ResponseMessage | MainRecordsForm[]>)=>{
+const getMainRecordsHistory= async(req:Request<Params>,res:Response<ResponseMessage | MainRecordsForm[]>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind})
@@ -31,7 +31,7 @@ exports.getMainRecordsHistory= async(req:Request<Params>,res:Response<ResponseMe
     return res.status(200).send(mainRecordsHistory.reverse())
 }
 
-exports.getLastMainRecords = async(req:Request<Params>,res:Response<ResponseMessage | MainRecordsForm>)=>{
+const getLastMainRecords = async(req:Request<Params>,res:Response<ResponseMessage | MainRecordsForm>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind})
@@ -47,14 +47,14 @@ exports.getLastMainRecords = async(req:Request<Params>,res:Response<ResponseMess
     return res.status(200).send(lastMainRecords)
 }
 
-exports.deleteMainRecords = async(req:Request<Params>,res:Response<ResponseMessage>)=>{
+const deleteMainRecords = async(req:Request<Params>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findMainRecords = await MainRecords.findByIdAndDelete(id)
     if(!findMainRecords) return res.status(404).send({msg:Message.DidntFind})
     return res.status(200).send({msg:Message.Deleted})
 }
 
-exports.updateMainRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
+const updateMainRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind}) 
@@ -71,3 +71,5 @@ exports.updateMainRecords = async(req:Request<Params,{},MainRecordsForm>,res:Res
     if(updatedMainRecords) return res.status(200).send({msg:Message.Updated})
     else return res.status(404).send({msg:Message.TryAgain})
 }
+
+export {addNewRecords,getMainRecordsHistory,getLastMainRecords,deleteMainRecords,updateMainRecords}

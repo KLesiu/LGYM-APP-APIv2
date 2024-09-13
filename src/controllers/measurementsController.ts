@@ -7,7 +7,7 @@ import Measurements from "./../models/Measurements";
 import { Message } from "../enums/Message";
 
 
-exports.addMeasurements= async(req:Request<Params,{},MeasurementForm>,res:Response<ResponseMessage>)=>{
+const addMeasurements= async(req:Request<Params,{},MeasurementForm>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     const measurement:typeof Measurements = await Measurements.create({
@@ -29,7 +29,7 @@ exports.addMeasurements= async(req:Request<Params,{},MeasurementForm>,res:Respon
     else res.status(404).send({msg:Message.TryAgain})
 }
 
-exports.getMeasurementsHistory = async(req:Request<Params>,res:Response<ResponseMessage |MeasurementsHistory>)=>{
+const getMeasurementsHistory = async(req:Request<Params>,res:Response<ResponseMessage |MeasurementsHistory>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser) return res.status(404).send({msg:Message.DidntFind})
@@ -38,7 +38,7 @@ exports.getMeasurementsHistory = async(req:Request<Params>,res:Response<Response
     return res.status(200).send({measurements: measurementsHistory.reverse()})
 }
 
-exports.getLastMeasurements = async(req:Request<Params>,res:Response<ResponseMessage |MeasurementForm>)=>{
+const getLastMeasurements = async(req:Request<Params>,res:Response<ResponseMessage |MeasurementForm>)=>{
     const id = req.params.id
     const findUser = await User.findById(id)
     if(!findUser) return res.status(404).send({msg:Message.DidntFind})
@@ -65,3 +65,5 @@ exports.getLastMeasurements = async(req:Request<Params>,res:Response<ResponseMes
     return res.status(200).send(modifiedMeasurement)
     
 }
+
+export {addMeasurements,getMeasurementsHistory,getLastMeasurements}
