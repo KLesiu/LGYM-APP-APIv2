@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const TrainingSchema = new configModels_1.default({
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
     type: { type: configModels_1.default.Types.ObjectId, ref: 'PlanDay', required: true },
-    exercises: { type: Array, required: true },
+    exercises: { type: Array, required: false },
     createdAt: { type: Date, required: true },
 });
 const Training = mongoose.model('Training', TrainingSchema);

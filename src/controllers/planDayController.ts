@@ -9,7 +9,7 @@ import PlanDay from "../models/PlanDay";
 
 const createPlanDay = async(req:Request<Params, {}, PlanDayForm>, res:Response<ResponseMessage>) => {
     const id = req.params.id;
-    const findPlan = await Plan.findById(id);
+    const findPlan = await Plan.findById(id);   
     if(!findPlan || !Object.keys(findPlan).length) return res.status(404).send({msg: Message.DidntFind});
     const name = req.body.name;
     const exercises = req.body.exercises;

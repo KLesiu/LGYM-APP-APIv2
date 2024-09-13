@@ -1,5 +1,19 @@
 import FieldScore from "./FieldScore"
 import User from "./../models/User"
+import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
+
+interface TrainingForm{
+    type:string,
+    createdAt:Date,
+    exercises:ExerciseScoresTrainingForm[]
+}
+
+export {TrainingForm}
+
+
+
+
+
 export interface AddTrainingBody{
     day:string,
     training:FieldScore[],

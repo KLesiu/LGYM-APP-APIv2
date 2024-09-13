@@ -5,14 +5,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const trainingController = require('../controllers/trainingController');
 const configRouter_1 = __importDefault(require("./configRouter"));
-configRouter_1.default.post('/:id/addTraining', trainingController.addTraining);
-configRouter_1.default.get('/:id/getTrainingHistory', trainingController.getTrainingHistory);
-configRouter_1.default.get('/:id/getTrainingSession', trainingController.getCurrentTrainingSession);
-configRouter_1.default.get('/:id/getPrevSessionTraining/:day', trainingController.getPreviousTrainingSession);
-configRouter_1.default.get(`/:id/checkPrevSessionTraining/:day`, trainingController.checkPreviousTrainingSession);
-configRouter_1.default.post('/:id/getTraining', trainingController.getTraining);
-configRouter_1.default.get('/:id/getLastTraining', trainingController.getLastTrainingSession);
-configRouter_1.default.get('/:id/getInfoAboutRankAndElo', trainingController.getInfoAboutRankAndElo);
-configRouter_1.default.post("/:id/getTrainingDates", trainingController.getTrainingDates);
-configRouter_1.default.get("/getBestTenUsersFromElo", trainingController.getBestTenUsersFromElo);
+const trainingController_1 = require("../controllers/trainingController");
+configRouter_1.default.post('/:id/addTraining', trainingController_1.addTraining);
+// Router.get('/:id/getTrainingHistory',trainingController.getTrainingHistory)
+// Router.get('/:id/getTrainingSession',trainingController.getCurrentTrainingSession)
+// Router.get('/:id/getPrevSessionTraining/:day',trainingController.getPreviousTrainingSession)
+// Router.get(`/:id/checkPrevSessionTraining/:day`,trainingController.checkPreviousTrainingSession)
+// Router.post('/:id/getTraining',trainingController.getTraining)
+// Router.get('/:id/getLastTraining',trainingController.getLastTrainingSession)
+// Router.get('/:id/getInfoAboutRankAndElo',trainingController.getInfoAboutRankAndElo)
+// Router.post("/:id/getTrainingDates",trainingController.getTrainingDates)
+// Router.get("/getBestTenUsersFromElo",trainingController.getBestTenUsersFromElo)
 module.exports = configRouter_1.default;

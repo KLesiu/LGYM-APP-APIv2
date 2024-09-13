@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const TrainingSchema= new Schema({
     user: {type:Schema.Types.ObjectId,ref:"User",required:true},
     type:{type:Schema.Types.ObjectId,ref:'PlanDay',required:true},
-    exercises:{type:Array,required:true},
+    exercises:{type:Array,required:false},
     createdAt:{type:Date,required:true},
 })
 

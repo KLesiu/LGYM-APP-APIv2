@@ -1,7 +1,7 @@
 import Schema from "./configModels"
 const mongoose = require('mongoose')
 const PlanDaySchema = new Schema({
-    type:{type:String,required:true},
+    name:{type:String,required:true},
     plan:{type:Schema.Types.ObjectId,ref:"Plan",required:true},
     exercises: [
         {
