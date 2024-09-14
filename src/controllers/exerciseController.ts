@@ -60,11 +60,11 @@ const deleteExercise = async (
 };
 
 const updateExercise = async (
-  req: Request<{}, {}, { id: string; exercise: ExerciseForm }>,
+  req: Request<{}, {}, ExerciseForm>,
   res: Response<ResponseMessage>
 ) => {
-  if (!req.body.id) return res.status(400).send({ msg: Message.FieldRequired });
-  await Exercise.findByIdAndUpdate(req.body.id, req.body.exercise).exec();
+  if (!req.body._id) return res.status(400).send({ msg: Message.FieldRequired });
+  await Exercise.findByIdAndUpdate(req.body._id, req.body).exec();
   return res.status(200).send({ msg: Message.Updated });
 };
 

@@ -66,9 +66,9 @@ const deleteExercise = (req, res) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.deleteExercise = deleteExercise;
 const updateExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.body.id)
+    if (!req.body._id)
         return res.status(400).send({ msg: Message_1.Message.FieldRequired });
-    yield Exercise_1.default.findByIdAndUpdate(req.body.id, req.body.exercise).exec();
+    yield Exercise_1.default.findByIdAndUpdate(req.body._id, req.body).exec();
     return res.status(200).send({ msg: Message_1.Message.Updated });
 });
 exports.updateExercise = updateExercise;
