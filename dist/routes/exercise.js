@@ -11,4 +11,6 @@ configRouter_1.default.delete("/exercise/deleteExercise", exerciseController_1.d
 configRouter_1.default.post("/exercise/updateExercise", exerciseController_1.updateExercise);
 configRouter_1.default.get("/exercise/:id/getAllExercises", exerciseController_1.getAllExercises);
 configRouter_1.default.get("/exercise/:id/getExerciseByBodyPart", exerciseController_1.getExerciseByBodyPart);
+configRouter_1.default.get("/exercise/getAllGlobalExercises", exerciseController_1.getAllGlobalExercises);
+configRouter_1.default.get("/exercise/:id/getAllUserExercises", exerciseController_1.getAllUserExercises);
 module.exports = configRouter_1.default;

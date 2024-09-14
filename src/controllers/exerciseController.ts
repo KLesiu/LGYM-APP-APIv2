@@ -86,6 +86,24 @@ const getAllExercises = async (
   else return res.status(404).send({ msg: Message.DidntFind });
 };
 
+const getAllUserExercises = async ( req: Request<Params, {}, {}>,
+  res: Response<ExerciseForm[] | ResponseMessage>)=> {
+  const findUser = await User.findById(req.params.id);
+  if (!findUser || !Object.keys(findUser).length)
+    return res.status(404).send({ msg: Message.DidntFind });
+  const exercises = await Exercise.find({user: findUser._id});
+  if (exercises.length > 0) return res.status(200).send(exercises);
+  else return res.status(404).send({ msg: Message.DidntFind });
+};
+
+const getAllGlobalExercises = async ( req: Request<{}, {}, {}>,
+  res: Response<ExerciseForm[] | ResponseMessage>)=> {
+  const exercises = await Exercise.find({user: null});
+  if (exercises.length > 0) return res.status(200).send(exercises);
+  else return res.status(404).send({ msg: Message.DidntFind });
+};
+
+
 const getExerciseByBodyPart = async (
   req: Request<Params, {}, { bodyPart: BodyParts }>,
   res: Response<ExerciseForm[] | ResponseMessage>
@@ -113,4 +131,6 @@ export {
   getAllExercises,
   getExerciseByBodyPart,
   addUserExercise,
+  getAllUserExercises,
+  getAllGlobalExercises
 };

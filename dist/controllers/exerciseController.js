@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
+exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const Message_1 = require("../enums/Message");
 const User_1 = __importDefault(require("../models/User"));
@@ -89,6 +89,25 @@ const getAllExercises = (req, res) => __awaiter(void 0, void 0, void 0, function
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
 });
 exports.getAllExercises = getAllExercises;
+const getAllUserExercises = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const findUser = yield User_1.default.findById(req.params.id);
+    if (!findUser || !Object.keys(findUser).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const exercises = yield Exercise_1.default.find({ user: findUser._id });
+    if (exercises.length > 0)
+        return res.status(200).send(exercises);
+    else
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+});
+exports.getAllUserExercises = getAllUserExercises;
+const getAllGlobalExercises = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const exercises = yield Exercise_1.default.find({ user: null });
+    if (exercises.length > 0)
+        return res.status(200).send(exercises);
+    else
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+});
+exports.getAllGlobalExercises = getAllGlobalExercises;
 const getExerciseByBodyPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const findUser = yield User_1.default.findById(req.params.id);
     if (!findUser || !Object.keys(findUser).length)
