@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getLastMeasurements = exports.getMeasurementsHistory = exports.addMeasurements = void 0;
 const User_1 = __importDefault(require("./../models/User"));
 const Measurements_1 = __importDefault(require("./../models/Measurements"));
 const Message_1 = require("../enums/Message");
-exports.addMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const addMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     const measurement = yield Measurements_1.default.create({
@@ -36,7 +37,8 @@ exports.addMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, functi
     else
         res.status(404).send({ msg: Message_1.Message.TryAgain });
 });
-exports.getMeasurementsHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addMeasurements = addMeasurements;
+const getMeasurementsHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser)
@@ -46,7 +48,8 @@ exports.getMeasurementsHistory = (req, res) => __awaiter(void 0, void 0, void 0,
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     return res.status(200).send({ measurements: measurementsHistory.reverse() });
 });
-exports.getLastMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getMeasurementsHistory = getMeasurementsHistory;
+const getLastMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser)
@@ -75,3 +78,4 @@ exports.getLastMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, fu
     };
     return res.status(200).send(modifiedMeasurement);
 });
+exports.getLastMeasurements = getLastMeasurements;

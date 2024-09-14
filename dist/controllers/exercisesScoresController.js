@@ -12,10 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addExercisesScores = void 0;
+exports.updateExercisesScores = exports.addExercisesScores = void 0;
 const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const addExercisesScores = (form) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield ExerciseScores_1.default.create(form);
     return { exerciseScoreId: result._id };
 });
 exports.addExercisesScores = addExercisesScores;
+const updateExercisesScores = (form) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield ExerciseScores_1.default.findByIdAndUpdate(form._id, form);
+    return { exerciseScoreId: result._id };
+});
+exports.updateExercisesScores = updateExercisesScores;

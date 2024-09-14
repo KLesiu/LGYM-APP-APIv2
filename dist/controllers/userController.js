@@ -18,7 +18,6 @@ const Message_1 = require("../enums/Message");
 const Training_1 = __importDefault(require("../models/Training"));
 const Measurements_1 = __importDefault(require("../models/Measurements"));
 const Plan_1 = __importDefault(require("../models/Plan"));
-const passport = require('passport');
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");

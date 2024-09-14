@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateMainRecords = exports.deleteMainRecords = exports.getLastMainRecords = exports.getMainRecordsHistory = exports.addNewRecords = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const MainRecords_1 = __importDefault(require("../models/MainRecords"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
-exports.addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser || !Object.keys(findUser).length)
@@ -35,7 +36,8 @@ exports.addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function
     else
         res.status(404).send({ msg: Message_1.Message.TryAgain });
 });
-exports.getMainRecordsHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addNewRecords = addNewRecords;
+const getMainRecordsHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser || !Object.keys(findUser).length)
@@ -45,7 +47,8 @@ exports.getMainRecordsHistory = (req, res) => __awaiter(void 0, void 0, void 0, 
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     return res.status(200).send(mainRecordsHistory.reverse());
 });
-exports.getLastMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getMainRecordsHistory = getMainRecordsHistory;
+const getLastMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser || !Object.keys(findUser).length)
@@ -63,14 +66,16 @@ exports.getLastMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, fun
     });
     return res.status(200).send(lastMainRecords);
 });
-exports.deleteMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getLastMainRecords = getLastMainRecords;
+const deleteMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findMainRecords = yield MainRecords_1.default.findByIdAndDelete(id);
     if (!findMainRecords)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     return res.status(200).send({ msg: Message_1.Message.Deleted });
 });
-exports.updateMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.deleteMainRecords = deleteMainRecords;
+const updateMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
     if (!findUser || !Object.keys(findUser).length)
@@ -92,3 +97,4 @@ exports.updateMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, func
     else
         return res.status(404).send({ msg: Message_1.Message.TryAgain });
 });
+exports.updateMainRecords = updateMainRecords;
