@@ -90,7 +90,7 @@ const login = async function(req:CustomRequestUser,res:Response<{token:string,re
 
 const isAdmin = async function(req:Request<{},{},RequestUser>,res:Response<typeof User>){
     const admin = await User.findById(req.body._id)
-    return res.status(200).send(admin)
+    return res.status(200).send(admin.admin)
 }
 
 const getUserInfo = async function(req:Request<Params>,res:Response<string|typeof User>){
