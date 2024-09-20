@@ -8,4 +8,5 @@ const planDayController_1 = require("../controllers/planDayController");
 configRouter_1.default.post("/planDay/:id/createPlanDay", planDayController_1.createPlanDay);
 configRouter_1.default.post("/planDay/:id/updatePlanDay", planDayController_1.updatePlanDay);
 configRouter_1.default.get("/planDay/:id/getPlanDay", planDayController_1.getPlanDay);
+configRouter_1.default.get("/planDay/:id/getPlanDays", planDayController_1.getPlanDays);
 module.exports = configRouter_1.default;
