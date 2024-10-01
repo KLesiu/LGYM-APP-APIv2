@@ -1,11 +1,13 @@
 import Params from "../interfaces/Params";
 import ResponseMessage from "../interfaces/ResponseMessage";
-import { PlanDayForm, PlanDayVm} from "../interfaces/PlanDay";
+import { PlanDayForm, PlanDayVm,PlanDayExercise} from "../interfaces/PlanDay";
 import { Request, Response } from "express";
 import Plan from "../models/Plan";
 import { Message } from "../enums/Message";
 import PlanDay from "../models/PlanDay";
+import User from "../models/User";
 import Exercise from "../models/Exercise";
+import { ExerciseForm } from "../interfaces/Exercise";
 
 
 const createPlanDay = async(req:Request<Params, {}, PlanDayForm>, res:Response<ResponseMessage>) => {
@@ -39,10 +41,18 @@ const getPlanDay = async(req:Request<Params>, res:Response<PlanDayForm | Respons
     const id = req.params.id;
     const findPlanDay = await PlanDay.findById(id);
     if(!findPlanDay || !Object.keys(findPlanDay).length) return res.status(404).send({msg: Message.DidntFind});
+    const exercises = await Promise.all(findPlanDay.exercises.map(async (exercise:PlanDayExercise) => { 
+        const findExercise = await Exercise.findById(exercise.exercise);
+        return {
+            series:exercise.series,
+            reps:exercise.reps,
+            exercise: findExercise
+        }
+    }))
     const planDay = {
         _id: findPlanDay._id,
         name: findPlanDay.name,
-        exercises: findPlanDay.exercises
+        exercises: exercises
     }
     return res.status(200).send(planDay);
 }
@@ -93,5 +103,15 @@ const getPlanDays = async(req: Request<Params>, res: Response<PlanDayVm[] | Resp
     }
 };
 
+const getPlanDaysTypes = async(req: Request<Params>, res: Response<{_id:string,name:string}[] | ResponseMessage>) => {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    if(!user || !Object.keys(user).length) return res.status(404).send({msg: Message.DidntFind});   
+    const plan = await Plan.find({user: user});
+    if(!plan || !plan.length) return res.status(404).send({msg: Message.DidntFind});
+    const planDaysTypes = await PlanDay.find({ plan: plan}, '_id name');
+    return res.status(200).send(planDaysTypes);
+}
 
-export{createPlanDay, updatePlanDay, getPlanDay,getPlanDays}
+
+export{createPlanDay, updatePlanDay, getPlanDay,getPlanDays,getPlanDaysTypes}

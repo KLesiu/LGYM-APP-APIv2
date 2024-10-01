@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPlanDays = exports.getPlanDay = exports.updatePlanDay = exports.createPlanDay = void 0;
+exports.getPlanDaysTypes = exports.getPlanDays = exports.getPlanDay = exports.updatePlanDay = exports.createPlanDay = void 0;
 const Plan_1 = __importDefault(require("../models/Plan"));
 const Message_1 = require("../enums/Message");
 const PlanDay_1 = __importDefault(require("../models/PlanDay"));
+const User_1 = __importDefault(require("../models/User"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const createPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
@@ -54,10 +55,18 @@ const getPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const findPlanDay = yield PlanDay_1.default.findById(id);
     if (!findPlanDay || !Object.keys(findPlanDay).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const exercises = yield Promise.all(findPlanDay.exercises.map((exercise) => __awaiter(void 0, void 0, void 0, function* () {
+        const findExercise = yield Exercise_1.default.findById(exercise.exercise);
+        return {
+            series: exercise.series,
+            reps: exercise.reps,
+            exercise: findExercise
+        };
+    })));
     const planDay = {
         _id: findPlanDay._id,
         name: findPlanDay.name,
-        exercises: findPlanDay.exercises
+        exercises: exercises
     };
     return res.status(200).send(planDay);
 });
@@ -103,3 +112,15 @@ const getPlanDays = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getPlanDays = getPlanDays;
+const getPlanDaysTypes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const user = yield User_1.default.findById(id);
+    if (!user || !Object.keys(user).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const plan = yield Plan_1.default.find({ user: user });
+    if (!plan || !plan.length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const planDaysTypes = yield PlanDay_1.default.find({ plan: plan }, '_id name');
+    return res.status(200).send(planDaysTypes);
+});
+exports.getPlanDaysTypes = getPlanDaysTypes;

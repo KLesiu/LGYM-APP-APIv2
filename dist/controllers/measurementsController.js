@@ -12,70 +12,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLastMeasurements = exports.getMeasurementsHistory = exports.addMeasurements = void 0;
+exports.getMeasurementsHistory = exports.getMeasurementDetails = exports.addMeasurement = void 0;
 const User_1 = __importDefault(require("./../models/User"));
 const Measurements_1 = __importDefault(require("./../models/Measurements"));
 const Message_1 = require("../enums/Message");
-const addMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const findUser = yield User_1.default.findById(id);
+const addMeasurement = () => (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const findUser = yield User_1.default.findById(req.body.user);
+    if (!findUser)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const measurement = yield Measurements_1.default.create({
         user: findUser,
-        weight: req.body.weight,
-        neck: req.body.neck,
-        chest: req.body.chest,
-        biceps: req.body.biceps,
-        waist: req.body.waist,
-        abdomen: req.body.abdomen,
-        hips: req.body.hips,
-        thigh: req.body.thigh,
-        calf: req.body.calf
+        bodyPart: req.body.bodyPart,
+        unit: req.body.unit,
+        value: req.body.value
     });
-    if (measurement) {
+    if (measurement)
         res.status(200).send({ msg: Message_1.Message.Created });
-    }
     else
         res.status(404).send({ msg: Message_1.Message.TryAgain });
 });
-exports.addMeasurements = addMeasurements;
-const getMeasurementsHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addMeasurement = addMeasurement;
+const getMeasurementDetails = () => (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findMeasurement = yield Measurements_1.default.findById(id);
+    if (!findMeasurement)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    return res.status(200).send(findMeasurement);
+});
+exports.getMeasurementDetails = getMeasurementDetails;
+const getMeasurementsHistory = () => (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
-    if (!findUser)
+    const measurements = req.body.bodyPart ? yield Measurements_1.default.find({ user: findUser, bodyPart: req.body.bodyPart }) : yield Measurements_1.default.find({ user: findUser });
+    if (measurements.length < 1)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const measurementsHistory = yield Measurements_1.default.find({ user: findUser });
-    if (measurementsHistory.length < 1)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    return res.status(200).send({ measurements: measurementsHistory.reverse() });
+    return res.status(200).send({ measurements: measurements.reverse() });
 });
 exports.getMeasurementsHistory = getMeasurementsHistory;
-const getLastMeasurements = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const findUser = yield User_1.default.findById(id);
-    if (!findUser)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const measurementsHistory = yield Measurements_1.default.find({ user: findUser });
-    if (measurementsHistory.length < 1)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const lastMeasurements = measurementsHistory.reduce((acc, curr) => {
-        if (!acc || curr.createdAt > acc.createdAt) {
-            return curr;
-        }
-        else {
-            return acc;
-        }
-    });
-    const modifiedMeasurement = {
-        weight: lastMeasurements.weight,
-        neck: lastMeasurements.neck,
-        chest: lastMeasurements.chest,
-        biceps: lastMeasurements.biceps,
-        waist: lastMeasurements.waist,
-        abdomen: lastMeasurements.abdomen,
-        hips: lastMeasurements.hips,
-        thigh: lastMeasurements.thigh,
-        calf: lastMeasurements.calf
-    };
-    return res.status(200).send(modifiedMeasurement);
-});
-exports.getLastMeasurements = getLastMeasurements;

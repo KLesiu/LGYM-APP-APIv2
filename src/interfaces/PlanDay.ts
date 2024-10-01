@@ -18,3 +18,10 @@ export interface PlanDayVm {
     exercise: ExerciseForm;
   }[];
 }
+
+export interface PlanDayExercise{
+  series: number;
+  reps: string;
+  exercise:string;
+  _id:string;
+}
