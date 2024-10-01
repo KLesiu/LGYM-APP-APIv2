@@ -2,4 +2,9 @@ enum WeightUnits {
     KILOGRAMS = 'kg',
     POUNDS = 'lbs',
 }
-export { WeightUnits };
+enum HeightUnits{
+    METERS = 'm',
+    CENTIMETERS = 'cm',
+    MILIMETERS = 'mm',
+}
+export { WeightUnits,HeightUnits };

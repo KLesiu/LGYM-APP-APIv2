@@ -1,20 +1,21 @@
+import { BodyParts } from "../enums/BodyParts"
+import { WeightUnits } from "../enums/Units"
 
 export interface MeasurementForm{
-    weight:number,
-    neck:number,
-    chest:number,
-    biceps:number,
-    waist:number,
-    abdomen:number,
-    hips:number,
-    thigh:number,
-    calf:number,
+    user:string,
+    bodyPart: BodyParts,
+    unit: WeightUnits,
+    value:number,
+    createdAt?:Date,
+    updatedAt?:Date 
 
 }
-export interface Measurement extends MeasurementForm{
-    createdAt:Date,
-    updatedAt:Date
+
+
+export interface MeasurementsHistoryQuery{
+    bodyPart: BodyParts
 }
+
 export interface MeasurementsHistory{
-    measurements: Measurement[]
+    measurements: MeasurementForm[]
 }

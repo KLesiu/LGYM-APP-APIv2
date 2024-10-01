@@ -4,6 +4,7 @@ const MeasurementsSchema = new Schema({
     user:{type:Schema.Types.ObjectId,ref:"User",required:true},
     bodyPart:{type:String,required:true},
     unit:{type:String,required:true},
+    value:{type:Number,required:true},
 
 },{
     timestamps:true
