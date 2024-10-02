@@ -114,4 +114,6 @@ const getPlanDaysTypes = async(req: Request<Params>, res: Response<{_id:string,n
 }
 
 
+
+
 export{createPlanDay, updatePlanDay, getPlanDay,getPlanDays,getPlanDaysTypes}

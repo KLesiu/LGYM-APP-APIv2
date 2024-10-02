@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPlanConfig = exports.updatePlan = exports.createPlan = void 0;
+exports.checkIsUserHavePlan = exports.getPlanConfig = exports.updatePlan = exports.createPlan = void 0;
 const Plan_1 = __importDefault(require("../models/Plan"));
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
@@ -67,3 +67,14 @@ const getPlanConfig = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     return res.status(200).send(planConfig);
 });
 exports.getPlanConfig = getPlanConfig;
+const checkIsUserHavePlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findUser = yield User_1.default.findById(id);
+    if (!findUser || !Object.keys(findUser).length)
+        return res.status(404).send(false);
+    const plan = yield Plan_1.default.find({ user: findUser });
+    if (!plan || !plan.length)
+        return res.status(200).send(false);
+    return res.status(200).send(true);
+});
+exports.checkIsUserHavePlan = checkIsUserHavePlan;

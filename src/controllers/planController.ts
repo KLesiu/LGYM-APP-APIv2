@@ -62,5 +62,13 @@ const getPlanConfig = async (req: Request<Params>, res: Response<PlanForm | Resp
   return res.status(200).send(planConfig);
 };
 
+const checkIsUserHavePlan = async(req:Request<Params>, res:Response<boolean>) => {
+  const id = req.params.id;
+  const findUser = await User.findById(id);
+  if(!findUser || !Object.keys(findUser).length) return res.status(404).send(false);
+  const plan = await Plan.find({user: findUser});
+  if(!plan || !plan.length) return res.status(200).send(false);
+  return res.status(200).send(true);
+}
 
-export { createPlan, updatePlan,getPlanConfig };
+export { createPlan, updatePlan,getPlanConfig,checkIsUserHavePlan };
