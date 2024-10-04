@@ -124,6 +124,12 @@ const getExerciseByBodyPart = async (
   else return res.status(404).send({ msg: Message.DidntFind });
 };
 
+const getExercise = async(req:Request<Params>, res:Response<ExerciseForm | ResponseMessage>) => {
+  const exercise = await Exercise.findById(req.params.id);
+  if(!exercise || !Object.keys(exercise).length) return res.status(404).send({msg: Message.DidntFind});
+  return res.status(200).send(exercise);
+}
+
 export {
   addExercise,
   deleteExercise,
@@ -132,5 +138,6 @@ export {
   getExerciseByBodyPart,
   addUserExercise,
   getAllUserExercises,
-  getAllGlobalExercises
+  getAllGlobalExercises,
+  getExercise
 };

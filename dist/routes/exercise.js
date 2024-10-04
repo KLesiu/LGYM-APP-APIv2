@@ -10,7 +10,8 @@ configRouter_1.default.post("/exercise/:id/addUserExercise", exerciseController_
 configRouter_1.default.delete("/exercise/deleteExercise", exerciseController_1.deleteExercise);
 configRouter_1.default.post("/exercise/updateExercise", exerciseController_1.updateExercise);
 configRouter_1.default.get("/exercise/:id/getAllExercises", exerciseController_1.getAllExercises);
-configRouter_1.default.get("/exercise/:id/getExerciseByBodyPart", exerciseController_1.getExerciseByBodyPart);
+configRouter_1.default.post("/exercise/:id/getExerciseByBodyPart", exerciseController_1.getExerciseByBodyPart);
 configRouter_1.default.get("/exercise/getAllGlobalExercises", exerciseController_1.getAllGlobalExercises);
 configRouter_1.default.get("/exercise/:id/getAllUserExercises", exerciseController_1.getAllUserExercises);
+configRouter_1.default.get("/exercise/:id/getExercise", exerciseController_1.getExercise);
 module.exports = configRouter_1.default;

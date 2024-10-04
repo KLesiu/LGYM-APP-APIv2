@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
+exports.getExercise = exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const Message_1 = require("../enums/Message");
 const User_1 = __importDefault(require("../models/User"));
@@ -127,3 +127,10 @@ const getExerciseByBodyPart = (req, res) => __awaiter(void 0, void 0, void 0, fu
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
 });
 exports.getExerciseByBodyPart = getExerciseByBodyPart;
+const getExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const exercise = yield Exercise_1.default.findById(req.params.id);
+    if (!exercise || !Object.keys(exercise).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    return res.status(200).send(exercise);
+});
+exports.getExercise = getExercise;
