@@ -1,6 +1,7 @@
 import FieldScore from "./FieldScore"
 import User from "./../models/User"
 import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
+import { PlanDayVm } from "./PlanDay"
 
 interface TrainingForm{
     type:string,
@@ -8,7 +9,12 @@ interface TrainingForm{
     exercises:ExerciseScoresTrainingForm[]
 }
 
-export {TrainingForm}
+interface LastTrainingInfo{
+    type:PlanDayVm,
+    createdAt:Date,
+}
+
+export {TrainingForm,LastTrainingInfo}
 
 
 

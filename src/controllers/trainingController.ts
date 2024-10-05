@@ -3,7 +3,7 @@ import { Request,Response } from "express"
 import Training from "../models/Training"
 import Plan from "../models/Plan"
 import Params from "../interfaces/Params"
-import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo, TrainingsDates,UserRanking } from "../interfaces/Training"
+import { AddTrainingBody,TrainingHistory,Training as FoundTraining, TrainingSession, RankInfo, TrainingsDates,UserRanking, LastTrainingInfo } from "../interfaces/Training"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import User from "./../models/User"
 import FieldScore from "./../interfaces/FieldScore"
@@ -29,7 +29,19 @@ const addTraining = async(req:Request<Params,{},TrainingForm>,res:Response<Respo
     return res.status(200).send({msg:Message.Created})
 }
 
-export {addTraining}
+
+const getLastTraining = async(req:Request<Params>,res:Response<LastTrainingInfo | ResponseMessage>)=>{
+    const id = req.params.id
+    const user = await User.findById(id) 
+    if(!user) return res.status(404).send({msg:Message.DidntFind})
+    const training = await Training.findOne({user:user}).sort({createdAt:-1})
+    if(!training) return res.status(404).send({msg:Message.DidntFind})
+    return res.status(200).send(training)    
+
+}
+
+
+export {addTraining,getLastTraining}
 
 
 

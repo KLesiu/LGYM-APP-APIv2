@@ -1,5 +1,6 @@
 import Router from "./configRouter"
-import { addTraining } from "../controllers/trainingController"
+import { addTraining,getLastTraining } from "../controllers/trainingController"
 Router.post('/:id/addTraining',addTraining)
+Router.get('/:id/getLastTraining',getLastTraining)
 
 module.exports = Router
