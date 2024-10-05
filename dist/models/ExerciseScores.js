@@ -9,6 +9,7 @@ const ExerciseScoresSchema = new configModels_1.default({
     exercise: { type: configModels_1.default.Types.ObjectId, ref: 'Exercise', required: true },
     user: { type: configModels_1.default.Types.ObjectId, ref: 'User', required: true },
     reps: { type: Number, required: true },
+    series: { type: Number, required: true },
     weight: { type: Number, required: true },
     unit: { type: String, required: true },
     training: { type: configModels_1.default.Types.ObjectId, ref: 'Training', required: true }
