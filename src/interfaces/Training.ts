@@ -10,8 +10,12 @@ interface TrainingForm{
 }
 
 interface LastTrainingInfo{
-    type:PlanDayVm,
+    _id:string,
+    type:string,
     createdAt:Date,
+    planDay:{
+        name:string
+    }
 }
 
 export {TrainingForm,LastTrainingInfo}

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAccount = exports.getUserElo = exports.updateUserRank = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
+exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.updateUserRank = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const Training_1 = __importDefault(require("../models/Training"));
@@ -23,16 +23,16 @@ const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 exports.ranks = [
-    { name: 'Junior 1', maxElo: 1000 }, // 0-1000
-    { name: 'Junior 2', maxElo: 2500 }, //1000 - 2500
-    { name: 'Junior 3', maxElo: 4000 }, //2500 - 4000
-    { name: 'Mid 1', maxElo: 5000 }, //4000 - 5000
-    { name: 'Mid 2', maxElo: 6000 }, // 5000 - 6000
-    { name: 'Mid 3', maxElo: 7000 }, // 6000 - 7000
-    { name: 'Pro 1', maxElo: 10000 }, // 7000 - 10000
-    { name: 'Pro 2', maxElo: 13000 }, // 10 000 - 13 000
-    { name: 'Pro 3', maxElo: 17000 }, // 13 000 - 17 000
-    { name: 'Champ', maxElo: 20000 } // 17 000 - to the sky
+    { name: 'Junior 1', needElo: 0 }, // 0-1000
+    { name: 'Junior 2', needElo: 1001 }, //1000 - 2500
+    { name: 'Junior 3', needElo: 2500 }, //2500 - 4000
+    { name: 'Mid 1', needElo: 4000 }, //4000 - 5000
+    { name: 'Mid 2', needElo: 5000 }, // 5000 - 6000
+    { name: 'Mid 3', needElo: 6000 }, // 6000 - 7000
+    { name: 'Pro 1', needElo: 7000 }, // 7000 - 10000
+    { name: 'Pro 2', needElo: 10000 }, // 10 000 - 13 000
+    { name: 'Pro 3', needElo: 13000 }, // 13 000 - 17 000
+    { name: 'Champ', needElo: 17000 } // 17 000 - to the sky
 ];
 const register = [
     body("name").trim().isLength({ min: 1 }).withMessage("Name is required, and has to have minimum one character"),
@@ -70,7 +70,7 @@ const register = [
                     ] });
             }
         }
-        const user = new User_1.default({ name: name, admin: admin, email: email, profileRank: 'Junior I', elo: 1000 });
+        const user = new User_1.default({ name: name, admin: admin, email: email, profileRank: 'Junior 1', elo: 1000 });
         yield User_1.default.register(user, password);
         res.status(200).send({ msg: "User created successfully!" });
     }))
@@ -100,12 +100,28 @@ const getUserInfo = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
         const UserInfo = yield User_1.default.findById(id);
+        let nextRank = exports.ranks[0];
+        exports.ranks.forEach((rank, index) => {
+            if (rank.name === UserInfo.profileRank) {
+                nextRank = exports.ranks[index + 1];
+            }
+        });
+        const userInfoWithRank = Object.assign(Object.assign({}, UserInfo.toObject()), { nextRank: nextRank || null });
         if (UserInfo)
-            return res.status(200).send(UserInfo);
-        return res.status(404).send("Didnt find");
+            return res.status(200).send(userInfoWithRank);
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
     });
 };
 exports.getUserInfo = getUserInfo;
+const getUsersRanking = function (req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const users = yield User_1.default.find({}).sort({ elo: -1 });
+        if (users)
+            return res.status(200).send(users);
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    });
+};
+exports.getUsersRanking = getUsersRanking;
 const updateUserRank = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
@@ -113,7 +129,7 @@ const updateUserRank = function (req, res) {
         const userElo = user.elo;
         let userRank = '';
         for (let i = 0; i < exports.ranks.length; i++) {
-            if (userElo <= exports.ranks[i].maxElo) {
+            if (userElo <= exports.ranks[i].needElo) {
                 userRank = exports.ranks[i].name;
                 break;
             }

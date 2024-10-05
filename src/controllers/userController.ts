@@ -1,5 +1,5 @@
 import User from "../models/User"
-import { RequestUser, User as UserInterface,Rank,UserElo, UserLoginInfo } from "./../interfaces/User"
+import { RequestUser, User as UserInterface,Rank,UserElo, UserLoginInfo,UserInfo, UserBaseInfo } from "./../interfaces/User"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
@@ -13,16 +13,16 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
 export const ranks:Rank[] = [
-    {name:'Junior 1',maxElo:1000},// 0-1000
-    {name:'Junior 2',maxElo:2500}, //1000 - 2500
-    {name:'Junior 3',maxElo:4000}, //2500 - 4000
-    {name:'Mid 1',maxElo:5000}, //4000 - 5000
-    {name:'Mid 2',maxElo:6000}, // 5000 - 6000
-    {name:'Mid 3',maxElo:7000}, // 6000 - 7000
-    {name:'Pro 1',maxElo:10000},// 7000 - 10000
-    {name:'Pro 2',maxElo:13000},// 10 000 - 13 000
-    {name:'Pro 3',maxElo:17000}, // 13 000 - 17 000
-    {name:'Champ',maxElo:20000} // 17 000 - to the sky
+    {name:'Junior 1',needElo:0},// 0-1000
+    {name:'Junior 2',needElo:1001}, //1000 - 2500
+    {name:'Junior 3',needElo:2500}, //2500 - 4000
+    {name:'Mid 1',needElo:4000}, //4000 - 5000
+    {name:'Mid 2',needElo:5000}, // 5000 - 6000
+    {name:'Mid 3',needElo:6000}, // 6000 - 7000
+    {name:'Pro 1',needElo:7000},// 7000 - 10000
+    {name:'Pro 2',needElo:10000},// 10 000 - 13 000
+    {name:'Pro 3',needElo:13000}, // 13 000 - 17 000
+    {name:'Champ',needElo:17000} // 17 000 - to the sky
 ]
 
 interface CustomRequestUser extends Request{
@@ -71,7 +71,7 @@ const register=[
             
         }
        
-        const user = new User({name:name,admin:admin,email:email,profileRank:'Junior I',elo:1000})
+        const user = new User({name:name,admin:admin,email:email,profileRank:'Junior 1',elo:1000})
         await User.register(user,password)
         res.status(200).send({msg:"User created successfully!"})
     })]
@@ -93,19 +93,36 @@ const isAdmin = async function(req:Request<{},{},RequestUser>,res:Response<typeo
     return res.status(200).send(admin.admin)
 }
 
-const getUserInfo = async function(req:Request<Params>,res:Response<string|typeof User>){
+const getUserInfo = async function(req:Request<Params>,res:Response<UserInfo | ResponseMessage>){
     const id = req.params.id
     const UserInfo = await User.findById(id)
-    if(UserInfo) return res.status(200).send(UserInfo)
-    return res.status(404).send("Didnt find")   
+    let nextRank:Rank = ranks[0]
+    ranks.forEach((rank,index)=>{ 
+        if(rank.name===UserInfo.profileRank){
+            nextRank = ranks[index+1]
+        }
+    })
+    const userInfoWithRank = {
+        ...UserInfo.toObject(), 
+        nextRank: nextRank || null
+    };
+    if(UserInfo) return res.status(200).send(userInfoWithRank)
+    return res.status(404).send({msg:Message.DidntFind})   
 }
+
+const getUsersRanking = async function(req:Request<Params>,res:Response<UserBaseInfo[] | ResponseMessage>){
+    const users = await User.find({}).sort({elo:-1})
+    if(users) return res.status(200).send(users)
+    return res.status(404).send({msg:Message.DidntFind})
+}
+
 const updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
     const id = req.params.id
     const user = await User.findById(id)
     const userElo = user.elo
     let userRank=''
     for (let i = 0; i < ranks.length; i++) {
-    if (userElo <= ranks[i].maxElo) {
+    if (userElo <= ranks[i].needElo) {
         userRank = ranks[i].name;
         break;
     }}
@@ -146,6 +163,6 @@ const deleteAccount = async function(req:Request<{},{},{email:string}>,res:Respo
 
 }
 
-export {register,login,isAdmin,getUserInfo,updateUserRank,getUserElo,deleteAccount}
+export {register,login,isAdmin,getUserInfo,updateUserRank,getUserElo,deleteAccount,getUsersRanking}
 
 

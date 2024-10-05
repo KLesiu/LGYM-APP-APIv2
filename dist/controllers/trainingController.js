@@ -22,11 +22,17 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const user = req.params.id;
     const planDay = req.body.type;
     const createdAt = req.body.createdAt;
-    const response = yield Training_1.default.create({ user: user, type: planDay, createdAt: createdAt });
+    const response = yield Training_1.default.create({
+        user: user,
+        type: planDay,
+        createdAt: createdAt,
+    });
     if (!response)
         return res.status(404).send({ msg: Message_1.Message.TryAgain });
-    const exercises = req.body.exercises.map(ele => { return Object.assign(Object.assign({}, ele), { training: response._id, user: user, date: createdAt }); });
-    const result = yield Promise.all(exercises.map(ele => (0, exercisesScoresController_1.addExercisesScores)(ele)));
+    const exercises = req.body.exercises.map((ele) => {
+        return Object.assign(Object.assign({}, ele), { training: response._id, user: user, date: createdAt });
+    });
+    const result = yield Promise.all(exercises.map((ele) => (0, exercisesScoresController_1.addExercisesScores)(ele)));
     yield response.updateOne({ exercises: result });
     return res.status(200).send({ msg: Message_1.Message.Created });
 });
@@ -36,9 +42,37 @@ const getLastTraining = (req, res) => __awaiter(void 0, void 0, void 0, function
     const user = yield User_1.default.findById(id);
     if (!user)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const training = yield Training_1.default.findOne({ user: user }).sort({ createdAt: -1 });
+    const training = yield Training_1.default.aggregate([
+        {
+            $match: { user: user._id },
+        },
+        {
+            $sort: { createdAt: -1 },
+        },
+        {
+            $limit: 1,
+        },
+        {
+            $lookup: {
+                from: "plandays",
+                localField: "type",
+                foreignField: "_id",
+                as: "planDay",
+            },
+        },
+        {
+            $unwind: "$planDay",
+        },
+        {
+            $project: {
+                type: 1,
+                createdAt: 1,
+                "planDay.name": 1,
+            },
+        },
+    ]);
     if (!training)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    return res.status(200).send(training);
+    return res.status(200).send(training[0]);
 });
 exports.getLastTraining = getLastTraining;
