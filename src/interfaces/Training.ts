@@ -1,5 +1,68 @@
 import FieldScore from "./FieldScore"
-import User from "./../models/User"
+import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
+import { ExerciseForm } from "./Exercise";
+import { BodyParts } from "../enums/BodyParts";
+import { WeightUnits } from "../enums/Units";
+import { ExerciseTrainingHistoryDetails } from "./Exercise";
+interface TrainingForm{
+    type:string,
+    createdAt:Date,
+    exercises:ExerciseScoresTrainingForm[]
+}
+
+interface TrainingSessionScores{
+    exercise: ExerciseForm;
+    series: number;
+    reps: number;
+    weight: number;
+}
+
+interface LastTrainingInfo{
+    _id:string,
+    type:string,
+    createdAt:Date,
+    planDay:{
+        name:string
+    }
+}
+interface TrainingByDate extends LastTrainingInfo{
+    exercises: {exerciseScoreId:string}[]
+}
+
+interface TrainingByDateDetails extends LastTrainingInfo{
+    exercises:{
+        exerciseScoreId:string,
+        scoreDetails:ExerciseScoresTrainingForm[]
+        exerciseDetails:ExerciseTrainingHistoryDetails
+    }[]
+   
+}
+
+
+
+interface EnrichedExercise {
+    exerciseScoreId: string;
+    scoreDetails: ExerciseScoresTrainingForm;
+    exerciseDetails: ExerciseTrainingHistoryDetails;
+}
+
+
+
+interface TrainingHistoryQuery{
+    startDt:Date,
+    endDt:Date
+}
+
+
+
+
+
+export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise}
+
+
+
+
+
 export interface AddTrainingBody{
     day:string,
     training:FieldScore[],

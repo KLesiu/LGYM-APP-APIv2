@@ -7,15 +7,9 @@ const configModels_1 = __importDefault(require("./configModels"));
 const mongoose = require('mongoose');
 const MeasurementsSchema = new configModels_1.default({
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
-    weight: { type: Number, required: false },
-    neck: { type: Number, required: false },
-    chest: { type: Number, required: false },
-    biceps: { type: Number, required: false },
-    waist: { type: Number, required: false },
-    abdomen: { type: Number, required: false },
-    hips: { type: Number, required: false },
-    thigh: { type: Number, required: false },
-    calf: { type: Number, required: false }
+    bodyPart: { type: String, required: true },
+    unit: { type: String, required: true },
+    value: { type: Number, required: true },
 }, {
     timestamps: true
 });

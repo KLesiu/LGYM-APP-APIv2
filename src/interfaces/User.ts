@@ -1,3 +1,26 @@
+interface UserBaseInfo{
+    _id:string,
+    name:string,
+    admin:boolean,
+    email:string,
+    profileRank:string
+    elo:number,
+    createdAt:Date,
+    updatedAt:Date
+    plan:string
+}
+interface UserInfo extends UserBaseInfo{
+    nextRank:{
+        name:string,
+        needElo:number
+    },
+}
+
+export {UserInfo,UserBaseInfo}
+
+
+
+
 export interface User{
     name:string,
     email:string,
@@ -6,16 +29,9 @@ export interface User{
 export interface RequestUser{
     _id:string
 }
-export interface UserRecords{
-    sq:number,
-    dl:number,
-    bp:number,
-    // user id
-    id:string
-}
 export interface Rank{
     name:string,
-    maxElo:number
+    needElo:number
 }
 export interface UserElo{
     elo: number
@@ -24,7 +40,5 @@ export interface UserLoginInfo{
     name:string,
     _id:string,
     email:string,
-    Bp:number,
-    Dl:number,
-    Sq:number
+    avatar:string
 }
