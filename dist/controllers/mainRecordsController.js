@@ -29,6 +29,7 @@ const addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         user: findUser,
         exercise: findExercise,
         weight: req.body.weight,
+        unit: req.body.unit,
         date: req.body.date
     });
     if (mainRecords)
@@ -51,20 +52,24 @@ exports.getMainRecordsHistory = getMainRecordsHistory;
 const getLastMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
-    if (!findUser || !Object.keys(findUser).length)
+    if (!findUser)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const mainRecordsHistory = yield MainRecords_1.default.find({ user: findUser });
     if (mainRecordsHistory.length < 1)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const lastMainRecords = mainRecordsHistory.reduce((acc, curr) => {
-        if (!acc || curr.date > acc.date) {
-            return curr;
+    // Grupowanie według najnowszego rekordu dla każdego ćwiczenia
+    const latestRecordsByExercise = mainRecordsHistory.reduce((acc, curr) => {
+        if (!acc[curr.exercise] || curr.date > acc[curr.exercise].date) {
+            acc[curr.exercise] = curr;
         }
-        else {
-            return acc;
-        }
-    });
-    return res.status(200).send(lastMainRecords);
+        return acc;
+    }, {});
+    // Pobieranie szczegółów dla każdego ćwiczenia
+    const latestRecords = yield Promise.all(Object.values(latestRecordsByExercise).map((record) => __awaiter(void 0, void 0, void 0, function* () {
+        const exerciseDetails = yield Exercise_1.default.findById(record.exercise);
+        return Object.assign(Object.assign({}, record.toObject()), { exerciseDetails });
+    })));
+    return res.status(200).send(latestRecords);
 });
 exports.getLastMainRecords = getLastMainRecords;
 const deleteMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {

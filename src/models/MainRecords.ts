@@ -5,6 +5,7 @@ const MainRecordsSchema = new Schema({
     exercise:{ type: Schema.Types.ObjectId, ref: "Exercise", required: true },
     weight: { type: Number, required: true },
     date: { type: Date, required: true },
+    unit: { type: String, required: true }
     
 }, {
     timestamps: true

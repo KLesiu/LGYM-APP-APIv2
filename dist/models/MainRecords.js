@@ -10,6 +10,7 @@ const MainRecordsSchema = new configModels_1.default({
     exercise: { type: configModels_1.default.Types.ObjectId, ref: "Exercise", required: true },
     weight: { type: Number, required: true },
     date: { type: Date, required: true },
+    unit: { type: String, required: true }
 }, {
     timestamps: true
 });
