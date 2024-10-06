@@ -1,6 +1,6 @@
 import { checkJwtToken } from "./../middlewares/auth"
 import { Request,Response } from "express"
-import { register,login,isAdmin,getUserInfo,updateUserRank,getUserElo,deleteAccount, getUsersRanking } from "../controllers/userController"
+import { register,login,isAdmin,getUserInfo,getUserElo,deleteAccount, getUsersRanking } from "../controllers/userController"
 const passport = require('passport')
 import Router from "./configRouter"
 import User from "../models/User"
@@ -12,7 +12,6 @@ Router.get('/checkToken',checkJwtToken,(req:Request,res:Response<{isValid:boolea
     return res.json({isValid:true,user:req.user})
 })
 Router.get('/getUsersRanking',getUsersRanking)
-Router.get('/userInfo/:id/userElo',updateUserRank)
 Router.get('/userInfo/:id/getUserEloPoints',getUserElo)
 Router.post('/deleteAccount',checkJwtToken,deleteAccount)
 

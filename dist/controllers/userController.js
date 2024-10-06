@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.updateUserRank = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
+exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const Training_1 = __importDefault(require("../models/Training"));
@@ -24,7 +24,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 exports.ranks = [
     { name: 'Junior 1', needElo: 0 }, // 0-1000
-    { name: 'Junior 2', needElo: 1001 }, //1000 - 2500
+    { name: 'Junior 2', needElo: 1001 }, //1001 - 2500
     { name: 'Junior 3', needElo: 2500 }, //2500 - 4000
     { name: 'Mid 1', needElo: 4000 }, //4000 - 5000
     { name: 'Mid 2', needElo: 5000 }, // 5000 - 6000
@@ -122,23 +122,6 @@ const getUsersRanking = function (req, res) {
     });
 };
 exports.getUsersRanking = getUsersRanking;
-const updateUserRank = function (req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
-        const user = yield User_1.default.findById(id);
-        const userElo = user.elo;
-        let userRank = '';
-        for (let i = 0; i < exports.ranks.length; i++) {
-            if (userElo <= exports.ranks[i].needElo) {
-                userRank = exports.ranks[i].name;
-                break;
-            }
-        }
-        yield User_1.default.findByIdAndUpdate(id, { profileRank: userRank });
-        return res.send({ msg: userRank, isNew: user.profileRank === userRank ? false : true });
-    });
-};
-exports.updateUserRank = updateUserRank;
 const getUserElo = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;

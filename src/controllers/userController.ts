@@ -14,7 +14,7 @@ require("dotenv").config()
 
 export const ranks:Rank[] = [
     {name:'Junior 1',needElo:0},// 0-1000
-    {name:'Junior 2',needElo:1001}, //1000 - 2500
+    {name:'Junior 2',needElo:1001}, //1001 - 2500
     {name:'Junior 3',needElo:2500}, //2500 - 4000
     {name:'Mid 1',needElo:4000}, //4000 - 5000
     {name:'Mid 2',needElo:5000}, // 5000 - 6000
@@ -116,20 +116,7 @@ const getUsersRanking = async function(req:Request<Params>,res:Response<UserBase
     return res.status(404).send({msg:Message.DidntFind})
 }
 
-const updateUserRank = async function(req:Request<Params,{},{}>,res:Response<ResponseMessage>){
-    const id = req.params.id
-    const user = await User.findById(id)
-    const userElo = user.elo
-    let userRank=''
-    for (let i = 0; i < ranks.length; i++) {
-    if (userElo <= ranks[i].needElo) {
-        userRank = ranks[i].name;
-        break;
-    }}
-    
-    await User.findByIdAndUpdate(id,{profileRank:userRank})
-    return res.send({msg:userRank,isNew:user.profileRank === userRank?false:true})
-}
+
 const getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserElo | ResponseMessage>){
     const id:string = req.params.id
     const result:typeof User = await User.findById(id)
@@ -163,6 +150,6 @@ const deleteAccount = async function(req:Request<{},{},{email:string}>,res:Respo
 
 }
 
-export {register,login,isAdmin,getUserInfo,updateUserRank,getUserElo,deleteAccount,getUsersRanking}
+export {register,login,isAdmin,getUserInfo,getUserElo,deleteAccount,getUsersRanking}
 
 
