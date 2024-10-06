@@ -1,6 +1,7 @@
 import { WeightUnits } from "../enums/Units";
 
 export interface ExerciseScoresTrainingForm{
+    _id?: string;
     weight: number;
     unit:WeightUnits;
     reps: number;

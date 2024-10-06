@@ -12,6 +12,9 @@ import {
   TrainingsDates,
   UserRanking,
   LastTrainingInfo,
+  TrainingHistoryQuery,
+  TrainingByDate,
+  TrainingByDateDetails,
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -22,6 +25,8 @@ import { Message } from "../enums/Message";
 import { TrainingForm } from "../interfaces/Training";
 import { addExercisesScores } from "./exercisesScoresController";
 import { ExerciseScoresForm } from "../interfaces/ExercisesScores";
+import ExerciseScores from "../models/ExerciseScores";
+import Exercise from "../models/Exercise";
 
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
@@ -87,4 +92,125 @@ const getLastTraining = async (
   return res.status(200).send(training[0]);
 };
 
-export { addTraining, getLastTraining };
+const getTrainingHistory = async (
+  req: Request<Params, {}, TrainingHistoryQuery>,
+  res: Response<TrainingForm[] | ResponseMessage>
+) => {
+  const id = req.params.id;
+  const findUser = await User.findById(id);
+  if (!findUser || !Object.keys(findUser).length)
+    return res.status(404).send({ msg: Message.DidntFind });
+  const { startDt, endDt } = req.body;
+
+  try {
+    const trainingHistory = await Training.find({
+      user: findUser,
+      createdAt: {
+        $gte: new Date(startDt),
+        $lte: new Date(endDt),
+      },
+    }).sort({ date: -1 });
+
+    return res.status(200).send(trainingHistory);
+  } catch (error) {
+    return res.status(500).send({ msg: Message.TryAgain });
+  }
+};
+
+
+const getTrainingByDate = async (
+    req: Request<Params, {}, { createdAt: Date }>,
+    res: Response<TrainingByDateDetails[] | ResponseMessage>
+  ) => {
+    const id = req.params.id;
+    const findUser = await User.findById(id);
+    if (!findUser || !Object.keys(findUser).length)
+      return res.status(404).send({ msg: Message.DidntFind });
+  
+    const { createdAt } = req.body;
+    const startOfDay = new Date(createdAt);
+    startOfDay.setHours(0, 0, 0, 0);
+  
+    const endOfDay = new Date(createdAt);
+    endOfDay.setHours(23, 59, 59, 999);
+  
+    const trainings = await Training.aggregate([
+      {
+        $match: {
+          user: findUser._id,
+          createdAt: {
+            $gte: startOfDay,
+            $lt: endOfDay,
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "plandays",
+          localField: "type",
+          foreignField: "_id",
+          as: "planDay",
+        },
+      },
+      {
+        $unwind: "$planDay",
+      },
+      {
+        $project: {
+          type: 1,
+          exercises: 1,
+          createdAt: 1,
+          "planDay.name": 1,
+        },
+      },
+    ]);
+  
+    if (!trainings.length) {
+      return res.status(404).send({ msg: Message.DidntFind });
+    }
+  
+    const enrichedTrainings = await Promise.all(
+      trainings.map(async (training: TrainingByDate) => {
+        const enrichedExercises = await Promise.all(
+          training.exercises.map(async (exercise: { exerciseScoreId: string }) => {
+            const scoreDetails = await ExerciseScores.findById(
+              exercise.exerciseScoreId,
+              "exercise reps series weight unit"
+            );
+  
+            const exerciseDetails = await Exercise.findById(scoreDetails.exercise, "name bodyPart");
+  
+            return {
+              exerciseScoreId: exercise.exerciseScoreId,
+              scoreDetails,
+              exerciseDetails,
+            };
+          })
+        );
+  
+        // Grupa scoreDetails po exercise
+        const groupedExercises = enrichedExercises.reduce((acc: any, curr: any) => {
+          const exerciseId = curr.scoreDetails.exercise;
+          if (!acc[exerciseId]) {
+            acc[exerciseId] = {
+              exerciseScoreId: curr.exerciseScoreId,
+              exerciseDetails: curr.exerciseDetails,
+              scoresDetails: [],
+            };
+          }
+          acc[exerciseId].scoresDetails.push(curr.scoreDetails);
+          return acc;
+        }, {});
+  
+        // Konwersja obiektu na tablicę
+        const exercisesArray = Object.values(groupedExercises);
+  
+        return { ...training, exercises: exercisesArray };
+      })
+    );
+  
+    return res.status(200).send(enrichedTrainings);
+  };
+  
+
+export { addTraining, getLastTraining, getTrainingHistory, getTrainingByDate };

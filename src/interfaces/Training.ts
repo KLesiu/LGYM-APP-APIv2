@@ -1,12 +1,20 @@
 import FieldScore from "./FieldScore"
-import User from "./../models/User"
 import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
-import { PlanDayVm } from "./PlanDay"
-
+import { ExerciseForm } from "./Exercise";
+import { BodyParts } from "../enums/BodyParts";
+import { WeightUnits } from "../enums/Units";
+import { ExerciseTrainingHistoryDetails } from "./Exercise";
 interface TrainingForm{
     type:string,
     createdAt:Date,
     exercises:ExerciseScoresTrainingForm[]
+}
+
+interface TrainingSessionScores{
+    exercise: ExerciseForm;
+    series: number;
+    reps: number;
+    weight: number;
 }
 
 interface LastTrainingInfo{
@@ -17,8 +25,39 @@ interface LastTrainingInfo{
         name:string
     }
 }
+interface TrainingByDate extends LastTrainingInfo{
+    exercises: {exerciseScoreId:string}[]
+}
 
-export {TrainingForm,LastTrainingInfo}
+interface TrainingByDateDetails extends LastTrainingInfo{
+    exercises:{
+        exerciseScoreId:string,
+        scoreDetails:ExerciseScoresTrainingForm[]
+        exerciseDetails:ExerciseTrainingHistoryDetails
+    }[]
+   
+}
+
+
+
+interface EnrichedExercise {
+    exerciseScoreId: string;
+    scoreDetails: ExerciseScoresTrainingForm;
+    exerciseDetails: ExerciseTrainingHistoryDetails;
+}
+
+
+
+interface TrainingHistoryQuery{
+    startDt:Date,
+    endDt:Date
+}
+
+
+
+
+
+export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise}
 
 
 
