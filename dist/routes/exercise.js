@@ -14,4 +14,5 @@ configRouter_1.default.post("/exercise/:id/getExerciseByBodyPart", exerciseContr
 configRouter_1.default.get("/exercise/getAllGlobalExercises", exerciseController_1.getAllGlobalExercises);
 configRouter_1.default.get("/exercise/:id/getAllUserExercises", exerciseController_1.getAllUserExercises);
 configRouter_1.default.get("/exercise/:id/getExercise", exerciseController_1.getExercise);
+configRouter_1.default.post("/exercise/:id/getLastExerciseScores", exerciseController_1.getLastExerciseScores);
 module.exports = configRouter_1.default;

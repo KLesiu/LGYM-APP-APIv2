@@ -12,10 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getExercise = exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
+exports.getLastExerciseScores = exports.getExercise = exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const Message_1 = require("../enums/Message");
 const User_1 = __importDefault(require("../models/User"));
+const mongodb_1 = require("mongodb");
+const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const addExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const name = req.body.name;
     const bodyPart = req.body.bodyPart;
@@ -134,3 +136,36 @@ const getExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     return res.status(200).send(exercise);
 });
 exports.getExercise = getExercise;
+const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.id;
+    const planDay = req.body;
+    const results = yield Promise.all(planDay.exercises.map((exerciseItem) => __awaiter(void 0, void 0, void 0, function* () {
+        const { series, exercise } = exerciseItem;
+        // Iteracja po seriach w ćwiczeniu
+        const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
+            const seriesNumber = seriesIndex + 1;
+            // Znajdź najnowszy wynik ExerciseScores dla tej serii
+            const latestScore = yield findLatestExerciseScore(userId, exercise._id, seriesNumber);
+            return {
+                series: seriesNumber,
+                score: latestScore || null, // Zwraca null, jeśli brak dopasowania
+            };
+        })));
+        return {
+            exerciseId: `${exercise._id}`,
+            name: exercise.name,
+            seriesScores,
+        };
+    })));
+    res.json(results);
+});
+exports.getLastExerciseScores = getLastExerciseScores;
+const findLatestExerciseScore = (userId, exerciseId, seriesNumber) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield ExerciseScores_1.default.findOne({
+        user: new mongodb_1.ObjectId(userId),
+        exercise: new mongodb_1.ObjectId(exerciseId),
+        series: seriesNumber,
+    }, "createdAt reps weight unit  _id")
+        .sort({ createdAt: -1 })
+        .exec();
+});

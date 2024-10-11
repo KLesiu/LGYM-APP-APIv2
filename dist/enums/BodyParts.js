@@ -17,4 +17,5 @@ var BodyParts;
     BodyParts["Traps"] = "Traps";
     BodyParts["Lats"] = "Lats";
     BodyParts["Neck"] = "Neck";
+    BodyParts["Legs"] = "Legs";
 })(BodyParts || (exports.BodyParts = BodyParts = {}));

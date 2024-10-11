@@ -1,11 +1,14 @@
 import Params from "../interfaces/Params";
 import ResponseMessage from "../interfaces/ResponseMessage";
 import { Request, Response } from "express";
-import { ExerciseForm } from "../interfaces/Exercise";
+import { ExerciseForm, LastExerciseScores } from "../interfaces/Exercise";
 import Exercise from "../models/Exercise";
 import { Message } from "../enums/Message";
 import { BodyParts } from "../enums/BodyParts";
 import User from "../models/User";
+import { PlanDayVm } from "../interfaces/PlanDay";
+import { ObjectId } from "mongodb";
+import ExerciseScores from "../models/ExerciseScores";
 
 const addExercise = async (
   req: Request<{}, {}, ExerciseForm>,
@@ -130,6 +133,48 @@ const getExercise = async(req:Request<Params>, res:Response<ExerciseForm | Respo
   return res.status(200).send(exercise);
 }
 
+
+
+const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Response<LastExerciseScores[] | ResponseMessage>) => {
+  const userId = req.params.id;
+  const planDay: PlanDayVm = req.body;
+
+  const results = await Promise.all(
+    planDay.exercises.map(async (exerciseItem) => {
+      const { series, exercise } = exerciseItem;
+
+      const seriesScores = await Promise.all(
+        Array.from({ length: series }).map(async (_, seriesIndex) => {
+          const seriesNumber = seriesIndex + 1;
+          const latestScore = await findLatestExerciseScore(userId, exercise._id!, seriesNumber);
+
+          return {
+            series: seriesNumber,
+            score: latestScore || null, 
+          };
+        })
+      );
+
+      return {
+        exerciseId:`${ exercise._id}`,
+        name: exercise.name,
+        seriesScores,
+      };
+    })
+  );
+
+  res.json(results);
+}
+const findLatestExerciseScore = async(userId: string, exerciseId: string, seriesNumber: number) =>{
+  return await ExerciseScores.findOne({
+    user: new ObjectId(userId),
+    exercise: new ObjectId(exerciseId),
+    series: seriesNumber,
+  },"createdAt reps weight unit  _id")
+    .sort({ createdAt: -1 })
+    .exec();
+}
+
 export {
   addExercise,
   deleteExercise,
@@ -139,5 +184,6 @@ export {
   addUserExercise,
   getAllUserExercises,
   getAllGlobalExercises,
-  getExercise
+  getExercise,
+  getLastExerciseScores
 };
