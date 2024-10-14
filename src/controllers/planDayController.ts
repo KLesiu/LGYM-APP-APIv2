@@ -7,7 +7,6 @@ import { Message } from "../enums/Message";
 import PlanDay from "../models/PlanDay";
 import User from "../models/User";
 import Exercise from "../models/Exercise";
-import { ExerciseForm } from "../interfaces/Exercise";
 
 
 const createPlanDay = async(req:Request<Params, {}, PlanDayForm>, res:Response<ResponseMessage>) => {
@@ -20,7 +19,8 @@ const createPlanDay = async(req:Request<Params, {}, PlanDayForm>, res:Response<R
     await PlanDay.create({
         plan: findPlan,
         name: name,
-        exercises: exercises
+        exercises: exercises,
+        isDeleted:false
     })
     return res.status(200).send({msg: Message.Created});
 }
@@ -68,7 +68,7 @@ const getPlanDays = async(req: Request<Params>, res: Response<PlanDayVm[] | Resp
         }
 
         // Znalezienie dni planu
-        const findPlanDays = await PlanDay.find({ plan: findPlan });
+        const findPlanDays = await PlanDay.find({ plan: findPlan,isDeleted:false });
         if (!findPlanDays || !findPlanDays.length) {
             return res.status(404).send({ msg: Message.DidntFind });
         }
@@ -109,11 +109,19 @@ const getPlanDaysTypes = async(req: Request<Params>, res: Response<{_id:string,n
     if(!user || !Object.keys(user).length) return res.status(404).send({msg: Message.DidntFind});   
     const plan = await Plan.find({user: user});
     if(!plan || !plan.length) return res.status(404).send({msg: Message.DidntFind});
-    const planDaysTypes = await PlanDay.find({ plan: plan}, '_id name');
+    const planDaysTypes = await PlanDay.find({ plan: plan,isDeleted:false}, '_id name');
     return res.status(200).send(planDaysTypes);
+}
+
+const deletePlanDay = async(req: Request<Params>, res: Response<ResponseMessage>) => {
+    const id = req.params.id;
+    const findPlanDay = await PlanDay.findById(id);
+    if(!findPlanDay || !Object.keys(findPlanDay).length) return res.status(404).send({msg: Message.DidntFind});
+    await findPlanDay.updateOne({isDeleted: true});
+    return res.status(200).send({msg: Message.Deleted});
 }
 
 
 
 
-export{createPlanDay, updatePlanDay, getPlanDay,getPlanDays,getPlanDaysTypes}
+export{createPlanDay, updatePlanDay, getPlanDay,getPlanDays,getPlanDaysTypes,deletePlanDay}

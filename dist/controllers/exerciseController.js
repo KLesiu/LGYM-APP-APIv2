@@ -141,14 +141,12 @@ const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, fu
     const planDay = req.body;
     const results = yield Promise.all(planDay.exercises.map((exerciseItem) => __awaiter(void 0, void 0, void 0, function* () {
         const { series, exercise } = exerciseItem;
-        // Iteracja po seriach w ćwiczeniu
         const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
             const seriesNumber = seriesIndex + 1;
-            // Znajdź najnowszy wynik ExerciseScores dla tej serii
             const latestScore = yield findLatestExerciseScore(userId, exercise._id, seriesNumber);
             return {
                 series: seriesNumber,
-                score: latestScore || null, // Zwraca null, jeśli brak dopasowania
+                score: latestScore || null,
             };
         })));
         return {

@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const PlanDaySchema = new configModels_1.default({
     name: { type: String, required: true },
     plan: { type: configModels_1.default.Types.ObjectId, ref: "Plan", required: true },
+    isDeleted: { type: Boolean, required: true },
     exercises: [
         {
             series: { type: Number, required: true },

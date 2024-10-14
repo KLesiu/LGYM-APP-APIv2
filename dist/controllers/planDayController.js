@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPlanDaysTypes = exports.getPlanDays = exports.getPlanDay = exports.updatePlanDay = exports.createPlanDay = void 0;
+exports.deletePlanDay = exports.getPlanDaysTypes = exports.getPlanDays = exports.getPlanDay = exports.updatePlanDay = exports.createPlanDay = void 0;
 const Plan_1 = __importDefault(require("../models/Plan"));
 const Message_1 = require("../enums/Message");
 const PlanDay_1 = __importDefault(require("../models/PlanDay"));
@@ -30,7 +30,8 @@ const createPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     yield PlanDay_1.default.create({
         plan: findPlan,
         name: name,
-        exercises: exercises
+        exercises: exercises,
+        isDeleted: false
     });
     return res.status(200).send({ msg: Message_1.Message.Created });
 });
@@ -80,7 +81,7 @@ const getPlanDays = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
         }
         // Znalezienie dni planu
-        const findPlanDays = yield PlanDay_1.default.find({ plan: findPlan });
+        const findPlanDays = yield PlanDay_1.default.find({ plan: findPlan, isDeleted: false });
         if (!findPlanDays || !findPlanDays.length) {
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
         }
@@ -120,7 +121,16 @@ const getPlanDaysTypes = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const plan = yield Plan_1.default.find({ user: user });
     if (!plan || !plan.length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const planDaysTypes = yield PlanDay_1.default.find({ plan: plan }, '_id name');
+    const planDaysTypes = yield PlanDay_1.default.find({ plan: plan, isDeleted: false }, '_id name');
     return res.status(200).send(planDaysTypes);
 });
 exports.getPlanDaysTypes = getPlanDaysTypes;
+const deletePlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findPlanDay = yield PlanDay_1.default.findById(id);
+    if (!findPlanDay || !Object.keys(findPlanDay).length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    yield findPlanDay.updateOne({ isDeleted: true });
+    return res.status(200).send({ msg: Message_1.Message.Deleted });
+});
+exports.deletePlanDay = deletePlanDay;
