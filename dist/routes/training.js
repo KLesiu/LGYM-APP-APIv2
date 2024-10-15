@@ -9,4 +9,5 @@ configRouter_1.default.post('/:id/addTraining', trainingController_1.addTraining
 configRouter_1.default.get('/:id/getLastTraining', trainingController_1.getLastTraining);
 configRouter_1.default.post("/:id/getTrainingHistory", trainingController_1.getTrainingHistory);
 configRouter_1.default.post("/:id/getTrainingByDate", trainingController_1.getTrainingByDate);
+configRouter_1.default.get("/:id/getTrainingDates", trainingController_1.getTrainingDates);
 module.exports = configRouter_1.default;

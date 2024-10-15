@@ -211,6 +211,15 @@ const getTrainingByDate = async (
   
     return res.status(200).send(enrichedTrainings);
   };
+
+
+const getTrainingDates = async (req:Request<Params>,res:Response<Date[] | ResponseMessage>) => {
+  const trainings = await Training.find({user:req.params.id},'createdAt').sort({createdAt:1});
+  if(!trainings || !trainings.length) return res.status(404).send({msg:Message.DidntFind});
+  const dates = trainings.map((ele:{createdAt:Date})=>ele.createdAt);
+  return res.status(200).send(dates);
+  
+}
   
 
-export { addTraining, getLastTraining, getTrainingHistory, getTrainingByDate };
+export { addTraining, getLastTraining, getTrainingHistory, getTrainingByDate,getTrainingDates };

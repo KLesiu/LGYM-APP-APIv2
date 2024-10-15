@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrainingByDate = exports.getTrainingHistory = exports.getLastTraining = exports.addTraining = void 0;
+exports.getTrainingDates = exports.getTrainingByDate = exports.getTrainingHistory = exports.getLastTraining = exports.addTraining = void 0;
 require("dotenv").config();
 const Training_1 = __importDefault(require("../models/Training"));
 const User_1 = __importDefault(require("./../models/User"));
@@ -172,3 +172,11 @@ const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, functi
     return res.status(200).send(enrichedTrainings);
 });
 exports.getTrainingByDate = getTrainingByDate;
+const getTrainingDates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const trainings = yield Training_1.default.find({ user: req.params.id }, 'createdAt').sort({ createdAt: 1 });
+    if (!trainings || !trainings.length)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const dates = trainings.map((ele) => ele.createdAt);
+    return res.status(200).send(dates);
+});
+exports.getTrainingDates = getTrainingDates;
