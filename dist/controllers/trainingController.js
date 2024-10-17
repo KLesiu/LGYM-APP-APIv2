@@ -17,29 +17,26 @@ require("dotenv").config();
 const Training_1 = __importDefault(require("../models/Training"));
 const User_1 = __importDefault(require("./../models/User"));
 const Message_1 = require("../enums/Message");
+const exercisesScoresController_1 = require("./exercisesScoresController");
 const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.params.id;
     const planDay = req.body.type;
     const createdAt = req.body.createdAt;
-    const response = yield calculateEloPerExercise(req.body.exercises[0], user);
-    // const response = await Training.create({
-    //   user: user,
-    //   type: planDay,
-    //   createdAt: createdAt,
-    // });
-    // if (!response) return res.status(404).send({ msg: Message.TryAgain });
-    // const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
-    //   return { ...ele, training: response._id, user: user, date: createdAt };
-    // });
-    // const result: { exerciseScoreId: string }[] = await Promise.all(
-    //   exercises.map((ele) => addExercisesScores(ele))
-    // );
-    // await response.updateOne({ exercises: result });
-    // return res.status(200).send({ msg: Message.Created });
-    console.log(response);
-    return res.status(200).send({ elo: response });
+    const response = yield Training_1.default.create({
+        user: user,
+        type: planDay,
+        createdAt: createdAt,
+    });
+    if (!response)
+        return res.status(404).send({ msg: Message_1.Message.TryAgain });
+    const exercises = req.body.exercises.map((ele) => {
+        return Object.assign(Object.assign({}, ele), { training: response._id, user: user, date: createdAt });
+    });
+    const result = yield Promise.all(exercises.map((ele) => (0, exercisesScoresController_1.addExercisesScores)(ele)));
+    yield response.updateOne({ exercises: result });
+    return res.status(200).send({ msg: Message_1.Message.Created });
 });
 exports.addTraining = addTraining;
 const getLastTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -191,13 +188,14 @@ const calculateEloPerExercise = (currentExerciseScore, user) => __awaiter(void 0
     })
         .sort({ createdAt: -1 })
         .limit(1);
+    let elo;
     if (!prevCurrentExerciseScore || !prevCurrentExerciseScore.length)
-        return 0;
-    console.log(prevCurrentExerciseScore[0]);
-    const elo = partElo(prevCurrentExerciseScore[0].weight, prevCurrentExerciseScore[0].reps, currentExerciseScore.weight, currentExerciseScore.reps, 1000);
+        elo = partElo(0, 0, currentExerciseScore.weight, currentExerciseScore.reps);
+    else
+        elo = partElo(prevCurrentExerciseScore[0].weight, prevCurrentExerciseScore[0].reps, currentExerciseScore.weight, currentExerciseScore.reps);
     return elo;
 });
-const partElo = (prev_weight, prev_reps, acc_weight, acc_reps, currentElo) => {
+const partElo = (prev_weight, prev_reps, acc_weight, acc_reps) => {
     const K = 32;
     const getWeightedScore = (weight, reps) => {
         if (weight <= 15) {
@@ -222,6 +220,6 @@ const partElo = (prev_weight, prev_reps, acc_weight, acc_reps, currentElo) => {
     }
     const actualScore = acc_score >= prev_score ? 1 : 0;
     const scoreDifference = (actualScore - expectedScore) * (Math.abs(acc_score - prev_score) < toleranceThreshold ? 0.5 : 1);
-    const newElo = currentElo + K * scoreDifference;
-    return Math.round(newElo);
+    const points = K * scoreDifference;
+    return Math.round(points);
 };
