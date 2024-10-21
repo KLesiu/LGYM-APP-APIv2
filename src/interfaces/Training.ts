@@ -1,13 +1,14 @@
 import FieldScore from "./FieldScore"
 import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
-import { ExerciseForm } from "./Exercise";
+import { ExerciseForm, LastExerciseScores } from "./Exercise";
 import { BodyParts } from "../enums/BodyParts";
 import { WeightUnits } from "../enums/Units";
 import { ExerciseTrainingHistoryDetails } from "./Exercise";
 interface TrainingForm{
     type:string,
     createdAt:Date,
-    exercises:ExerciseScoresTrainingForm[]
+    exercises:ExerciseScoresTrainingForm[],
+    lastExercisesScores:LastExerciseScores[]
 }
 
 interface TrainingSessionScores{

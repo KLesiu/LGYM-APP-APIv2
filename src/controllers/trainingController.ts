@@ -17,6 +17,7 @@ import { ExerciseScoresForm } from "../interfaces/ExercisesScores";
 import ExerciseScores from "../models/ExerciseScores";
 import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
+import { LastExerciseScores } from "../interfaces/Exercise";
 
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
@@ -40,6 +41,82 @@ const addTraining = async (
   await response.updateOne({ exercises: result });
   return res.status(200).send({ msg: Message.Created });
 };
+
+const compareExerciseProgress = (
+  lastExerciseScores: LastExerciseScores[],
+  exerciseScoresTrainingForm: ExerciseScoresTrainingForm[]
+) => {
+  // Zmienna wynikowa
+  const results = {
+    bestProgress: { exercise: "", series: 0, totalRepsProgress: 0, totalWeightProgress: 0 },
+    worseRegress: { exercise: "", series: 0, totalRepsRegress: 0, totalWeightRegress: 0 },
+  };
+
+  // Funkcje pomocnicze do aktualizacji najlepszego/gorszego wyniku
+  const updateBestProgress = (
+    exerciseName: string,
+    series: number,
+    repsProgress: number,
+    weightProgress: number
+  ) => {
+    results.bestProgress.exercise = exerciseName;
+    results.bestProgress.series = series;
+    results.bestProgress.totalRepsProgress += repsProgress;
+    results.bestProgress.totalWeightProgress += weightProgress;
+  };
+
+  const updateWorseRegress = (
+    exerciseName: string,
+    series: number,
+    repsRegress: number,
+    weightRegress: number
+  ) => {
+    results.worseRegress.exercise = exerciseName;
+    results.worseRegress.series = series;
+    results.worseRegress.totalRepsRegress += repsRegress;
+    results.worseRegress.totalWeightRegress += weightRegress;
+  };
+
+  // Porównywanie wyników
+  lastExerciseScores.forEach((lastExercise) => {
+    const currentExercise = exerciseScoresTrainingForm.find(
+      (exercise) => exercise.exercise === lastExercise.exerciseId
+    );
+
+    if (currentExercise) {
+      lastExercise.seriesScores.forEach((lastSeriesScore) => {
+        const currentSeriesScore = exerciseScoresTrainingForm.find(
+          (exercise) =>
+            exercise.exercise === lastExercise.exerciseId &&
+            exercise.series === lastSeriesScore.series
+        );
+
+        if (currentSeriesScore && lastSeriesScore.score) {
+          // Porównanie reps
+          const repsDiff = currentSeriesScore.reps - lastSeriesScore.score.reps;
+          if (repsDiff > 0) {
+            updateBestProgress(lastExercise.name, currentSeriesScore.series, repsDiff, 0);
+          } else if (repsDiff < 0) {
+            updateWorseRegress(lastExercise.name, currentSeriesScore.series, repsDiff, 0);
+          }
+
+          // Porównanie weight
+          const weightDiff = currentSeriesScore.weight - lastSeriesScore.score.weight;
+          if (weightDiff > 0) {
+            updateBestProgress(lastExercise.name, currentSeriesScore.series, 0, weightDiff);
+          } else if (weightDiff < 0) {
+            updateWorseRegress(lastExercise.name, currentSeriesScore.series, 0, weightDiff);
+          }
+        }
+      });
+    }
+  });
+
+  // Zwrócenie wyników
+  return results;
+};
+
+
 
 const getLastTraining = async (
   req: Request<Params>,
