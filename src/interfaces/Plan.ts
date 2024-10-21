@@ -1,3 +1,13 @@
+export interface PlanForm{
+    _id?:string,
+    name:string,
+    trainingDays:number,
+}
+
+
+
+
+
 
 export interface PlanSession{
     _id?:string,

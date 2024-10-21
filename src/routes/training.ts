@@ -1,9 +1,9 @@
-const trainingController = require('../controllers/trainingController')
 import Router from "./configRouter"
-Router.post('/:id/addTraining',trainingController.addTraining)
-Router.get('/:id/getTrainingHistory',trainingController.getTrainingHistory)
-Router.get('/:id/getTrainingSession',trainingController.getCurrentTrainingSession)
-Router.get('/:id/getPrevSessionTraining/:day',trainingController.getPreviousTrainingSession)
-Router.get(`/:id/checkPrevSessionTraining/:day`,trainingController.checkPreviousTrainingSession)
+import { addTraining,getLastTraining, getTrainingByDate, getTrainingHistory,getTrainingDates } from "../controllers/trainingController"
+Router.post('/:id/addTraining',addTraining)
+Router.get('/:id/getLastTraining',getLastTraining)
+Router.post("/:id/getTrainingHistory",getTrainingHistory)
+Router.post("/:id/getTrainingByDate",getTrainingByDate)
+Router.get("/:id/getTrainingDates",getTrainingDates)
 
 module.exports = Router

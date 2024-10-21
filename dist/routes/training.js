@@ -3,11 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const trainingController = require('../controllers/trainingController');
 const configRouter_1 = __importDefault(require("./configRouter"));
-configRouter_1.default.post('/:id/addTraining', trainingController.addTraining);
-configRouter_1.default.get('/:id/getTrainingHistory', trainingController.getTrainingHistory);
-configRouter_1.default.get('/:id/getTrainingSession', trainingController.getCurrentTrainingSession);
-configRouter_1.default.get('/:id/getPrevSessionTraining/:day', trainingController.getPreviousTrainingSession);
-configRouter_1.default.get(`/:id/checkPrevSessionTraining/:day`, trainingController.checkPreviousTrainingSession);
+const trainingController_1 = require("../controllers/trainingController");
+configRouter_1.default.post('/:id/addTraining', trainingController_1.addTraining);
+configRouter_1.default.get('/:id/getLastTraining', trainingController_1.getLastTraining);
+configRouter_1.default.post("/:id/getTrainingHistory", trainingController_1.getTrainingHistory);
+configRouter_1.default.post("/:id/getTrainingByDate", trainingController_1.getTrainingByDate);
+configRouter_1.default.get("/:id/getTrainingDates", trainingController_1.getTrainingDates);
 module.exports = configRouter_1.default;
