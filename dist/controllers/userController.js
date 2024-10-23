@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
+exports.updateUserElo = exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const Training_1 = __importDefault(require("../models/Training"));
@@ -152,3 +152,24 @@ const deleteAccount = function (req, res) {
     });
 };
 exports.deleteAccount = deleteAccount;
+const updateUserElo = (gainElo, user) => __awaiter(void 0, void 0, void 0, function* () {
+    const newElo = gainElo + user.elo;
+    // Znalezienie odpowiedniej rangi na podstawie wartości ELO
+    const currentRank = exports.ranks.reduce((current, next) => {
+        if (newElo >= next.needElo) {
+            return next;
+        }
+        return current;
+    }, exports.ranks[0]);
+    // Znalezienie następnej rangi, jeśli istnieje
+    const currentRankIndex = exports.ranks.findIndex(rank => rank.name === currentRank.name);
+    const nextRank = exports.ranks[currentRankIndex + 1] || null; // Jeśli nie ma wyższej rangi, zwróć null
+    // Zaktualizowanie danych użytkownika w bazie danych
+    yield user.updateOne({ elo: newElo, profileRank: currentRank.name });
+    // Zwrócenie obecnej rangi i kolejnej rangi, jeśli istnieje
+    return {
+        currentRank: currentRank,
+        nextRank: nextRank ? nextRank : null
+    };
+});
+exports.updateUserElo = updateUserElo;

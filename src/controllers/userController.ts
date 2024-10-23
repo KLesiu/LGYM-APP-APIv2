@@ -150,6 +150,31 @@ const deleteAccount = async function(req:Request<{},{},{email:string}>,res:Respo
 
 }
 
-export {register,login,isAdmin,getUserInfo,getUserElo,deleteAccount,getUsersRanking}
+const updateUserElo = async (gainElo: number, user: typeof User) => {
+
+    const newElo = gainElo + user.elo;
+    // Znalezienie odpowiedniej rangi na podstawie wartości ELO
+    const currentRank = ranks.reduce((current, next) => {
+      if (newElo >= next.needElo) {
+        return next;
+      }
+      return current;
+    }, ranks[0]);
+  
+    // Znalezienie następnej rangi, jeśli istnieje
+    const currentRankIndex = ranks.findIndex(rank => rank.name === currentRank.name);
+    const nextRank = ranks[currentRankIndex + 1] || null; // Jeśli nie ma wyższej rangi, zwróć null
+  
+    // Zaktualizowanie danych użytkownika w bazie danych
+    await user.updateOne({ elo: newElo, profileRank: currentRank.name });
+  
+    // Zwrócenie obecnej rangi i kolejnej rangi, jeśli istnieje
+    return {
+      currentRank: currentRank,
+      nextRank: nextRank ? nextRank : null
+    };
+  };
+
+export {register,login,isAdmin,getUserInfo,getUserElo,deleteAccount,getUsersRanking,updateUserElo}
 
 

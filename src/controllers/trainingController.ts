@@ -7,6 +7,7 @@ import {
   TrainingHistoryQuery,
   TrainingByDate,
   TrainingByDateDetails,
+  TrainingSummary
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -18,29 +19,66 @@ import ExerciseScores from "../models/ExerciseScores";
 import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
 import { LastExerciseScores } from "../interfaces/Exercise";
-
+import {updateUserElo} from "./userController"
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
-  res: Response<ResponseMessage>
+  res: Response<ResponseMessage | TrainingSummary>
 ) => {
-  const user = req.params.id;
-  const planDay = req.body.type;
-  const createdAt = req.body.createdAt;
-  const response = await Training.create({
-    user: user,
-    type: planDay,
-    createdAt: createdAt,
-  });
-  if (!response) return res.status(404).send({ msg: Message.TryAgain });
-  const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
-    return { ...ele, training: response._id, user: user, date: createdAt };
-  });
-  const result: { exerciseScoreId: string }[] = await Promise.all(
-    exercises.map((ele) => addExercisesScores(ele))
-  );
-  await response.updateOne({ exercises: result });
-  return res.status(200).send({ msg: Message.Created });
+ 
+    const userId = req.params.id;
+    const planDay = req.body.type;
+    const createdAt = req.body.createdAt;
+    
+
+    const user = await User.findById(userId);
+
+    // Tworzenie rekordu treningu
+    const response = await Training.create({
+      user: userId,
+      type: planDay,
+      createdAt: createdAt,
+    });
+
+    if (!response) return res.status(404).send({ msg: Message.TryAgain });
+
+    // Pobieranie ćwiczeń i dodawanie wyników dla każdego z nich
+    const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
+      return { ...ele, training: response._id, user: userId, date: createdAt };
+    });
+
+    // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
+    const result= await Promise.all(
+      exercises.map(async (ele) => {
+        // Obliczanie ELO dla każdego ćwiczenia
+        const elo = await calculateEloPerExercise(ele, userId);
+
+        // Dodanie wyniku ćwiczenia z obliczonym ELO
+        const exerciseScoreId = await addExercisesScores(ele);
+        
+        return { exerciseScoreId, elo };
+      })
+    );
+    let elo = 0
+    result.forEach((ele:{elo:number,exerciseScoreId:{exerciseScoreId:string}})=>{
+      elo += ele.elo
+    })
+
+
+    // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
+    const progressObject = compareExerciseProgress(req.body.lastExercisesScores, req.body.exercises);
+
+
+    // Aktualizacja rekordu treningu z wynikami ćwiczeń
+    await response.updateOne({ exercises: result });
+
+    const userRankStatus = await updateUserElo(elo, user);
+
+
+
+
+    return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:user.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
 };
+
 
 const compareExerciseProgress = (
   lastExerciseScores: LastExerciseScores[],
@@ -48,64 +86,60 @@ const compareExerciseProgress = (
 ) => {
   // Zmienna wynikowa
   const results = {
-    bestProgress: { exercise: "", series: 0, totalRepsProgress: 0, totalWeightProgress: 0 },
-    worseRegress: { exercise: "", series: 0, totalRepsRegress: 0, totalWeightRegress: 0 },
+    bestProgress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
+    worseRegress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
   };
 
-  // Funkcje pomocnicze do aktualizacji najlepszego/gorszego wyniku
-  const updateBestProgress = (
-    exerciseName: string,
-    series: number,
-    repsProgress: number,
-    weightProgress: number
-  ) => {
-    results.bestProgress.exercise = exerciseName;
-    results.bestProgress.series = series;
-    results.bestProgress.totalRepsProgress += repsProgress;
-    results.bestProgress.totalWeightProgress += weightProgress;
-  };
+  // Zmienna śledząca maksymalne różnice dla progresu i regresu
+  let maxProgressValue = -Infinity;
+  let maxRegressValue = Infinity;
 
-  const updateWorseRegress = (
-    exerciseName: string,
-    series: number,
-    repsRegress: number,
-    weightRegress: number
-  ) => {
-    results.worseRegress.exercise = exerciseName;
-    results.worseRegress.series = series;
-    results.worseRegress.totalRepsRegress += repsRegress;
-    results.worseRegress.totalWeightRegress += weightRegress;
+  // Funkcja do liczenia sumarycznego progresu/regresu
+  const calculateTotalChange = (repsDiff: number, weightDiff: number) => {
+    return repsDiff + weightDiff;
   };
 
   // Porównywanie wyników
   lastExerciseScores.forEach((lastExercise) => {
-    const currentExercise = exerciseScoresTrainingForm.find(
+    const currentExercise = exerciseScoresTrainingForm.filter(
       (exercise) => exercise.exercise === lastExercise.exerciseId
     );
 
-    if (currentExercise) {
+    if (currentExercise.length > 0) {
       lastExercise.seriesScores.forEach((lastSeriesScore) => {
-        const currentSeriesScore = exerciseScoresTrainingForm.find(
-          (exercise) =>
-            exercise.exercise === lastExercise.exerciseId &&
-            exercise.series === lastSeriesScore.series
+        const currentSeriesScore = currentExercise.find(
+          (exercise) => exercise.series === lastSeriesScore.series
         );
 
         if (currentSeriesScore && lastSeriesScore.score) {
           // Porównanie reps
           const repsDiff = currentSeriesScore.reps - lastSeriesScore.score.reps;
-          if (repsDiff > 0) {
-            updateBestProgress(lastExercise.name, currentSeriesScore.series, repsDiff, 0);
-          } else if (repsDiff < 0) {
-            updateWorseRegress(lastExercise.name, currentSeriesScore.series, repsDiff, 0);
-          }
 
           // Porównanie weight
           const weightDiff = currentSeriesScore.weight - lastSeriesScore.score.weight;
-          if (weightDiff > 0) {
-            updateBestProgress(lastExercise.name, currentSeriesScore.series, 0, weightDiff);
-          } else if (weightDiff < 0) {
-            updateWorseRegress(lastExercise.name, currentSeriesScore.series, 0, weightDiff);
+
+          // Sprawdzenie najlepszego progresu
+          if (repsDiff > 0 || weightDiff > 0) {
+            const totalChange = calculateTotalChange(repsDiff, weightDiff);
+            if (totalChange > maxProgressValue) {
+              maxProgressValue = totalChange;
+              results.bestProgress.exercise = lastExercise.name;
+              results.bestProgress.series = currentSeriesScore.series;
+              results.bestProgress.repsScore = repsDiff;
+              results.bestProgress.weightScore = weightDiff;
+            }
+          }
+
+          // Sprawdzenie najgorszego regresu
+          if (repsDiff < 0 || weightDiff < 0) {
+            const totalChange = calculateTotalChange(repsDiff, weightDiff);
+            if (totalChange < maxRegressValue) {
+              maxRegressValue = totalChange;
+              results.worseRegress.exercise = lastExercise.name;
+              results.worseRegress.series = currentSeriesScore.series;
+              results.worseRegress.repsScore = repsDiff;
+              results.worseRegress.weightScore = weightDiff;
+            }
           }
         }
       });
@@ -115,6 +149,10 @@ const compareExerciseProgress = (
   // Zwrócenie wyników
   return results;
 };
+
+
+
+
 
 
 

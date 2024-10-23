@@ -6,9 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
 const mongoose = require('mongoose');
 const MeasurementsSchema = new configModels_1.default({
+    // Użytkownik, który zapisuje pomiary
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
+    // Część ciała, dla której zapisujemy pomiary
     bodyPart: { type: String, required: true },
+    // Jednostka miary
     unit: { type: String, required: true },
+    // Wartość pomiaru
     value: { type: Number, required: true },
 }, {
     timestamps: true
