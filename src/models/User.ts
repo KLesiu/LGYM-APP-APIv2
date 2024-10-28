@@ -12,8 +12,6 @@ const UserSchema = new Schema({
     plan:{type:Schema.Types.ObjectId,ref:"Plan",required:false},
     // Ranga użytkownika
     profileRank:{type:String,required:false},
-    // Elo użytkownika
-    elo:{type:Number,required:false},
     // Avatar użytkownika
     avatar:{type:String,required:false},
 },{

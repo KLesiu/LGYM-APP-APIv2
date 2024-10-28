@@ -7,6 +7,7 @@ import { Message } from "../enums/Message"
 import Training from "../models/Training"
 import Measurements from "../models/Measurements"
 import Plan from "../models/Plan"
+import EloRegistry from "../models/EloRegistry"
 const {body, validationResult}= require("express-validator")
 const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")
@@ -102,9 +103,11 @@ const getUserInfo = async function(req:Request<Params>,res:Response<UserInfo | R
             nextRank = ranks[index+1]
         }
     })
+    const userElo = await EloRegistry.find({user:id}).sort({date:-1}).limit(1)
     const userInfoWithRank = {
         ...UserInfo.toObject(), 
-        nextRank: nextRank || null
+        nextRank: nextRank || null,
+        elo: userElo[0].result || 0
     };
     if(UserInfo) return res.status(200).send(userInfoWithRank)
     return res.status(404).send({msg:Message.DidntFind})   
