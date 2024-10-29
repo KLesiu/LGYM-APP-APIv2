@@ -17,8 +17,6 @@ const UserSchema = new configModels_1.default({
     plan: { type: configModels_1.default.Types.ObjectId, ref: "Plan", required: false },
     // Ranga użytkownika
     profileRank: { type: String, required: false },
-    // Elo użytkownika
-    elo: { type: Number, required: false },
     // Avatar użytkownika
     avatar: { type: String, required: false },
 }, {

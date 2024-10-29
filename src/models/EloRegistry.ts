@@ -7,7 +7,7 @@ const EloRegistrySchema = new Schema({
     // Data dodania wpisu
     date:{type:Date,required:true},
     // Wynik
-    result:{type:Number,required:true},
+    elo:{type:Number,required:true},
     // Trening w którym został dodany wpis
     training:{type:Schema.Types.ObjectId,ref:'Training',required:false}
 })

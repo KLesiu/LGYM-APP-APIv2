@@ -20,6 +20,7 @@ import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
 import { LastExerciseScores } from "../interfaces/Exercise";
 import {updateUserElo} from "./userController"
+import EloRegistry from "../models/EloRegistry";
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
   res: Response<ResponseMessage | TrainingSummary>
@@ -70,13 +71,13 @@ const addTraining = async (
 
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
     await response.updateOne({ exercises: result });
-
-    const userRankStatus = await updateUserElo(elo, user);
-
-
+    const currentUserElo = await EloRegistry.findOne({user:userId}).sort({date:-1}).limit(1)
+    const userRankStatus = await updateUserElo(elo,currentUserElo.elo, user,response._id);
 
 
-    return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:user.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
+
+
+    return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:currentUserElo.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
 };
 
 

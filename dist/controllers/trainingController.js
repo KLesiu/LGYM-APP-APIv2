@@ -21,6 +21,7 @@ const exercisesScoresController_1 = require("./exercisesScoresController");
 const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const userController_1 = require("./userController");
+const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
 const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const planDay = req.body.type;
@@ -54,8 +55,9 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const progressObject = compareExerciseProgress(req.body.lastExercisesScores, req.body.exercises);
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
     yield response.updateOne({ exercises: result });
-    const userRankStatus = yield (0, userController_1.updateUserElo)(elo, user);
-    return res.status(200).send({ progress: progressObject, gainElo: elo, userOldElo: user.elo, profileRank: userRankStatus.currentRank, nextRank: userRankStatus.nextRank, msg: Message_1.Message.Created });
+    const currentUserElo = yield EloRegistry_1.default.findOne({ user: userId }).sort({ date: -1 }).limit(1);
+    const userRankStatus = yield (0, userController_1.updateUserElo)(elo, currentUserElo.elo, user, response._id);
+    return res.status(200).send({ progress: progressObject, gainElo: elo, userOldElo: currentUserElo.elo, profileRank: userRankStatus.currentRank, nextRank: userRankStatus.nextRank, msg: Message_1.Message.Created });
 });
 exports.addTraining = addTraining;
 const compareExerciseProgress = (lastExerciseScores, exerciseScoresTrainingForm) => {
