@@ -6,9 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
 const mongoose = require('mongoose');
 const TrainingSchema = new configModels_1.default({
+    // Użytkownik, który dodał trening
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
+    // Plan Dnia, do którego przypisany jest trening
     type: { type: configModels_1.default.Types.ObjectId, ref: 'PlanDay', required: true },
+    // Wykonane ćwiczenia Typ:{exerciseScoreId: string}[], gdzie exerciseScoreId to id modelu ExerciseScore
     exercises: { type: Array, required: false },
+    // Data utworzenia
     createdAt: { type: Date, required: true },
 });
 const Training = mongoose.model('Training', TrainingSchema);

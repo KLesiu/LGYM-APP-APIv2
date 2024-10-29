@@ -7,6 +7,7 @@ import { Message } from "../enums/Message"
 import Training from "../models/Training"
 import Measurements from "../models/Measurements"
 import Plan from "../models/Plan"
+import EloRegistry from "../models/EloRegistry"
 const {body, validationResult}= require("express-validator")
 const asyncHandler = require("express-async-handler")
 const jwt = require("jsonwebtoken")
@@ -71,8 +72,9 @@ const register=[
             
         }
        
-        const user = new User({name:name,admin:admin,email:email,profileRank:'Junior 1',elo:1000})
+        const user = new User({name:name,admin:admin,email:email,profileRank:'Junior 1'})
         await User.register(user,password)
+        await EloRegistry.create({user:user._id,date:new Date(),elo:1000})
         res.status(200).send({msg:"User created successfully!"})
     })]
 
@@ -102,24 +104,62 @@ const getUserInfo = async function(req:Request<Params>,res:Response<UserInfo | R
             nextRank = ranks[index+1]
         }
     })
+    const userElo = await EloRegistry.findOne({user:id}).sort({date:-1})
     const userInfoWithRank = {
         ...UserInfo.toObject(), 
-        nextRank: nextRank || null
+        nextRank: nextRank || null,
+        elo: userElo && userElo.elo ? userElo.elo : 1000
     };
     if(UserInfo) return res.status(200).send(userInfoWithRank)
     return res.status(404).send({msg:Message.DidntFind})   
 }
 
-const getUsersRanking = async function(req:Request<Params>,res:Response<UserBaseInfo[] | ResponseMessage>){
-    const users = await User.find({}).sort({elo:-1})
-    if(users) return res.status(200).send(users)
-    return res.status(404).send({msg:Message.DidntFind})
-}
+const getUsersRanking = async function(req: Request, res: Response<UserBaseInfo[] | ResponseMessage>) {
+    const users = await User.aggregate([
+        {
+            $lookup: {
+                from: 'eloregistries',            // Nazwa kolekcji EloRegistry
+                let: { userId: '$_id' },          // Definicja zmiennej `userId` z `_id` użytkownika
+                pipeline: [
+                    { $match: { $expr: { $eq: ['$user', '$$userId'] } } }, // Dopasowanie do użytkownika
+                    { $sort: { date: -1 } },       // Sortowanie malejąco po `date`, najnowszy jako pierwszy
+                    { $limit: 1 }                  // Pobranie tylko najnowszego wpisu
+                ],
+                as: 'eloRecords'                  // Wynik jako tablica `eloRecords` (będzie miała maksymalnie jeden element)
+            }
+        },
+        {
+            $addFields: {
+                // Wyciągnięcie najnowszego `elo` lub ustawienie wartości domyślnej 1000, jeśli brak wpisów
+                elo: { $ifNull: [{ $arrayElemAt: ["$eloRecords.elo", 0] }, 1000] }
+            }
+        },
+        {
+            $sort: { elo: -1 } // Sortowanie według elo malejąco
+        },
+        {
+            $project: {
+                name: 1,
+                avatar: 1,
+                elo: 1,
+                profileRank: 1
+            }
+        }
+    ]);
+
+    // Zwrócenie listy użytkowników lub komunikat błędu
+    if (users.length) return res.status(200).send(users);
+    else return res.status(404).send({ msg: Message.DidntFind });
+};
+
+
+
+
 
 
 const getUserElo = async function(req:Request<Params,{},{}>,res:Response<UserElo | ResponseMessage>){
     const id:string = req.params.id
-    const result:typeof User = await User.findById(id)
+    const result = await EloRegistry.findOne({user:id}).sort({date:-1}).limit(1)
     if(!result) return res.status(404).send({msg:Message.DidntFind}) 
     return res.status(200).send({
         elo: result.elo
@@ -150,6 +190,32 @@ const deleteAccount = async function(req:Request<{},{},{email:string}>,res:Respo
 
 }
 
-export {register,login,isAdmin,getUserInfo,getUserElo,deleteAccount,getUsersRanking}
+const updateUserElo = async (gainElo: number,currentElo:number, user: typeof User,trainingId:string | undefined) => {
+
+    const newElo = gainElo +currentElo;
+    // Znalezienie odpowiedniej rangi na podstawie wartości ELO
+    const currentRank = ranks.reduce((current, next) => {
+      if (newElo >= next.needElo) {
+        return next;
+      }
+      return current;
+    }, ranks[0]);
+  
+    // Znalezienie następnej rangi, jeśli istnieje
+    const currentRankIndex = ranks.findIndex(rank => rank.name === currentRank.name);
+    const nextRank = ranks[currentRankIndex + 1] || null; // Jeśli nie ma wyższej rangi, zwróć null
+  
+    // Zaktualizowanie danych użytkownika w bazie danych
+    await user.updateOne({  profileRank: currentRank.name });
+    await EloRegistry.create({ user: user._id, date: new Date(), elo: newElo,training:trainingId });
+  
+    // Zwrócenie obecnej rangi i kolejnej rangi, jeśli istnieje
+    return {
+      currentRank: currentRank,
+      nextRank: nextRank ? nextRank : null
+    };
+  };
+
+export {register,login,isAdmin,getUserInfo,getUserElo,deleteAccount,getUsersRanking,updateUserElo}
 
 

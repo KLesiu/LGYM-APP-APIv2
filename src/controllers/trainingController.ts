@@ -7,6 +7,7 @@ import {
   TrainingHistoryQuery,
   TrainingByDate,
   TrainingByDateDetails,
+  TrainingSummary
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -17,29 +18,144 @@ import { ExerciseScoresForm } from "../interfaces/ExercisesScores";
 import ExerciseScores from "../models/ExerciseScores";
 import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
-
+import { LastExerciseScores } from "../interfaces/Exercise";
+import {updateUserElo} from "./userController"
+import EloRegistry from "../models/EloRegistry";
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
-  res: Response<ResponseMessage>
+  res: Response<ResponseMessage | TrainingSummary>
 ) => {
-  const user = req.params.id;
-  const planDay = req.body.type;
-  const createdAt = req.body.createdAt;
-  const response = await Training.create({
-    user: user,
-    type: planDay,
-    createdAt: createdAt,
-  });
-  if (!response) return res.status(404).send({ msg: Message.TryAgain });
-  const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
-    return { ...ele, training: response._id, user: user, date: createdAt };
-  });
-  const result: { exerciseScoreId: string }[] = await Promise.all(
-    exercises.map((ele) => addExercisesScores(ele))
-  );
-  await response.updateOne({ exercises: result });
-  return res.status(200).send({ msg: Message.Created });
+ 
+    const userId = req.params.id;
+    const planDay = req.body.type;
+    const createdAt = req.body.createdAt;
+    
+
+    const user = await User.findById(userId);
+
+    // Tworzenie rekordu treningu
+    const response = await Training.create({
+      user: userId,
+      type: planDay,
+      createdAt: createdAt,
+    });
+
+    if (!response) return res.status(404).send({ msg: Message.TryAgain });
+
+    // Pobieranie ćwiczeń i dodawanie wyników dla każdego z nich
+    const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
+      return { ...ele, training: response._id, user: userId, date: createdAt };
+    });
+
+    // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
+    const result= await Promise.all(
+      exercises.map(async (ele) => {
+        // Obliczanie ELO dla każdego ćwiczenia
+        const elo = await calculateEloPerExercise(ele, userId);
+
+        // Dodanie wyniku ćwiczenia z obliczonym ELO
+        const exerciseScoreId = await addExercisesScores(ele);
+        
+        return { exerciseScoreId, elo };
+      })
+    );
+    let elo = 0
+    result.forEach((ele:{elo:number,exerciseScoreId:{exerciseScoreId:string}})=>{
+      elo += ele.elo
+    })
+
+
+    // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
+    const progressObject = compareExerciseProgress(req.body.lastExercisesScores, req.body.exercises);
+
+
+    // Aktualizacja rekordu treningu z wynikami ćwiczeń
+    await response.updateOne({ exercises: result });
+    const currentUserElo = await EloRegistry.findOne({user:userId}).sort({date:-1}).limit(1)
+    const userRankStatus = await updateUserElo(elo,currentUserElo.elo, user,response._id);
+
+
+
+
+    return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:currentUserElo.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
 };
+
+
+const compareExerciseProgress = (
+  lastExerciseScores: LastExerciseScores[],
+  exerciseScoresTrainingForm: ExerciseScoresTrainingForm[]
+) => {
+  // Zmienna wynikowa
+  const results = {
+    bestProgress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
+    worseRegress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
+  };
+
+  // Zmienna śledząca maksymalne różnice dla progresu i regresu
+  let maxProgressValue = -Infinity;
+  let maxRegressValue = Infinity;
+
+  // Funkcja do liczenia sumarycznego progresu/regresu
+  const calculateTotalChange = (repsDiff: number, weightDiff: number) => {
+    return repsDiff + weightDiff;
+  };
+
+  // Porównywanie wyników
+  lastExerciseScores.forEach((lastExercise) => {
+    const currentExercise = exerciseScoresTrainingForm.filter(
+      (exercise) => exercise.exercise === lastExercise.exerciseId
+    );
+
+    if (currentExercise.length > 0) {
+      lastExercise.seriesScores.forEach((lastSeriesScore) => {
+        const currentSeriesScore = currentExercise.find(
+          (exercise) => exercise.series === lastSeriesScore.series
+        );
+
+        if (currentSeriesScore && lastSeriesScore.score) {
+          // Porównanie reps
+          const repsDiff = currentSeriesScore.reps - lastSeriesScore.score.reps;
+
+          // Porównanie weight
+          const weightDiff = currentSeriesScore.weight - lastSeriesScore.score.weight;
+
+          // Sprawdzenie najlepszego progresu
+          if (repsDiff > 0 || weightDiff > 0) {
+            const totalChange = calculateTotalChange(repsDiff, weightDiff);
+            if (totalChange > maxProgressValue) {
+              maxProgressValue = totalChange;
+              results.bestProgress.exercise = lastExercise.name;
+              results.bestProgress.series = currentSeriesScore.series;
+              results.bestProgress.repsScore = repsDiff;
+              results.bestProgress.weightScore = weightDiff;
+            }
+          }
+
+          // Sprawdzenie najgorszego regresu
+          if (repsDiff < 0 || weightDiff < 0) {
+            const totalChange = calculateTotalChange(repsDiff, weightDiff);
+            if (totalChange < maxRegressValue) {
+              maxRegressValue = totalChange;
+              results.worseRegress.exercise = lastExercise.name;
+              results.worseRegress.series = currentSeriesScore.series;
+              results.worseRegress.repsScore = repsDiff;
+              results.worseRegress.weightScore = weightDiff;
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // Zwrócenie wyników
+  return results;
+};
+
+
+
+
+
+
 
 const getLastTraining = async (
   req: Request<Params>,

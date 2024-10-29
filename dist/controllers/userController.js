@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
+exports.updateUserElo = exports.getUsersRanking = exports.deleteAccount = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const Training_1 = __importDefault(require("../models/Training"));
 const Measurements_1 = __importDefault(require("../models/Measurements"));
 const Plan_1 = __importDefault(require("../models/Plan"));
+const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
@@ -70,8 +71,9 @@ const register = [
                     ] });
             }
         }
-        const user = new User_1.default({ name: name, admin: admin, email: email, profileRank: 'Junior 1', elo: 1000 });
+        const user = new User_1.default({ name: name, admin: admin, email: email, profileRank: 'Junior 1' });
         yield User_1.default.register(user, password);
+        yield EloRegistry_1.default.create({ user: user._id, date: new Date(), elo: 1000 });
         res.status(200).send({ msg: "User created successfully!" });
     }))
 ];
@@ -106,7 +108,8 @@ const getUserInfo = function (req, res) {
                 nextRank = exports.ranks[index + 1];
             }
         });
-        const userInfoWithRank = Object.assign(Object.assign({}, UserInfo.toObject()), { nextRank: nextRank || null });
+        const userElo = yield EloRegistry_1.default.findOne({ user: id }).sort({ date: -1 });
+        const userInfoWithRank = Object.assign(Object.assign({}, UserInfo.toObject()), { nextRank: nextRank || null, elo: userElo && userElo.elo ? userElo.elo : 1000 });
         if (UserInfo)
             return res.status(200).send(userInfoWithRank);
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
@@ -115,17 +118,49 @@ const getUserInfo = function (req, res) {
 exports.getUserInfo = getUserInfo;
 const getUsersRanking = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const users = yield User_1.default.find({}).sort({ elo: -1 });
-        if (users)
+        const users = yield User_1.default.aggregate([
+            {
+                $lookup: {
+                    from: 'eloregistries', // Nazwa kolekcji EloRegistry
+                    let: { userId: '$_id' }, // Definicja zmiennej `userId` z `_id` użytkownika
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$user', '$$userId'] } } }, // Dopasowanie do użytkownika
+                        { $sort: { date: -1 } }, // Sortowanie malejąco po `date`, najnowszy jako pierwszy
+                        { $limit: 1 } // Pobranie tylko najnowszego wpisu
+                    ],
+                    as: 'eloRecords' // Wynik jako tablica `eloRecords` (będzie miała maksymalnie jeden element)
+                }
+            },
+            {
+                $addFields: {
+                    // Wyciągnięcie najnowszego `elo` lub ustawienie wartości domyślnej 1000, jeśli brak wpisów
+                    elo: { $ifNull: [{ $arrayElemAt: ["$eloRecords.elo", 0] }, 1000] }
+                }
+            },
+            {
+                $sort: { elo: -1 } // Sortowanie według elo malejąco
+            },
+            {
+                $project: {
+                    name: 1,
+                    avatar: 1,
+                    elo: 1,
+                    profileRank: 1
+                }
+            }
+        ]);
+        // Zwrócenie listy użytkowników lub komunikat błędu
+        if (users.length)
             return res.status(200).send(users);
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+        else
+            return res.status(404).send({ msg: Message_1.Message.DidntFind });
     });
 };
 exports.getUsersRanking = getUsersRanking;
 const getUserElo = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
-        const result = yield User_1.default.findById(id);
+        const result = yield EloRegistry_1.default.findOne({ user: id }).sort({ date: -1 }).limit(1);
         if (!result)
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
         return res.status(200).send({
@@ -152,3 +187,25 @@ const deleteAccount = function (req, res) {
     });
 };
 exports.deleteAccount = deleteAccount;
+const updateUserElo = (gainElo, currentElo, user, trainingId) => __awaiter(void 0, void 0, void 0, function* () {
+    const newElo = gainElo + currentElo;
+    // Znalezienie odpowiedniej rangi na podstawie wartości ELO
+    const currentRank = exports.ranks.reduce((current, next) => {
+        if (newElo >= next.needElo) {
+            return next;
+        }
+        return current;
+    }, exports.ranks[0]);
+    // Znalezienie następnej rangi, jeśli istnieje
+    const currentRankIndex = exports.ranks.findIndex(rank => rank.name === currentRank.name);
+    const nextRank = exports.ranks[currentRankIndex + 1] || null; // Jeśli nie ma wyższej rangi, zwróć null
+    // Zaktualizowanie danych użytkownika w bazie danych
+    yield user.updateOne({ profileRank: currentRank.name });
+    yield EloRegistry_1.default.create({ user: user._id, date: new Date(), elo: newElo, training: trainingId });
+    // Zwrócenie obecnej rangi i kolejnej rangi, jeśli istnieje
+    return {
+        currentRank: currentRank,
+        nextRank: nextRank ? nextRank : null
+    };
+});
+exports.updateUserElo = updateUserElo;

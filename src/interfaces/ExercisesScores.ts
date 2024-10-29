@@ -10,7 +10,6 @@ export interface ExerciseScoresTrainingForm{
 }
 
 export interface ExerciseScoresForm extends ExerciseScoresTrainingForm{
-    _id?: string;
     user: string;
     training: string;
     date:Date

@@ -1,9 +1,13 @@
 import Schema from "./configModels"
 const mongoose = require('mongoose')
 const TrainingSchema= new Schema({
+    // Użytkownik, który dodał trening
     user: {type:Schema.Types.ObjectId,ref:"User",required:true},
+    // Plan Dnia, do którego przypisany jest trening
     type:{type:Schema.Types.ObjectId,ref:'PlanDay',required:true},
+    // Wykonane ćwiczenia Typ:{exerciseScoreId: string}[], gdzie exerciseScoreId to id modelu ExerciseScore
     exercises:{type:Array,required:false},
+    // Data utworzenia
     createdAt:{type:Date,required:true},
 })
 

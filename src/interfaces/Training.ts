@@ -1,13 +1,16 @@
 import FieldScore from "./FieldScore"
 import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
-import { ExerciseForm } from "./Exercise";
+import { ExerciseForm, LastExerciseScores } from "./Exercise";
 import { BodyParts } from "../enums/BodyParts";
 import { WeightUnits } from "../enums/Units";
 import { ExerciseTrainingHistoryDetails } from "./Exercise";
+import { Message } from "../enums/Message";
+import { Rank } from "./User";
 interface TrainingForm{
     type:string,
     createdAt:Date,
-    exercises:ExerciseScoresTrainingForm[]
+    exercises:ExerciseScoresTrainingForm[],
+    lastExercisesScores:LastExerciseScores[]
 }
 
 interface TrainingSessionScores{
@@ -54,10 +57,35 @@ interface TrainingHistoryQuery{
 }
 
 
+interface TrainingSummary{
+    progress:{
+        bestProgress:{
+            exercise:string,
+            series:number,
+            repsScore:number,
+            weightScore:number
+        },
+        worseRegress:{
+            exercise:string,
+            series:number,
+            repsScore:number,
+            weightScore:number
+        }
+    },
+    gainElo:number,
+    userOldElo:number,
+    profileRank:Rank,
+    nextRank:Rank | null,
+    msg: Message
+
+
+}
 
 
 
-export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise}
+
+
+export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise,TrainingSummary}
 
 
 
