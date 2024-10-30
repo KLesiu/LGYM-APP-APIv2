@@ -64,13 +64,12 @@ const addTraining = async (
       elo += ele.elo
     })
 
-
     // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
     const progressObject = compareExerciseProgress(req.body.lastExercisesScores, req.body.exercises);
 
-
+    const exercisesScoresArray = result.map((ele) => ele.exerciseScoreId);
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
-    await response.updateOne({ exercises: result });
+    await response.updateOne({ exercises: exercisesScoresArray });
     const currentUserElo = await EloRegistry.findOne({user:userId}).sort({date:-1}).limit(1)
     const userRankStatus = await updateUserElo(elo,currentUserElo.elo, user,response._id);
 

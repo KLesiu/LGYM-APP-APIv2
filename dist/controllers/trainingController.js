@@ -53,8 +53,9 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     });
     // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
     const progressObject = compareExerciseProgress(req.body.lastExercisesScores, req.body.exercises);
+    const exercisesScoresArray = result.map((ele) => ele.exerciseScoreId);
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
-    yield response.updateOne({ exercises: result });
+    yield response.updateOne({ exercises: exercisesScoresArray });
     const currentUserElo = yield EloRegistry_1.default.findOne({ user: userId }).sort({ date: -1 }).limit(1);
     const userRankStatus = yield (0, userController_1.updateUserElo)(elo, currentUserElo.elo, user, response._id);
     return res.status(200).send({ progress: progressObject, gainElo: elo, userOldElo: currentUserElo.elo, profileRank: userRankStatus.currentRank, nextRank: userRankStatus.nextRank, msg: Message_1.Message.Created });
