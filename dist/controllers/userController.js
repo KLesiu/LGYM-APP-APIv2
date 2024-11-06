@@ -27,13 +27,13 @@ exports.ranks = [
     { name: 'Junior 1', needElo: 0 }, // 0-1000
     { name: 'Junior 2', needElo: 1001 }, //1001 - 2500
     { name: 'Junior 3', needElo: 2500 }, //2500 - 4000
-    { name: 'Mid 1', needElo: 4000 }, //4000 - 5000
-    { name: 'Mid 2', needElo: 5000 }, // 5000 - 6000
-    { name: 'Mid 3', needElo: 6000 }, // 6000 - 7000
-    { name: 'Pro 1', needElo: 7000 }, // 7000 - 10000
-    { name: 'Pro 2', needElo: 10000 }, // 10 000 - 13 000
-    { name: 'Pro 3', needElo: 13000 }, // 13 000 - 17 000
-    { name: 'Champ', needElo: 17000 } // 17 000 - to the sky
+    { name: 'Mid 1', needElo: 6000 }, //6000 - 8000
+    { name: 'Mid 2', needElo: 8000 }, // 8000 - 12000
+    { name: 'Mid 3', needElo: 12000 }, // 12000 - 15000
+    { name: 'Pro 1', needElo: 15000 }, // 15000 - 20000
+    { name: 'Pro 2', needElo: 20000 }, // 20 000 - 24 000
+    { name: 'Pro 3', needElo: 24000 }, // 24 000 - 30 000
+    { name: 'Champ', needElo: 30000 } // 30 000 - to the sky
 ];
 const register = [
     body("name").trim().isLength({ min: 1 }).withMessage("Name is required, and has to have minimum one character"),
