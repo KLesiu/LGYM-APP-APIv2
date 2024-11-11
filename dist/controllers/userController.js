@@ -93,7 +93,7 @@ const login = function (req, res) {
 exports.login = login;
 const isAdmin = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const admin = yield User_1.default.findById(req.body._id);
+        const admin = yield User_1.default.findById(req.params.id);
         return res.status(200).send(admin.admin);
     });
 };

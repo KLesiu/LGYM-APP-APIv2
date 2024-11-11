@@ -9,7 +9,7 @@ const passport = require('passport');
 const configRouter_1 = __importDefault(require("./configRouter"));
 configRouter_1.default.post('/register', userController_1.register);
 configRouter_1.default.post('/login', passport.authenticate('local', { session: false }), userController_1.login);
-configRouter_1.default.post('/isAdmin', userController_1.isAdmin);
+configRouter_1.default.get('/:id/isAdmin', userController_1.isAdmin);
 configRouter_1.default.get('/:id/getUserInfo', userController_1.getUserInfo);
 configRouter_1.default.get('/checkToken', auth_1.checkJwtToken, (req, res) => {
     return res.json({ isValid: true, user: req.user });
