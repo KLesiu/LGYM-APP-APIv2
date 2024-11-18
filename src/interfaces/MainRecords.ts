@@ -1,7 +1,7 @@
 import { WeightUnits } from "../enums/Units"
 import { ExerciseForm } from "./Exercise"
 
-export interface MainRecordsForm{
+interface MainRecordsForm{
     _id?:string,
     weight:number,
     date: Date,
@@ -10,7 +10,9 @@ export interface MainRecordsForm{
 }
 
 
-export interface MainRecordsLast extends MainRecordsForm{
+interface MainRecordsLast extends MainRecordsForm{
     exerciseDetails:ExerciseForm
 }
+
+export {MainRecordsForm,MainRecordsLast}
 

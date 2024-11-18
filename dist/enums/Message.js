@@ -12,4 +12,5 @@ var Message;
     Message["DidntFind"] = "Didnt find!";
     Message["InvalidToken"] = "Invalid JWT Token";
     Message["ExpiredToken"] = "Token expired";
+    Message["InputsMustBeNumbers"] = "Inputs must be numbers";
 })(Message || (exports.Message = Message = {}));

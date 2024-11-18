@@ -1,6 +1,6 @@
 import { WeightUnits } from "../enums/Units";
 
-export interface ExerciseScoresTrainingForm{
+interface ExerciseScoresTrainingForm{
     _id?: string;
     weight: number;
     unit:WeightUnits;
@@ -9,8 +9,11 @@ export interface ExerciseScoresTrainingForm{
     series: number;
 }
 
-export interface ExerciseScoresForm extends ExerciseScoresTrainingForm{
+interface ExerciseScoresForm extends ExerciseScoresTrainingForm{
+    _id?: string;
     user: string;
     training: string;
     date:Date
 }
+
+export {ExerciseScoresTrainingForm,ExerciseScoresForm}

@@ -1,8 +1,5 @@
-import FieldScore from "./FieldScore"
-import { ExerciseScoresForm,ExerciseScoresTrainingForm } from "./ExercisesScores"
+import { ExerciseScoresTrainingForm } from "./ExercisesScores"
 import { ExerciseForm, LastExerciseScores } from "./Exercise";
-import { BodyParts } from "../enums/BodyParts";
-import { WeightUnits } from "../enums/Units";
 import { ExerciseTrainingHistoryDetails } from "./Exercise";
 import { Message } from "../enums/Message";
 import { Rank } from "./User";
@@ -40,23 +37,15 @@ interface TrainingByDateDetails extends LastTrainingInfo{
     }[]
    
 }
-
-
-
 interface EnrichedExercise {
     exerciseScoreId: string;
     scoreDetails: ExerciseScoresTrainingForm;
     exerciseDetails: ExerciseTrainingHistoryDetails;
 }
-
-
-
 interface TrainingHistoryQuery{
     startDt:Date,
     endDt:Date
 }
-
-
 interface TrainingSummary{
     progress:{
         bestProgress:{
@@ -80,52 +69,4 @@ interface TrainingSummary{
 
 
 }
-
-
-
-
-
 export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise,TrainingSummary}
-
-
-
-
-
-export interface AddTrainingBody{
-    day:string,
-    training:FieldScore[],
-    createdAt:string
-}
-export interface TrainingHistory{
-    trainingHistory: TrainingSession[]
-}
-export interface Training{
-    training?:TrainingSession
-    prevSession?:TrainingSession
-}
-export interface TrainingSession{
-    _id: string,
-    user:string,
-    day:string,
-    exercises: FieldScore[],
-    createdAt:string,
-    plan:string
-}
-
-export interface RankInfo{
-    rank:string,
-    elo:number,
-    nextRank:string,
-    nextRankElo:number,
-    startRankElo:number
-}
-
-export interface TrainingsDates{
-    dates: Date[]
-}
-
-export interface UserRanking{
-    user: typeof User,
-    position:number
-
-}

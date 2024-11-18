@@ -1,21 +1,20 @@
-import { BodyParts } from "../enums/BodyParts"
-import { WeightUnits } from "../enums/Units"
+import { BodyParts } from "../enums/BodyParts";
+import { WeightUnits } from "../enums/Units";
 
-export interface MeasurementForm{
-    user:string,
-    bodyPart: BodyParts,
-    unit: WeightUnits,
-    value:number,
-    createdAt?:Date,
-    updatedAt?:Date 
-
+interface MeasurementForm {
+  user: string;
+  bodyPart: BodyParts;
+  unit: WeightUnits;
+  value: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-
-export interface MeasurementsHistoryQuery{
-    bodyPart: BodyParts
+interface MeasurementsHistoryQuery {
+  bodyPart: BodyParts;
+}
+interface MeasurementsHistory {
+  measurements: MeasurementForm[];
 }
 
-export interface MeasurementsHistory{
-    measurements: MeasurementForm[]
-}
+export { MeasurementForm, MeasurementsHistoryQuery, MeasurementsHistory };
