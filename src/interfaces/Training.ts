@@ -32,7 +32,7 @@ interface TrainingByDate extends LastTrainingInfo{
 interface TrainingByDateDetails extends LastTrainingInfo{
     exercises:{
         exerciseScoreId:string,
-        scoreDetails:ExerciseScoresTrainingForm[]
+        scoresDetails:ExerciseScoresTrainingForm[]
         exerciseDetails:ExerciseTrainingHistoryDetails
     }[]
    
@@ -69,4 +69,9 @@ interface TrainingSummary{
 
 
 }
-export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise,TrainingSummary}
+
+interface MarkedDates  {
+    date:Date | string
+    dots: {color:string,selectedColor?:string}[]
+}
+export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise,TrainingSummary,MarkedDates}

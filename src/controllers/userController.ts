@@ -1,5 +1,5 @@
 import User from "../models/User"
-import { RequestUser, User as UserInterface,Rank,UserElo, UserLoginInfo,UserInfo, UserBaseInfo } from "./../interfaces/User"
+import { RegisterUser,Rank,UserElo, UserLoginInfo,UserInfo, UserBaseInfo } from "./../interfaces/User"
 import ResponseMessage from "./../interfaces/ResponseMessage"
 import { Request,Response } from "express"
 import Params from "../interfaces/Params"
@@ -35,7 +35,7 @@ const register=[
     body('email').isEmail().withMessage('This email is not valid!'),
     body('password').isLength({min:6}).withMessage('Passwword need to have minimum six characters'),
     body('cpassword').custom((value:string,{req}:{req:Request<{},{},{password:string}>})=>value===req.body.password).withMessage('Passwords need to be same'),
-    asyncHandler(async(req:Request<{},{},UserInterface>,res:Response<ResponseMessage | {errors:string[] | ResponseMessage[]} >)=>{
+    asyncHandler(async(req:Request<{},{},RegisterUser>,res:Response<ResponseMessage | {errors:string[] | ResponseMessage[]} >)=>{
         const errors = validationResult(req)
         
         if(!errors.isEmpty()){

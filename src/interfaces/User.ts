@@ -9,36 +9,36 @@ interface UserBaseInfo{
     updatedAt:Date
     plan:string
 }
-interface UserInfo extends UserBaseInfo{
-    nextRank:{
-        name:string,
-        needElo:number
-    },
-}
-
-export {UserInfo,UserBaseInfo}
-
-
-
-
-export interface User{
-    name:string,
-    email:string,
-    password:string
-}
-export interface RequestUser{
-    _id:string
-}
-export interface Rank{
+interface Rank{
     name:string,
     needElo:number
 }
-export interface UserElo{
+interface UserInfo extends UserBaseInfo{
+    nextRank:Rank,
+}
+interface LoginUser {
+    name:string,
+    password:string
+}
+interface RegisterUser extends LoginUser{
+    email:string,
+    cpassword:string
+}
+interface UserElo{
     elo: number
 }
-export interface UserLoginInfo{
+interface UserLoginInfo{
     name:string,
     _id:string,
     email:string,
     avatar:string
 }
+
+interface UserProfileInfo{
+    name:string,
+    email:string,
+}
+
+export {UserInfo,UserBaseInfo,Rank,RegisterUser,LoginUser,UserElo,UserLoginInfo,UserProfileInfo}
+
+
