@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const MeasurementsSchema = new configModels_1.default({
     // Użytkownik, który zapisuje pomiary
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
@@ -17,6 +17,6 @@ const MeasurementsSchema = new configModels_1.default({
 }, {
     timestamps: true
 });
-const Measurements = mongoose.model('Measurements', MeasurementsSchema);
+const Measurements = mongoose_1.default.model('Measurements', MeasurementsSchema);
 exports.default = Measurements;
 module.exports = Measurements;

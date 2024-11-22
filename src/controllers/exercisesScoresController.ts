@@ -8,6 +8,7 @@ const addExercisesScores = async(form:ExerciseScoresForm)=>{
 
 const updateExercisesScores = async(form:ExerciseScoresForm)=>{
     const result = await ExerciseScores.findByIdAndUpdate(form._id,form)
+    if(!result) return {exerciseScoreId:""}
     return {exerciseScoreId:result._id as string}
 }
 

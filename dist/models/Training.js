@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const TrainingSchema = new configModels_1.default({
     // Użytkownik, który dodał trening
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
@@ -15,6 +15,6 @@ const TrainingSchema = new configModels_1.default({
     // Data utworzenia
     createdAt: { type: Date, required: true },
 });
-const Training = mongoose.model('Training', TrainingSchema);
+const Training = mongoose_1.default.model('Training', TrainingSchema);
 exports.default = Training;
 module.exports = Training;

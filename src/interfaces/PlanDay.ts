@@ -2,10 +2,10 @@ import { ExerciseForm } from "./Exercise";
 interface PlanDayForm {
   _id?: string;
   name: string;
-  exercises: {
+  exercises?: {
     series: number;
     reps: string;
-    exercise: string;
+    exercise: ExerciseForm | null;
   }[];
 }
 
@@ -15,8 +15,8 @@ interface PlanDayVm {
   exercises: {
     series: number;
     reps: string;
-    exercise: ExerciseForm;
-  }[];
+    exercise: ExerciseForm | null;
+  }[] ;
 }
 
 interface PlanDayExercise{

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const PlanDaySchema = new configModels_1.default({
     // Nazwa planu dnia
     name: { type: String, required: true },
@@ -24,6 +24,6 @@ const PlanDaySchema = new configModels_1.default({
         }
     ]
 });
-const PlanDay = mongoose.model('PlanDay', PlanDaySchema);
+const PlanDay = mongoose_1.default.model('PlanDay', PlanDaySchema);
 exports.default = PlanDay;
 module.exports = PlanDay;

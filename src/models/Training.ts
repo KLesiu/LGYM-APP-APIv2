@@ -1,5 +1,15 @@
 import Schema from "./configModels"
-const mongoose = require('mongoose')
+import mongoose, { Schema as SchemaType, Document, Model } from "mongoose";
+
+
+export interface TrainingEntity extends Document {
+    user: string;
+    type: string;
+    exercises?: {exerciseScoreId: string}[];
+    createdAt: Date;
+    _id: string;
+}
+
 const TrainingSchema= new Schema({
     // Użytkownik, który dodał trening
     user: {type:Schema.Types.ObjectId,ref:"User",required:true},
@@ -11,6 +21,5 @@ const TrainingSchema= new Schema({
     createdAt:{type:Date,required:true},
 })
 
-const Training = mongoose.model('Training',TrainingSchema)
+const Training = mongoose.model<TrainingEntity>('Training',TrainingSchema)
 export default Training
-module.exports = Training

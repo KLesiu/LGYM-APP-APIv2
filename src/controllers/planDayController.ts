@@ -4,9 +4,10 @@ import { PlanDayForm, PlanDayVm,PlanDayExercise} from "../interfaces/PlanDay";
 import { Request, Response } from "express";
 import Plan from "../models/Plan";
 import { Message } from "../enums/Message";
-import PlanDay from "../models/PlanDay";
+import PlanDay, { PlanDayEntity } from "../models/PlanDay";
 import User from "../models/User";
 import Exercise from "../models/Exercise";
+import { ExerciseForm } from "../interfaces/Exercise";
 
 
 const createPlanDay = async(req:Request<Params, {}, PlanDayForm>, res:Response<ResponseMessage>) => {
@@ -46,9 +47,10 @@ const getPlanDay = async(req:Request<Params>, res:Response<PlanDayForm | Respons
         return {
             series:exercise.series,
             reps:exercise.reps,
-            exercise: findExercise
+            exercise: findExercise 
         }
     }))
+    
     const planDay = {
         _id: findPlanDay._id,
         name: findPlanDay.name,
@@ -74,11 +76,10 @@ const getPlanDays = async(req: Request<Params>, res: Response<PlanDayVm[] | Resp
         }
 
         // Mapowanie przez dni planu
-        const planDays = await Promise.all(findPlanDays.map(async (planDay: PlanDayForm) => {
+        const planDays = await Promise.all(findPlanDays.map(async (planDay: PlanDayEntity) => {
             // Mapowanie przez ćwiczenia
             const exercises = await Promise.all(planDay.exercises.map(async (exercise) => {
                 const findExercise = await Exercise.findById(exercise.exercise);
-                
                 // Zwrot ćwiczenia po znalezieniu
                 return {
                     series: exercise.series,
@@ -96,7 +97,7 @@ const getPlanDays = async(req: Request<Params>, res: Response<PlanDayVm[] | Resp
         }));
 
         // Zwrot poprawnych danych z planem dni
-        return res.status(200).send(planDays);
+        return res.status(200).send(planDays );
     } catch (error) {
         console.error(error);
         return res.status(500).send({ msg: 'Server error' });

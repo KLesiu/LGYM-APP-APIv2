@@ -7,7 +7,8 @@ import {
   TrainingHistoryQuery,
   TrainingByDate,
   TrainingByDateDetails,
-  TrainingSummary
+  TrainingSummary,
+  TrainingBase
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -32,7 +33,7 @@ const addTraining = async (
     
 
     const user = await User.findById(userId);
-
+    if (!user) return res.status(404).send({ msg: Message.DidntFind });
     // Tworzenie rekordu treningu
     const response = await Training.create({
       user: userId,
@@ -71,11 +72,8 @@ const addTraining = async (
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
     await response.updateOne({ exercises: exercisesScoresArray });
     const currentUserElo = await EloRegistry.findOne({user:userId}).sort({date:-1}).limit(1)
+    if(!currentUserElo)return res.status(404).send({msg:Message.DidntFind})
     const userRankStatus = await updateUserElo(elo,currentUserElo.elo, user,response._id);
-
-
-
-
     return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:currentUserElo.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
 };
 
@@ -197,30 +195,6 @@ const getLastTraining = async (
   return res.status(200).send(training[0]);
 };
 
-const getTrainingHistory = async (
-  req: Request<Params, {}, TrainingHistoryQuery>,
-  res: Response<TrainingForm[] | ResponseMessage>
-) => {
-  const id = req.params.id;
-  const findUser = await User.findById(id);
-  if (!findUser || !Object.keys(findUser).length)
-    return res.status(404).send({ msg: Message.DidntFind });
-  const { startDt, endDt } = req.body;
-
-  try {
-    const trainingHistory = await Training.find({
-      user: findUser,
-      createdAt: {
-        $gte: new Date(startDt),
-        $lte: new Date(endDt),
-      },
-    }).sort({ date: -1 });
-
-    return res.status(200).send(trainingHistory);
-  } catch (error) {
-    return res.status(500).send({ msg: Message.TryAgain });
-  }
-};
 
 const getTrainingByDate = async (
   req: Request<Params, {}, { createdAt: Date }>,
@@ -282,7 +256,7 @@ const getTrainingByDate = async (
               exercise.exerciseScoreId,
               "exercise reps series weight unit"
             );
-
+            if(!scoreDetails)return res.status(404).send({msg:Message.DidntFind})
             const exerciseDetails = await Exercise.findById(
               scoreDetails.exercise,
               "name bodyPart"
@@ -401,7 +375,6 @@ const partElo = (
 export {
   addTraining,
   getLastTraining,
-  getTrainingHistory,
   getTrainingByDate,
   getTrainingDates,
 };

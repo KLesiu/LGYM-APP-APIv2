@@ -1,5 +1,18 @@
+import { WeightUnits } from "../enums/Units";
 import Schema from "./configModels";
-const mongoose = require('mongoose');
+import mongoose,{Document} from "mongoose";
+
+export interface MainRecordsEntity extends Document {
+    user: string;
+    exercise: string;
+    weight: number;
+    date: Date;
+    unit: WeightUnits;
+    createdAt: Date;
+    updatedAt: Date;
+    _id: string;
+}
+
 const MainRecordsSchema = new Schema({
     // Użytkownik, który zapisuje rekord
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
@@ -16,6 +29,5 @@ const MainRecordsSchema = new Schema({
     timestamps: true
 });
 
-const MainRecords = mongoose.model('MainRecords', MainRecordsSchema);
+const MainRecords = mongoose.model<MainRecordsEntity>('MainRecords', MainRecordsSchema);
 export default MainRecords;
-module.exports = MainRecords;

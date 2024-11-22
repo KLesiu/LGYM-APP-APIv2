@@ -1,5 +1,14 @@
 import Schema from "./configModels"
-const mongoose = require('mongoose')
+import mongoose, { Document } from "mongoose";
+
+
+export interface PlanEntity extends Document {
+    user: string;
+    name: string;
+    trainingDays: number;
+    _id: string;
+}
+
 const PlanSchema = new Schema({
     // Użytkownik, który stworzył plan
     user:{type:Schema.Types.ObjectId,ref:"User",required:true},
@@ -8,6 +17,5 @@ const PlanSchema = new Schema({
     // Ilość dni treningowych w planie TODO:(do kasacji)
     trainingDays:{type:Number,required:true}
 })
-const Plan = mongoose.model('Plan',PlanSchema)
+const Plan = mongoose.model<PlanEntity>('Plan',PlanSchema)
 export default Plan
-module.exports = Plan

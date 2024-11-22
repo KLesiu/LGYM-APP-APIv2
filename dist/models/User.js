@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const passportLocalMongoose = require("passport-local-mongoose");
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const UserSchema = new configModels_1.default({
     // Username
     name: { type: String, maxLength: 20, required: true },
@@ -23,6 +23,6 @@ const UserSchema = new configModels_1.default({
     timestamps: true
 });
 UserSchema.plugin(passportLocalMongoose, { usernameField: 'name' });
-const User = mongoose.model('User', UserSchema);
+const User = mongoose_1.default.model('User', UserSchema);
 exports.default = User;
 module.exports = User;
