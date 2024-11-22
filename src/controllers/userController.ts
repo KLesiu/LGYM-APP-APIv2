@@ -31,16 +31,15 @@ interface CustomRequestUser extends Request{
 }
 
 const register=[
-    body("name").trim().isLength({min:1}).withMessage("Name is required, and has to have minimum one character"),
-    body('email').isEmail().withMessage('This email is not valid!'),
-    body('password').isLength({min:6}).withMessage('Passwword need to have minimum six characters'),
-    body('cpassword').custom((value:string,{req}:{req:Request<{},{},{password:string}>})=>value===req.body.password).withMessage('Passwords need to be same'),
-    asyncHandler(async(req:Request<{},{},RegisterUser>,res:Response<ResponseMessage | {errors:string[] | ResponseMessage[]} >)=>{
+    body("name").trim().isLength({min:1}).withMessage(Message.NameIsRequired),
+    body('email').isEmail().withMessage(Message.EmailInvalid),
+    body('password').isLength({min:6}).withMessage(Message.PasswordMin),
+    body('cpassword').custom((value:string,{req}:{req:Request<{},{},{password:string}>})=>value===req.body.password).withMessage(Message.SamePassword),
+    asyncHandler(async(req:Request<{},{},RegisterUser>,res:Response<ResponseMessage>)=>{
         const errors = validationResult(req)
-        
         if(!errors.isEmpty()){
             return res.status(404).send({
-                errors:errors.array()
+                msg: errors.array()[0].msg
             })
         }
         const name = req.body.name
@@ -48,34 +47,27 @@ const register=[
         const email = req.body.email
         const password = req.body.password
         
-        const checkName = await User.findOne({name:name}).exec()
-        if(checkName){
-            if(checkName.name===name){
-                return res.status(404).send({errors:[
-                    {
-                        msg:'We have user with that name'
-                    }
-                ]})
+        const existingUser = await User.findOne({
+            $or: [
+                { name: name },
+                { email: email }
+            ]
+        }).exec();
+        
+        if (existingUser) {
+            if (existingUser.name === name) {
+                return res.status(404).send({ msg: Message.UserWithThatName });
             }
-           
-        } 
-
-        const checkEmail = await User.findOne({email:email}).exec()
-        if(checkEmail){
-            if(checkEmail.email === email){
-                return res.status(404).send({errors:[
-                    {
-                        msg:'We have user with that email'
-                    }
-                ]})
+        
+            if (existingUser.email === email) {
+                return res.status(404).send({ msg: Message.UserWithThatEmail });
             }
-            
         }
        
         const user = new User({name:name,admin:admin,email:email,profileRank:'Junior 1'})
         await User.register(user,password)
         await EloRegistry.create({user:user._id,date:new Date(),elo:1000})
-        res.status(200).send({msg:"User created successfully!"})
+        res.status(200).send({msg:Message.Created})
     })]
 
 const login = async function(req:CustomRequestUser,res:Response<{token:string,req:UserLoginInfo}>){

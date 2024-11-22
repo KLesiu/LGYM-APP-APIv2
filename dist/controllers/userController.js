@@ -36,45 +36,39 @@ exports.ranks = [
     { name: 'Champ', needElo: 30000 } // 30 000 - to the sky
 ];
 const register = [
-    body("name").trim().isLength({ min: 1 }).withMessage("Name is required, and has to have minimum one character"),
-    body('email').isEmail().withMessage('This email is not valid!'),
-    body('password').isLength({ min: 6 }).withMessage('Passwword need to have minimum six characters'),
-    body('cpassword').custom((value, { req }) => value === req.body.password).withMessage('Passwords need to be same'),
+    body("name").trim().isLength({ min: 1 }).withMessage(Message_1.Message.NameIsRequired),
+    body('email').isEmail().withMessage(Message_1.Message.EmailInvalid),
+    body('password').isLength({ min: 6 }).withMessage(Message_1.Message.PasswordMin),
+    body('cpassword').custom((value, { req }) => value === req.body.password).withMessage(Message_1.Message.SamePassword),
     asyncHandler((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(404).send({
-                errors: errors.array()
+                msg: errors.array()[0].msg
             });
         }
         const name = req.body.name;
         const admin = false;
         const email = req.body.email;
         const password = req.body.password;
-        const checkName = yield User_1.default.findOne({ name: name }).exec();
-        if (checkName) {
-            if (checkName.name === name) {
-                return res.status(404).send({ errors: [
-                        {
-                            msg: 'We have user with that name'
-                        }
-                    ] });
+        const existingUser = yield User_1.default.findOne({
+            $or: [
+                { name: name },
+                { email: email }
+            ]
+        }).exec();
+        if (existingUser) {
+            if (existingUser.name === name) {
+                return res.status(404).send({ msg: Message_1.Message.UserWithThatName });
             }
-        }
-        const checkEmail = yield User_1.default.findOne({ email: email }).exec();
-        if (checkEmail) {
-            if (checkEmail.email === email) {
-                return res.status(404).send({ errors: [
-                        {
-                            msg: 'We have user with that email'
-                        }
-                    ] });
+            if (existingUser.email === email) {
+                return res.status(404).send({ msg: Message_1.Message.UserWithThatEmail });
             }
         }
         const user = new User_1.default({ name: name, admin: admin, email: email, profileRank: 'Junior 1' });
         yield User_1.default.register(user, password);
         yield EloRegistry_1.default.create({ user: user._id, date: new Date(), elo: 1000 });
-        res.status(200).send({ msg: "User created successfully!" });
+        res.status(200).send({ msg: Message_1.Message.Created });
     }))
 ];
 exports.register = register;
