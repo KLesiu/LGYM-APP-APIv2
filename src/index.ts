@@ -10,7 +10,7 @@ const mainRecords = require("./routes/mainRecords")
 const exercise = require("./routes/exercise")
 const planDay = require("./routes/planDay")
 const mongoose = require("mongoose")
-
+import gym from "./routes/gym"
 
 // Mongoose connection
 mongoose.set("strictQuery",false)
@@ -40,6 +40,7 @@ app.use("/api",measurements)
 app.use("/api",mainRecords)
 app.use("/api",exercise)
 app.use("/api",planDay)
+app.use("/api",gym)
 
 
 module.exports = app

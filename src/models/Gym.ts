@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 export interface GymEntity extends Document {
     name: string;
     user: string;
-    address: string;
+    address?: string;
     _id: string;
 }
 
@@ -14,7 +14,7 @@ const GymSchema = new Schema({
     // Użytkownik, który dodał siłownię
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     // Adres siłowni
-    address: { type: Schema.Types.ObjectId,ref:'Address', required: true },
+    address: { type: Schema.Types.ObjectId,ref:'Address', required: false },
 })
 
 const Gym = mongoose.model<GymEntity>("Gym", GymSchema);

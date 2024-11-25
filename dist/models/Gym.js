@@ -11,7 +11,7 @@ const GymSchema = new configModels_1.default({
     // Użytkownik, który dodał siłownię
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
     // Adres siłowni
-    address: { type: configModels_1.default.Types.ObjectId, ref: 'Address', required: true },
+    address: { type: configModels_1.default.Types.ObjectId, ref: 'Address', required: false },
 });
 const Gym = mongoose_1.default.model("Gym", GymSchema);
 exports.default = Gym;
