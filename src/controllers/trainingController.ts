@@ -8,7 +8,8 @@ import {
   TrainingByDate,
   TrainingByDateDetails,
   TrainingSummary,
-  TrainingBase
+  TrainingBase,
+  EnrichedExercise
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -289,7 +290,7 @@ const getTrainingByDate = async (
       );
 
       // Konwersja obiektu na tablicę
-      const exercisesArray = Object.values(groupedExercises);
+      const exercisesArray:EnrichedExercise[] = Object.values(groupedExercises);
 
       return { ...training, exercises: exercisesArray };
     })

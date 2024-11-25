@@ -17,4 +17,3 @@ const TrainingSchema = new configModels_1.default({
 });
 const Training = mongoose_1.default.model('Training', TrainingSchema);
 exports.default = Training;
-module.exports = Training;

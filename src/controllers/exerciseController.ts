@@ -135,18 +135,17 @@ const getExercise = async(req:Request<Params>, res:Response<ExerciseForm | Respo
 
 
 
-const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Response<LastExerciseScores[] | ResponseMessage>) => {
+const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Response<LastExerciseScores[] | null>) => {
   const userId = req.params.id;
   const planDay: PlanDayVm = req.body;
 
   const results = await Promise.all(
     planDay.exercises.map(async (exerciseItem) => {
       const { series, exercise } = exerciseItem;
-
       const seriesScores = await Promise.all(
         Array.from({ length: series }).map(async (_, seriesIndex) => {
           const seriesNumber = seriesIndex + 1;
-          const latestScore = await findLatestExerciseScore(userId, exercise._id!, seriesNumber);
+          const latestScore = exercise?._id ? await findLatestExerciseScore(userId, exercise._id, seriesNumber) : 0;
 
           return {
             series: seriesNumber,
@@ -156,8 +155,8 @@ const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Respon
       );
 
       return {
-        exerciseId:`${ exercise._id}`,
-        name: exercise.name,
+        exerciseId:`${ exercise?._id}`,
+        name: `${exercise?.name}`,
         seriesScores,
       };
     })

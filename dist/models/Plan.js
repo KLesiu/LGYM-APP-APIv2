@@ -15,4 +15,3 @@ const PlanSchema = new configModels_1.default({
 });
 const Plan = mongoose_1.default.model('Plan', PlanSchema);
 exports.default = Plan;
-module.exports = Plan;

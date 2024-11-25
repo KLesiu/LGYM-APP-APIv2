@@ -143,15 +143,15 @@ const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, fu
         const { series, exercise } = exerciseItem;
         const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
             const seriesNumber = seriesIndex + 1;
-            const latestScore = yield findLatestExerciseScore(userId, exercise._id, seriesNumber);
+            const latestScore = (exercise === null || exercise === void 0 ? void 0 : exercise._id) ? yield findLatestExerciseScore(userId, exercise._id, seriesNumber) : 0;
             return {
                 series: seriesNumber,
                 score: latestScore || null,
             };
         })));
         return {
-            exerciseId: `${exercise._id}`,
-            name: exercise.name,
+            exerciseId: `${exercise === null || exercise === void 0 ? void 0 : exercise._id}`,
+            name: `${exercise === null || exercise === void 0 ? void 0 : exercise.name}`,
             seriesScores,
         };
     })));

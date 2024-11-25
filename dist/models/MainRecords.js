@@ -21,4 +21,3 @@ const MainRecordsSchema = new configModels_1.default({
 });
 const MainRecords = mongoose_1.default.model('MainRecords', MainRecordsSchema);
 exports.default = MainRecords;
-module.exports = MainRecords;

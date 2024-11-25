@@ -32,16 +32,12 @@ interface TrainingByDate extends LastTrainingInfo{
 }
 
 interface TrainingByDateDetails extends LastTrainingInfo{
-    exercises:{
-        exerciseScoreId:string,
-        scoresDetails:ExerciseScoresTrainingForm[]
-        exerciseDetails:ExerciseTrainingHistoryDetails
-    }[]
+    exercises: EnrichedExercise[]
    
 }
 interface EnrichedExercise {
     exerciseScoreId: string;
-    scoreDetails: ExerciseScoresTrainingForm;
+    scoresDetails: ExerciseScoresTrainingForm[];
     exerciseDetails: ExerciseTrainingHistoryDetails;
 }
 interface TrainingHistoryQuery{

@@ -19,4 +19,3 @@ const MeasurementsSchema = new configModels_1.default({
 });
 const Measurements = mongoose_1.default.model('Measurements', MeasurementsSchema);
 exports.default = Measurements;
-module.exports = Measurements;

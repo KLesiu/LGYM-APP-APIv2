@@ -1,4 +1,4 @@
-import passportLocalMongoose from "passport-local-mongoose";
+const passportLocalMongoose = require("passport-local-mongoose");
 import Schema from "./configModels";
 import mongoose, { Schema as SchemaType, Document, Model } from "mongoose";
 
@@ -13,8 +13,9 @@ export interface UserEntity extends Document {
   updatedAt: Date;
   _id: string;
 }
-interface UserEntityStatics extends Model<UserEntity> {
+export interface UserEntityStatics extends Model<UserEntity> {
   register(user: UserEntity, password: string): Promise<UserEntity>;
+  createStrategy(): any;
   authenticate(): (
     username: string,
     password: string

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const ExerciseScoresSchema = new configModels_1.default({
     // Ćwiczenie, dla którego zapisujemy wynik
     exercise: { type: configModels_1.default.Types.ObjectId, ref: 'Exercise', required: true },
@@ -23,6 +23,5 @@ const ExerciseScoresSchema = new configModels_1.default({
 }, {
     timestamps: true
 });
-const ExerciseScores = mongoose.model('ExerciseScores', ExerciseScoresSchema);
+const ExerciseScores = mongoose_1.default.model('ExerciseScores', ExerciseScoresSchema);
 exports.default = ExerciseScores;
-module.exports = ExerciseScores;

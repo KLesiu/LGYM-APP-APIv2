@@ -26,4 +26,3 @@ const PlanDaySchema = new configModels_1.default({
 });
 const PlanDay = mongoose_1.default.model('PlanDay', PlanDaySchema);
 exports.default = PlanDay;
-module.exports = PlanDay;
