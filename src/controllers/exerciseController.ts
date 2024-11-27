@@ -6,9 +6,10 @@ import Exercise from "../models/Exercise";
 import { Message } from "../enums/Message";
 import { BodyParts } from "../enums/BodyParts";
 import User from "../models/User";
-import { PlanDayVm } from "../interfaces/PlanDay";
+import { LastScoresPlanDayVm, PlanDayVm } from "../interfaces/PlanDay";
 import { ObjectId } from "mongodb";
 import ExerciseScores from "../models/ExerciseScores";
+import Training from "../models/Training";
 
 const addExercise = async (
   req: Request<{}, {}, ExerciseForm>,
@@ -135,9 +136,9 @@ const getExercise = async(req:Request<Params>, res:Response<ExerciseForm | Respo
 
 
 
-const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Response<LastExerciseScores[] | null>) => {
+const getLastExerciseScores = async(req:Request<Params,{},LastScoresPlanDayVm>, res:Response<LastExerciseScores[] | null>) => {
   const userId = req.params.id;
-  const planDay: PlanDayVm = req.body;
+  const planDay: LastScoresPlanDayVm = req.body;
 
   const results = await Promise.all(
     planDay.exercises.map(async (exerciseItem) => {
@@ -145,7 +146,7 @@ const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Respon
       const seriesScores = await Promise.all(
         Array.from({ length: series }).map(async (_, seriesIndex) => {
           const seriesNumber = seriesIndex + 1;
-          const latestScore = exercise?._id ? await findLatestExerciseScore(userId, exercise._id, seriesNumber) : 0;
+          const latestScore = exercise?._id ? await findLatestExerciseScore(userId, exercise._id, seriesNumber,planDay.gym) : 0;
 
           return {
             series: seriesNumber,
@@ -164,11 +165,14 @@ const getLastExerciseScores = async(req:Request<Params,{},PlanDayVm>, res:Respon
 
   res.json(results);
 }
-const findLatestExerciseScore = async(userId: string, exerciseId: string, seriesNumber: number) =>{
+const findLatestExerciseScore = async(userId: string, exerciseId: string, seriesNumber: number,gym:string) =>{
   return await ExerciseScores.findOne({
     user: new ObjectId(userId),
     exercise: new ObjectId(exerciseId),
     series: seriesNumber,
+    training: {
+      $in: await Training.find({ gym }).select('_id'), 
+  },
   },"createdAt reps weight unit  _id")
     .sort({ createdAt: -1 })
     .exec();

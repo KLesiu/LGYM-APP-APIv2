@@ -23,6 +23,7 @@ import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
 import { LastExerciseScores } from "../interfaces/Exercise";
 import {updateUserElo} from "./userController"
 import EloRegistry from "../models/EloRegistry";
+import Gym from "../models/Gym";
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
   res: Response<ResponseMessage | TrainingSummary>
@@ -148,10 +149,6 @@ const compareExerciseProgress = (
   // Zwrócenie wyników
   return results;
 };
-
-
-
-
 
 
 

@@ -19,6 +19,8 @@ const TrainingSchema= new Schema({
     exercises:{type:Array,required:false},
     // Data utworzenia
     createdAt:{type:Date,required:true},
+    // Siownia na której wykonano trening
+    gym:{type:Schema.Types.ObjectId,ref:'Gym',required:true}
 })
 
 const Training = mongoose.model<TrainingEntity>('Training',TrainingSchema)

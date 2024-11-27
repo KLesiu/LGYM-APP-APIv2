@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrainingDates = exports.getTrainingByDate = exports.getLastTraining = exports.addTraining = void 0;
+exports.addGymsToTrainings = exports.getTrainingDates = exports.getTrainingByDate = exports.getLastTraining = exports.addTraining = void 0;
 require("dotenv").config();
 const Training_1 = __importDefault(require("../models/Training"));
 const User_1 = __importDefault(require("./../models/User"));
@@ -22,6 +22,7 @@ const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const userController_1 = require("./userController");
 const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
+const Gym_1 = __importDefault(require("../models/Gym"));
 const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const planDay = req.body.type;
@@ -118,6 +119,28 @@ const compareExerciseProgress = (lastExerciseScores, exerciseScoresTrainingForm)
     // Zwrócenie wyników
     return results;
 };
+const addGymsToTrainings = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const users = yield User_1.default.find();
+        for (const user of users) {
+            const trainings = yield Training_1.default.find({ user: user._id });
+            const gym = yield Gym_1.default.findOne({ user: user._id }); // Await the result of Gym.findOne
+            if (!gym) {
+                console.log(`No gym found for user: ${user._id}`);
+                continue;
+            }
+            for (const training of trainings) {
+                yield training.updateOne({ gym: gym._id }); // Use only the _id of the gym
+            }
+        }
+        res.status(200).json({ msg: 'Gyms added to trainings successfully' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'An error occurred while updating trainings' });
+    }
+});
+exports.addGymsToTrainings = addGymsToTrainings;
 const getLastTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const user = yield User_1.default.findById(id);

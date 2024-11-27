@@ -14,6 +14,8 @@ const TrainingSchema = new configModels_1.default({
     exercises: { type: Array, required: false },
     // Data utworzenia
     createdAt: { type: Date, required: true },
+    // Siownia na której wykonano trening
+    gym: { type: configModels_1.default.Types.ObjectId, ref: 'Gym', required: true }
 });
 const Training = mongoose_1.default.model('Training', TrainingSchema);
 exports.default = Training;
