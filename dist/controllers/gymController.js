@@ -28,7 +28,7 @@ exports.addGym = addGym;
 const deleteGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.params.id)
         return res.status(400).send({ msg: Message_1.Message.FieldRequired });
-    yield Gym_1.default.findByIdAndDelete(req.params.id);
+    yield Gym_1.default.findByIdAndUpdate(req.params.id, { isDeleted: true });
     return res.status(200).send({ msg: Message_1.Message.Deleted });
 });
 exports.deleteGym = deleteGym;

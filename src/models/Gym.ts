@@ -15,6 +15,8 @@ const GymSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     // Adres siłowni
     address: { type: Schema.Types.ObjectId,ref:'Address', required: false },
+    // Czy siłownia jest usunięta
+    isDeleted: { type: Boolean, default: false }
 })
 
 const Gym = mongoose.model<GymEntity>("Gym", GymSchema);

@@ -21,7 +21,7 @@ const addGym = async (req:Request<Params,{},GymForm>,res:Response<ResponseMessag
 
 const deleteGym = async (req:Request<Params,{},{}>,res:Response<ResponseMessage>)=>{
     if(!req.params.id) return res.status(400).send({msg: Message.FieldRequired});
-    await Gym.findByIdAndDelete(req.params.id);
+    await Gym.findByIdAndUpdate(req.params.id,{isDeleted: true});
     return res.status(200).send({msg: Message.Deleted});
 }
 

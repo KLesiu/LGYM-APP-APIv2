@@ -3,7 +3,7 @@ import { addGym,deleteGym,editGym,getGyms,getGym } from "../controllers/gymContr
 
 
 Router.post("/gym/:id/addGym",addGym);
-Router.delete("/gym/:/id/deleteGym",deleteGym);
+Router.delete("/gym/:id/deleteGym",deleteGym);
 Router.get("/gym/:id/getGyms",getGyms);
 Router.get("/gym/:id/getGym",getGym);
 Router.post("/gym/editGym",editGym);
