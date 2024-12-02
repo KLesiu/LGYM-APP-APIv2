@@ -22,18 +22,24 @@ const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const userController_1 = require("./userController");
 const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
+const Gym_1 = __importDefault(require("../models/Gym"));
 const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const planDay = req.body.type;
     const createdAt = req.body.createdAt;
+    const gymId = req.body.gym;
     const user = yield User_1.default.findById(userId);
     if (!user)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const gym = yield Gym_1.default.findById(gymId);
+    if (!gym)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     // Tworzenie rekordu treningu
     const response = yield Training_1.default.create({
         user: userId,
         type: planDay,
         createdAt: createdAt,
+        gym: req.body.gym
     });
     if (!response)
         return res.status(404).send({ msg: Message_1.Message.TryAgain });
@@ -189,11 +195,26 @@ const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, functi
             $unwind: "$planDay",
         },
         {
+            $lookup: {
+                from: "gyms",
+                localField: "gym",
+                foreignField: "_id",
+                as: "gymDetails",
+            },
+        },
+        {
+            $unwind: {
+                path: "$gymDetails",
+                preserveNullAndEmptyArrays: true,
+            },
+        },
+        {
             $project: {
                 type: 1,
                 exercises: 1,
                 createdAt: 1,
                 "planDay.name": 1,
+                gym: "$gymDetails.name", // Assuming the gym name is stored in the `name` field
             },
         },
     ]);

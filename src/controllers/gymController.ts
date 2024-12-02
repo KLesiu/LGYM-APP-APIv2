@@ -5,6 +5,7 @@ import Gym, { GymEntity } from "../models/Gym";
 import { Request, Response } from "express";
 import User from "../models/User";
 import { Message } from "../enums/Message";
+import Training from "../models/Training";
 
 
 
@@ -28,7 +29,7 @@ const deleteGym = async (req:Request<Params,{},{}>,res:Response<ResponseMessage>
 const getGyms = async (req:Request<Params,{}>,res:Response<GymForm[] | ResponseMessage>)=>{
     const user = await User.findById(req.params.id);
     if(!user || !Object.keys(user).length) return res.status(404).send({msg: Message.DidntFind});
-    const gyms = await Gym.find({user: user._id});
+    const gyms = await Gym.find({user: user._id,isDeleted: false});
 
     const gymsWithotUser = gyms.map(gym=>{
         return{
@@ -58,6 +59,8 @@ const editGym = async (req:Request<{},{},GymForm>,res:Response<ResponseMessage>)
     await Gym.findByIdAndUpdate(req.body._id,req.body);
     return res.status(200).send({msg: Message.Updated});
 }
+
+
 
 
 

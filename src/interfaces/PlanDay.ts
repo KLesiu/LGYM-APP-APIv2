@@ -15,7 +15,7 @@ interface PlanDayVm {
   exercises: {
     series: number;
     reps: string;
-    exercise: ExerciseForm | null;
+    exercise: ExerciseForm;
   }[] ;
 }
 

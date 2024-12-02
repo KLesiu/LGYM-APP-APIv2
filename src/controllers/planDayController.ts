@@ -84,7 +84,7 @@ const getPlanDays = async(req: Request<Params>, res: Response<PlanDayVm[] | Resp
                 return {
                     series: exercise.series,
                     reps: exercise.reps,
-                    exercise: findExercise,  // Tutaj masz cały obiekt ćwiczenia
+                    exercise: findExercise!,  // Tutaj masz cały obiekt ćwiczenia
                 };
             }));
 

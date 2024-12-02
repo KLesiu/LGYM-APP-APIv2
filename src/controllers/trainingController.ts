@@ -32,15 +32,19 @@ const addTraining = async (
     const userId = req.params.id;
     const planDay = req.body.type;
     const createdAt = req.body.createdAt;
+    const gymId = req.body.gym;
     
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).send({ msg: Message.DidntFind });
+    const gym = await Gym.findById(gymId)
+    if(!gym)return res.status(404).send({msg:Message.DidntFind})
     // Tworzenie rekordu treningu
     const response = await Training.create({
       user: userId,
       type: planDay,
       createdAt: createdAt,
+      gym: req.body.gym
     });
 
     if (!response) return res.status(404).send({ msg: Message.TryAgain });
@@ -232,11 +236,26 @@ const getTrainingByDate = async (
       $unwind: "$planDay",
     },
     {
+      $lookup: {
+        from: "gyms",
+        localField: "gym",
+        foreignField: "_id",
+        as: "gymDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$gymDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
       $project: {
         type: 1,
         exercises: 1,
         createdAt: 1,
         "planDay.name": 1,
+        gym: "$gymDetails.name", // Assuming the gym name is stored in the `name` field
       },
     },
   ]);
@@ -292,7 +311,7 @@ const getTrainingByDate = async (
       return { ...training, exercises: exercisesArray };
     })
   );
-
+  
   return res.status(200).send(enrichedTrainings);
 };
 

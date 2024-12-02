@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editGym = exports.getGym = exports.getGyms = exports.deleteGym = exports.addGym = void 0;
+exports.setGym = exports.editGym = exports.getGym = exports.getGyms = exports.deleteGym = exports.addGym = void 0;
 const Gym_1 = __importDefault(require("../models/Gym"));
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
+const Training_1 = __importDefault(require("../models/Training"));
 const addGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.default.findById(req.params.id);
     if (!user || !Object.keys(user).length)
@@ -36,7 +37,7 @@ const getGyms = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.default.findById(req.params.id);
     if (!user || !Object.keys(user).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const gyms = yield Gym_1.default.find({ user: user._id });
+    const gyms = yield Gym_1.default.find({ user: user._id, isDeleted: false });
     const gymsWithotUser = gyms.map(gym => {
         return {
             _id: gym._id,
@@ -68,3 +69,15 @@ const editGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.status(200).send({ msg: Message_1.Message.Updated });
 });
 exports.editGym = editGym;
+const setGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const users = yield User_1.default.find();
+    users.forEach((user) => __awaiter(void 0, void 0, void 0, function* () {
+        const gym = yield Gym_1.default.findOne({ user: user._id, name: "Default" });
+        const Trainings = yield Training_1.default.find({ user: user._id });
+        Trainings.forEach((training) => __awaiter(void 0, void 0, void 0, function* () {
+            yield training.updateOne({ gym: gym === null || gym === void 0 ? void 0 : gym._id });
+        }));
+    }));
+    return res.send({ msg: Message_1.Message.Created });
+});
+exports.setGym = setGym;

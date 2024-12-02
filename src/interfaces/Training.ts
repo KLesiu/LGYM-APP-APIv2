@@ -9,7 +9,8 @@ interface TrainingBase{
     exercises:ExerciseScoresTrainingForm[],
 }
 interface TrainingForm extends TrainingBase{
-    lastExercisesScores:LastExerciseScores[]
+    lastExercisesScores:LastExerciseScores[],
+    gym:string
 }
 
 interface TrainingSessionScores{
@@ -25,7 +26,8 @@ interface LastTrainingInfo{
     createdAt:Date,
     planDay:{
         name:string
-    }
+    },
+    gym:string
 }
 interface TrainingByDate extends LastTrainingInfo{
     exercises: {exerciseScoreId:string}[]
