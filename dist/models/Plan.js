@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const PlanSchema = new configModels_1.default({
     // Użytkownik, który stworzył plan
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
@@ -13,6 +13,5 @@ const PlanSchema = new configModels_1.default({
     // Ilość dni treningowych w planie TODO:(do kasacji)
     trainingDays: { type: Number, required: true }
 });
-const Plan = mongoose.model('Plan', PlanSchema);
+const Plan = mongoose_1.default.model('Plan', PlanSchema);
 exports.default = Plan;
-module.exports = Plan;

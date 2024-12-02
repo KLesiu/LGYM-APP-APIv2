@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrainingDates = exports.getTrainingByDate = exports.getTrainingHistory = exports.getLastTraining = exports.addTraining = void 0;
+exports.getTrainingDates = exports.getTrainingByDate = exports.getLastTraining = exports.addTraining = void 0;
 require("dotenv").config();
 const Training_1 = __importDefault(require("../models/Training"));
 const User_1 = __importDefault(require("./../models/User"));
@@ -22,16 +22,24 @@ const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const userController_1 = require("./userController");
 const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
+const Gym_1 = __importDefault(require("../models/Gym"));
 const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const planDay = req.body.type;
     const createdAt = req.body.createdAt;
+    const gymId = req.body.gym;
     const user = yield User_1.default.findById(userId);
+    if (!user)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const gym = yield Gym_1.default.findById(gymId);
+    if (!gym)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
     // Tworzenie rekordu treningu
     const response = yield Training_1.default.create({
         user: userId,
         type: planDay,
         createdAt: createdAt,
+        gym: req.body.gym
     });
     if (!response)
         return res.status(404).send({ msg: Message_1.Message.TryAgain });
@@ -57,6 +65,8 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
     yield response.updateOne({ exercises: exercisesScoresArray });
     const currentUserElo = yield EloRegistry_1.default.findOne({ user: userId }).sort({ date: -1 }).limit(1);
+    if (!currentUserElo)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const userRankStatus = yield (0, userController_1.updateUserElo)(elo, currentUserElo.elo, user, response._id);
     return res.status(200).send({ progress: progressObject, gainElo: elo, userOldElo: currentUserElo.elo, profileRank: userRankStatus.currentRank, nextRank: userRankStatus.nextRank, msg: Message_1.Message.Created });
 });
@@ -153,27 +163,6 @@ const getLastTraining = (req, res) => __awaiter(void 0, void 0, void 0, function
     return res.status(200).send(training[0]);
 });
 exports.getLastTraining = getLastTraining;
-const getTrainingHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const findUser = yield User_1.default.findById(id);
-    if (!findUser || !Object.keys(findUser).length)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const { startDt, endDt } = req.body;
-    try {
-        const trainingHistory = yield Training_1.default.find({
-            user: findUser,
-            createdAt: {
-                $gte: new Date(startDt),
-                $lte: new Date(endDt),
-            },
-        }).sort({ date: -1 });
-        return res.status(200).send(trainingHistory);
-    }
-    catch (error) {
-        return res.status(500).send({ msg: Message_1.Message.TryAgain });
-    }
-});
-exports.getTrainingHistory = getTrainingHistory;
 const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
@@ -206,11 +195,26 @@ const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, functi
             $unwind: "$planDay",
         },
         {
+            $lookup: {
+                from: "gyms",
+                localField: "gym",
+                foreignField: "_id",
+                as: "gymDetails",
+            },
+        },
+        {
+            $unwind: {
+                path: "$gymDetails",
+                preserveNullAndEmptyArrays: true,
+            },
+        },
+        {
             $project: {
                 type: 1,
                 exercises: 1,
                 createdAt: 1,
                 "planDay.name": 1,
+                gym: "$gymDetails.name", // Assuming the gym name is stored in the `name` field
             },
         },
     ]);
@@ -220,6 +224,8 @@ const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, functi
     const enrichedTrainings = yield Promise.all(trainings.map((training) => __awaiter(void 0, void 0, void 0, function* () {
         const enrichedExercises = yield Promise.all(training.exercises.map((exercise) => __awaiter(void 0, void 0, void 0, function* () {
             const scoreDetails = yield ExerciseScores_1.default.findById(exercise.exerciseScoreId, "exercise reps series weight unit");
+            if (!scoreDetails)
+                return res.status(404).send({ msg: Message_1.Message.DidntFind });
             const exerciseDetails = yield Exercise_1.default.findById(scoreDetails.exercise, "name bodyPart");
             return {
                 exerciseScoreId: exercise.exerciseScoreId,

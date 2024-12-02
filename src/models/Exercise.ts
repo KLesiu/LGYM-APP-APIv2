@@ -1,5 +1,15 @@
+import { BodyParts } from "../enums/BodyParts";
 import Schema from "./configModels"
-const mongoose = require('mongoose')
+import mongoose,{Document} from 'mongoose'
+
+export interface ExerciseEntity extends Document {
+    name:string;
+    bodyPart:BodyParts;
+    description?:string;
+    image?:string;
+    user?:string;
+    _id:string;
+}
 
 const ExerciseSchema = new Schema({
     //Nazwa ćwiczenia
@@ -14,6 +24,5 @@ const ExerciseSchema = new Schema({
     user:{type:Schema.Types.ObjectId,ref:'User',required:false}
 })
 
-const Exercise = mongoose.model('Exercise',ExerciseSchema)
+const Exercise = mongoose.model<ExerciseEntity>('Exercise',ExerciseSchema)
 export default Exercise
-module.exports = Exercise

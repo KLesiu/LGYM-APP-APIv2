@@ -1,5 +1,18 @@
+import { BodyParts } from '../enums/BodyParts';
+import { HeightUnits } from '../enums/Units';
 import Schema from './configModels'
-const mongoose = require('mongoose')
+import mongoose, {Document} from "mongoose";
+
+export interface MeasurementsEntity extends Document {
+    user: string;
+    bodyPart: BodyParts;
+    unit: HeightUnits;
+    value: number;
+    createdAt: Date;
+    updatedAt: Date;
+    _id: string;
+}
+
 const MeasurementsSchema = new Schema({
     // Użytkownik, który zapisuje pomiary
     user:{type:Schema.Types.ObjectId,ref:"User",required:true},
@@ -13,6 +26,5 @@ const MeasurementsSchema = new Schema({
 },{
     timestamps:true
 })
-const Measurements = mongoose.model('Measurements',MeasurementsSchema)
+const Measurements = mongoose.model<MeasurementsEntity>('Measurements',MeasurementsSchema)
 export default Measurements
-module.exports = Measurements

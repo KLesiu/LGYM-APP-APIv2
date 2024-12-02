@@ -24,6 +24,7 @@ const mainRecords = require("./routes/mainRecords");
 const exercise = require("./routes/exercise");
 const planDay = require("./routes/planDay");
 const mongoose = require("mongoose");
+const gym_1 = __importDefault(require("./routes/gym"));
 // Mongoose connection
 mongoose.set("strictQuery", false);
 const mongoDB = process.env.MONGO_CONNECT;
@@ -50,6 +51,7 @@ app.use("/api", measurements);
 app.use("/api", mainRecords);
 app.use("/api", exercise);
 app.use("/api", planDay);
+app.use("/api", gym_1.default);
 module.exports = app;
 // Server
 const server = require('./server');

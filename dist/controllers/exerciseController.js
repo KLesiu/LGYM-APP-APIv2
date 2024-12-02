@@ -18,6 +18,7 @@ const Message_1 = require("../enums/Message");
 const User_1 = __importDefault(require("../models/User"));
 const mongodb_1 = require("mongodb");
 const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
+const Training_1 = __importDefault(require("../models/Training"));
 const addExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const name = req.body.name;
     const bodyPart = req.body.bodyPart;
@@ -143,26 +144,29 @@ const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, fu
         const { series, exercise } = exerciseItem;
         const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
             const seriesNumber = seriesIndex + 1;
-            const latestScore = yield findLatestExerciseScore(userId, exercise._id, seriesNumber);
+            const latestScore = (exercise === null || exercise === void 0 ? void 0 : exercise._id) ? yield findLatestExerciseScore(userId, exercise._id, seriesNumber, planDay.gym) : 0;
             return {
                 series: seriesNumber,
                 score: latestScore || null,
             };
         })));
         return {
-            exerciseId: `${exercise._id}`,
-            name: exercise.name,
+            exerciseId: `${exercise === null || exercise === void 0 ? void 0 : exercise._id}`,
+            name: `${exercise === null || exercise === void 0 ? void 0 : exercise.name}`,
             seriesScores,
         };
     })));
     res.json(results);
 });
 exports.getLastExerciseScores = getLastExerciseScores;
-const findLatestExerciseScore = (userId, exerciseId, seriesNumber) => __awaiter(void 0, void 0, void 0, function* () {
+const findLatestExerciseScore = (userId, exerciseId, seriesNumber, gym) => __awaiter(void 0, void 0, void 0, function* () {
     return yield ExerciseScores_1.default.findOne({
         user: new mongodb_1.ObjectId(userId),
         exercise: new mongodb_1.ObjectId(exerciseId),
         series: seriesNumber,
+        training: {
+            $in: yield Training_1.default.find({ gym }).select('_id'),
+        },
     }, "createdAt reps weight unit  _id")
         .sort({ createdAt: -1 })
         .exec();

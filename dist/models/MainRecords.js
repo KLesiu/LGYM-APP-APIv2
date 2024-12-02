@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const MainRecordsSchema = new configModels_1.default({
     // Użytkownik, który zapisuje rekord
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
@@ -19,6 +19,5 @@ const MainRecordsSchema = new configModels_1.default({
 }, {
     timestamps: true
 });
-const MainRecords = mongoose.model('MainRecords', MainRecordsSchema);
+const MainRecords = mongoose_1.default.model('MainRecords', MainRecordsSchema);
 exports.default = MainRecords;
-module.exports = MainRecords;

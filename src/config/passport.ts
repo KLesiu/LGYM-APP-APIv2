@@ -1,12 +1,10 @@
-//@ts-nocheck
-
 const passport = require("passport")
-const User = require("../models/User")
+import User from "../models/User"
 const ExtractJWT = require("passport-jwt").ExtractJwt
 const JWTStrategy = require("passport-jwt").Strategy
 require("dotenv").config()
 
-function verifyCallback(payload,done){
+function verifyCallback(payload:any,done:any){
     return User.findOne({_id:payload.id})
     .then(user=>done(null,user))
     .catch(err=>done(err))

@@ -6,8 +6,8 @@ interface ExerciseForm{
     name:string,
     user?:string,
     bodyPart:BodyParts,
-    description:string,
-    image:string
+    description?:string,
+    image?:string
 }
 
 interface ExerciseForPlanDay{

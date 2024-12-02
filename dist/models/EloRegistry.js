@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configModels_1 = __importDefault(require("./configModels"));
-const mongoose = require('mongoose');
+const mongoose_1 = __importDefault(require("mongoose"));
 const EloRegistrySchema = new configModels_1.default({
     // Użytkownik, który dodał wpis
     user: { type: configModels_1.default.Types.ObjectId, ref: 'User', required: true },
@@ -15,5 +15,5 @@ const EloRegistrySchema = new configModels_1.default({
     // Trening w którym został dodany wpis
     training: { type: configModels_1.default.Types.ObjectId, ref: 'Training', required: false }
 });
-const EloRegistry = mongoose.model('EloRegistry', EloRegistrySchema);
+const EloRegistry = mongoose_1.default.model('EloRegistry', EloRegistrySchema);
 exports.default = EloRegistry;

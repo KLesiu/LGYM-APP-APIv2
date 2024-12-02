@@ -1,10 +1,10 @@
 import { BodyParts } from "../enums/BodyParts";
-import { WeightUnits } from "../enums/Units";
+import { HeightUnits, WeightUnits } from "../enums/Units";
 
 interface MeasurementForm {
   user: string;
   bodyPart: BodyParts;
-  unit: WeightUnits;
+  unit: WeightUnits | HeightUnits;
   value: number;
   createdAt?: Date;
   updatedAt?: Date;

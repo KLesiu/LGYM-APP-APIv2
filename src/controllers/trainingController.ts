@@ -7,7 +7,9 @@ import {
   TrainingHistoryQuery,
   TrainingByDate,
   TrainingByDateDetails,
-  TrainingSummary
+  TrainingSummary,
+  TrainingBase,
+  EnrichedExercise
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -21,6 +23,7 @@ import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
 import { LastExerciseScores } from "../interfaces/Exercise";
 import {updateUserElo} from "./userController"
 import EloRegistry from "../models/EloRegistry";
+import Gym from "../models/Gym";
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
   res: Response<ResponseMessage | TrainingSummary>
@@ -29,15 +32,19 @@ const addTraining = async (
     const userId = req.params.id;
     const planDay = req.body.type;
     const createdAt = req.body.createdAt;
+    const gymId = req.body.gym;
     
 
     const user = await User.findById(userId);
-
+    if (!user) return res.status(404).send({ msg: Message.DidntFind });
+    const gym = await Gym.findById(gymId)
+    if(!gym)return res.status(404).send({msg:Message.DidntFind})
     // Tworzenie rekordu treningu
     const response = await Training.create({
       user: userId,
       type: planDay,
       createdAt: createdAt,
+      gym: req.body.gym
     });
 
     if (!response) return res.status(404).send({ msg: Message.TryAgain });
@@ -71,11 +78,8 @@ const addTraining = async (
     // Aktualizacja rekordu treningu z wynikami ćwiczeń
     await response.updateOne({ exercises: exercisesScoresArray });
     const currentUserElo = await EloRegistry.findOne({user:userId}).sort({date:-1}).limit(1)
+    if(!currentUserElo)return res.status(404).send({msg:Message.DidntFind})
     const userRankStatus = await updateUserElo(elo,currentUserElo.elo, user,response._id);
-
-
-
-
     return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:currentUserElo.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
 };
 
@@ -152,10 +156,6 @@ const compareExerciseProgress = (
 
 
 
-
-
-
-
 const getLastTraining = async (
   req: Request<Params>,
   res: Response<LastTrainingInfo | ResponseMessage>
@@ -197,30 +197,6 @@ const getLastTraining = async (
   return res.status(200).send(training[0]);
 };
 
-const getTrainingHistory = async (
-  req: Request<Params, {}, TrainingHistoryQuery>,
-  res: Response<TrainingForm[] | ResponseMessage>
-) => {
-  const id = req.params.id;
-  const findUser = await User.findById(id);
-  if (!findUser || !Object.keys(findUser).length)
-    return res.status(404).send({ msg: Message.DidntFind });
-  const { startDt, endDt } = req.body;
-
-  try {
-    const trainingHistory = await Training.find({
-      user: findUser,
-      createdAt: {
-        $gte: new Date(startDt),
-        $lte: new Date(endDt),
-      },
-    }).sort({ date: -1 });
-
-    return res.status(200).send(trainingHistory);
-  } catch (error) {
-    return res.status(500).send({ msg: Message.TryAgain });
-  }
-};
 
 const getTrainingByDate = async (
   req: Request<Params, {}, { createdAt: Date }>,
@@ -260,11 +236,26 @@ const getTrainingByDate = async (
       $unwind: "$planDay",
     },
     {
+      $lookup: {
+        from: "gyms",
+        localField: "gym",
+        foreignField: "_id",
+        as: "gymDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$gymDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
       $project: {
         type: 1,
         exercises: 1,
         createdAt: 1,
         "planDay.name": 1,
+        gym: "$gymDetails.name", // Assuming the gym name is stored in the `name` field
       },
     },
   ]);
@@ -282,7 +273,7 @@ const getTrainingByDate = async (
               exercise.exerciseScoreId,
               "exercise reps series weight unit"
             );
-
+            if(!scoreDetails)return res.status(404).send({msg:Message.DidntFind})
             const exerciseDetails = await Exercise.findById(
               scoreDetails.exercise,
               "name bodyPart"
@@ -315,12 +306,12 @@ const getTrainingByDate = async (
       );
 
       // Konwersja obiektu na tablicę
-      const exercisesArray = Object.values(groupedExercises);
+      const exercisesArray:EnrichedExercise[] = Object.values(groupedExercises);
 
       return { ...training, exercises: exercisesArray };
     })
   );
-
+  
   return res.status(200).send(enrichedTrainings);
 };
 
@@ -401,7 +392,6 @@ const partElo = (
 export {
   addTraining,
   getLastTraining,
-  getTrainingHistory,
   getTrainingByDate,
   getTrainingDates,
 };

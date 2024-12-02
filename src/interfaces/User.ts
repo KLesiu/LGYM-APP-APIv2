@@ -1,13 +1,13 @@
 interface UserBaseInfo{
     _id:string,
     name:string,
-    admin:boolean,
+    admin?:boolean,
     email:string,
-    profileRank:string
+    profileRank?:string
     elo:number,
     createdAt:Date,
     updatedAt:Date
-    plan:string
+    plan?:string
 }
 interface Rank{
     name:string,
@@ -31,7 +31,7 @@ interface UserLoginInfo{
     name:string,
     _id:string,
     email:string,
-    avatar:string
+    avatar:string | undefined
 }
 
 interface UserProfileInfo{

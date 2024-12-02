@@ -1,5 +1,19 @@
+import { WeightUnits } from "../enums/Units";
 import Schema from "./configModels"
-const mongoose = require('mongoose')
+import mongoose, {Document} from "mongoose";
+
+export interface ExerciseScoresEntity extends Document {
+    exercise: string;
+    user: string;
+    reps: number;
+    series: number;
+    weight: number;
+    unit: WeightUnits;
+    training: string;
+    createdAt: Date;
+    updatedAt: Date;
+    _id: string;
+}
 
 const ExerciseScoresSchema = new Schema({
     // Ćwiczenie, dla którego zapisujemy wynik
@@ -21,6 +35,5 @@ const ExerciseScoresSchema = new Schema({
     timestamps:true
 })
 
-const ExerciseScores = mongoose.model('ExerciseScores',ExerciseScoresSchema)
+const ExerciseScores = mongoose.model<ExerciseScoresEntity>('ExerciseScores',ExerciseScoresSchema)
 export default ExerciseScores
-module.exports = ExerciseScores

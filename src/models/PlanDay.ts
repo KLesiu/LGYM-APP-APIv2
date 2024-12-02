@@ -1,5 +1,15 @@
+import { PlanDayExercise } from "../interfaces/PlanDay";
 import Schema from "./configModels"
-const mongoose = require('mongoose')
+import mongoose, {  Document } from "mongoose";
+
+export interface PlanDayEntity extends Document {
+    name: string;
+    plan: string;
+    isDeleted: boolean;
+    exercises: PlanDayExercise[];
+    _id: string;
+}
+
 const PlanDaySchema = new Schema({
   // Nazwa planu dnia
     name:{type:String,required:true},
@@ -20,6 +30,5 @@ const PlanDaySchema = new Schema({
       ]
 })
 
-const PlanDay = mongoose.model('PlanDay',PlanDaySchema)
+const PlanDay = mongoose.model<PlanDayEntity>('PlanDay',PlanDaySchema)
 export default PlanDay
-module.exports = PlanDay

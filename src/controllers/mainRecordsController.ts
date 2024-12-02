@@ -13,7 +13,7 @@ const addNewRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<
     if(!findUser || !Object.keys(findUser).length) return res.status(404).send({msg:Message.DidntFind})
     const findExercise = await Exercise.findById(req.body.exercise)
     if(!findExercise || !Object.keys(findExercise).length) return res.status(404).send({msg:Message.DidntFind})
-    const mainRecords: typeof MainRecords = await MainRecords.create({
+    const mainRecords = await MainRecords.create({
         user:findUser,
         exercise:findExercise,
         weight:req.body.weight,

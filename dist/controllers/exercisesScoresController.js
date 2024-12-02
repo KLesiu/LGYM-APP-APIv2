@@ -21,6 +21,8 @@ const addExercisesScores = (form) => __awaiter(void 0, void 0, void 0, function*
 exports.addExercisesScores = addExercisesScores;
 const updateExercisesScores = (form) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield ExerciseScores_1.default.findByIdAndUpdate(form._id, form);
+    if (!result)
+        return { exerciseScoreId: "" };
     return { exerciseScoreId: result._id };
 });
 exports.updateExercisesScores = updateExercisesScores;

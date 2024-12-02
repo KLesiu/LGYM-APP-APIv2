@@ -1,5 +1,13 @@
 import Schema from "./configModels";
-const mongoose = require('mongoose');
+import mongoose,{Document} from "mongoose";
+
+export interface EloRegistryEntity extends Document {
+    user: string;
+    date: Date;
+    elo: number;
+    training?: string;
+    _id: string;
+}
 
 const EloRegistrySchema = new Schema({
     // Użytkownik, który dodał wpis
@@ -12,5 +20,5 @@ const EloRegistrySchema = new Schema({
     training:{type:Schema.Types.ObjectId,ref:'Training',required:false}
 })
 
-const EloRegistry = mongoose.model('EloRegistry',EloRegistrySchema)
+const EloRegistry = mongoose.model<EloRegistryEntity>('EloRegistry',EloRegistrySchema)
 export default EloRegistry  
