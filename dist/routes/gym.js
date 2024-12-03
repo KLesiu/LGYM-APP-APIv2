@@ -10,5 +10,4 @@ configRouter_1.default.delete("/gym/:id/deleteGym", gymController_1.deleteGym);
 configRouter_1.default.get("/gym/:id/getGyms", gymController_1.getGyms);
 configRouter_1.default.get("/gym/:id/getGym", gymController_1.getGym);
 configRouter_1.default.post("/gym/editGym", gymController_1.editGym);
-configRouter_1.default.get("/gym/set", gymController_1.setGym);
 exports.default = configRouter_1.default;

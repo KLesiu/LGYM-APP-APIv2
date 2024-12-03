@@ -49,8 +49,10 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     });
     // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
     const result = yield Promise.all(exercises.map((ele) => __awaiter(void 0, void 0, void 0, function* () {
+        const findLastExercise = req.body.lastExercisesScores.filter(element => element.exerciseId === ele.exercise);
+        const lastExerciseScores = findLastExercise[0].seriesScores[ele.series - 1];
         // Obliczanie ELO dla każdego ćwiczenia
-        const elo = yield calculateEloPerExercise(ele, userId);
+        const elo = yield calculateEloPerExercise(ele, lastExerciseScores);
         // Dodanie wyniku ćwiczenia z obliczonym ELO
         const exerciseScoreId = yield (0, exercisesScoresController_1.addExercisesScores)(ele);
         return { exerciseScoreId, elo };
@@ -261,19 +263,12 @@ const getTrainingDates = (req, res) => __awaiter(void 0, void 0, void 0, functio
     return res.status(200).send(dates);
 });
 exports.getTrainingDates = getTrainingDates;
-const calculateEloPerExercise = (currentExerciseScore, user) => __awaiter(void 0, void 0, void 0, function* () {
-    const prevCurrentExerciseScore = yield ExerciseScores_1.default.find({
-        exercise: currentExerciseScore.exercise,
-        series: currentExerciseScore.series,
-        user: user,
-    })
-        .sort({ createdAt: -1 })
-        .limit(1);
+const calculateEloPerExercise = (currentExerciseScore, lastExerciseScore) => __awaiter(void 0, void 0, void 0, function* () {
     let elo;
-    if (!prevCurrentExerciseScore || !prevCurrentExerciseScore.length)
+    if (!lastExerciseScore || !lastExerciseScore.score)
         elo = partElo(0, 0, currentExerciseScore.weight, currentExerciseScore.reps);
     else
-        elo = partElo(prevCurrentExerciseScore[0].weight, prevCurrentExerciseScore[0].reps, currentExerciseScore.weight, currentExerciseScore.reps);
+        elo = partElo(lastExerciseScore.score.weight, lastExerciseScore.score.reps, currentExerciseScore.weight, currentExerciseScore.reps);
     return elo;
 });
 const partElo = (prev_weight, prev_reps, acc_weight, acc_reps) => {

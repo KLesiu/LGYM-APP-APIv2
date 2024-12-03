@@ -140,7 +140,7 @@ const getUsersRanking = async function (
   req: Request,
   res: Response<UserBaseInfo[] | ResponseMessage>
 ) {
-  const users = await User.aggregate([
+  const users:UserBaseInfo[] = await User.aggregate([
     {
       $lookup: {
         from: "eloregistries", // Nazwa kolekcji EloRegistry
@@ -172,8 +172,10 @@ const getUsersRanking = async function (
     },
   ]);
 
+  const filteredUsers = users.filter((user) => user.name !== "tester2");
+
   // Zwrócenie listy użytkowników lub komunikat błędu
-  if (users.length) return res.status(200).send(users);
+  if (users.length) return res.status(200).send(filteredUsers);
   else return res.status(404).send({ msg: Message.DidntFind });
 };
 

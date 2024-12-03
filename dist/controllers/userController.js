@@ -149,9 +149,10 @@ const getUsersRanking = function (req, res) {
                 },
             },
         ]);
+        const filteredUsers = users.filter((user) => user.name !== "tester2");
         // Zwrócenie listy użytkowników lub komunikat błędu
         if (users.length)
-            return res.status(200).send(users);
+            return res.status(200).send(filteredUsers);
         else
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
     });

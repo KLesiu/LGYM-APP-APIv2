@@ -20,7 +20,7 @@ import { ExerciseScoresForm } from "../interfaces/ExercisesScores";
 import ExerciseScores from "../models/ExerciseScores";
 import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
-import { LastExerciseScores } from "../interfaces/Exercise";
+import { LastExerciseScores, SeriesScore } from "../interfaces/Exercise";
 import {updateUserElo} from "./userController"
 import EloRegistry from "../models/EloRegistry";
 import Gym from "../models/Gym";
@@ -57,8 +57,11 @@ const addTraining = async (
     // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
     const result= await Promise.all(
       exercises.map(async (ele) => {
+
+        const findLastExercise = req.body.lastExercisesScores.filter(element => element.exerciseId === ele.exercise)
+        const lastExerciseScores = findLastExercise[0].seriesScores[ele.series-1]
         // Obliczanie ELO dla każdego ćwiczenia
-        const elo = await calculateEloPerExercise(ele, userId);
+        const elo = await calculateEloPerExercise(ele,lastExerciseScores);
 
         // Dodanie wyniku ćwiczenia z obliczonym ELO
         const exerciseScoreId = await addExercisesScores(ele);
@@ -330,21 +333,14 @@ const getTrainingDates = async (
 };
 
 const calculateEloPerExercise = async (
-  currentExerciseScore: ExerciseScoresTrainingForm,
-  user: string
+  currentExerciseScore: ExerciseScoresForm,
+  lastExerciseScore: SeriesScore,
 ): Promise<number> => {
-  const prevCurrentExerciseScore = await ExerciseScores.find({
-    exercise: currentExerciseScore.exercise,
-    series: currentExerciseScore.series,
-    user: user,
-  })
-    .sort({ createdAt: -1 })
-    .limit(1);
   let elo:number;
-  if (!prevCurrentExerciseScore || !prevCurrentExerciseScore.length) elo = partElo(0, 0, currentExerciseScore.weight, currentExerciseScore.reps);
+  if (!lastExerciseScore || !lastExerciseScore.score) elo = partElo(0, 0, currentExerciseScore.weight, currentExerciseScore.reps);
   else elo = partElo(
-    prevCurrentExerciseScore[0].weight,
-    prevCurrentExerciseScore[0].reps,
+    lastExerciseScore.score.weight,
+    lastExerciseScore.score.reps,
     currentExerciseScore.weight,
     currentExerciseScore.reps,
   );
