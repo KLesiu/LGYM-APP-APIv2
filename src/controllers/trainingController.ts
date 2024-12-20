@@ -337,7 +337,7 @@ const calculateEloPerExercise = async (
   lastExerciseScore: SeriesScore,
 ): Promise<number> => {
   let elo:number;
-  if (!lastExerciseScore || !lastExerciseScore.score) elo = partElo(0, 0, currentExerciseScore.weight, currentExerciseScore.reps);
+  if (!lastExerciseScore || !lastExerciseScore.score) elo = 0
   else elo = partElo(
     lastExerciseScore.score.weight,
     lastExerciseScore.score.reps,

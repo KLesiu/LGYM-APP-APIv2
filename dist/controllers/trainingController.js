@@ -266,7 +266,7 @@ exports.getTrainingDates = getTrainingDates;
 const calculateEloPerExercise = (currentExerciseScore, lastExerciseScore) => __awaiter(void 0, void 0, void 0, function* () {
     let elo;
     if (!lastExerciseScore || !lastExerciseScore.score)
-        elo = partElo(0, 0, currentExerciseScore.weight, currentExerciseScore.reps);
+        elo = 0;
     else
         elo = partElo(lastExerciseScore.score.weight, lastExerciseScore.score.reps, currentExerciseScore.weight, currentExerciseScore.reps);
     return elo;
