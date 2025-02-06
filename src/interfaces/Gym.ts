@@ -4,5 +4,21 @@ interface GymForm{
     _id?: string;
 }
 
+interface GymChoiceInfo extends GymForm{
+    lastTrainingInfo:LastTrainingGymInfo
+}
 
-export {GymForm}
+
+interface LastTrainingGymInfo{
+    _id:string,
+    createdAt:Date,
+    type:LastTrainingGymPlanDayInfo,
+    name:string,
+}
+
+interface LastTrainingGymPlanDayInfo{
+    _id:string,
+    name:string
+}
+
+export {GymForm,GymChoiceInfo,LastTrainingGymInfo}

@@ -7,6 +7,7 @@ export interface TrainingEntity extends Document {
     type: string;
     exercises?: {exerciseScoreId: string}[];
     createdAt: Date;
+    gym:string;
     _id: string;
 }
 
