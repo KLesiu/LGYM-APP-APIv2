@@ -1,6 +1,6 @@
 import Params from "../interfaces/Params";
 import ResponseMessage from "../interfaces/ResponseMessage";
-import { PlanDayForm, PlanDayVm,PlanDayExercise} from "../interfaces/PlanDay";
+import { PlanDayForm, PlanDayVm,PlanDayExercise, PlanDayChoose} from "../interfaces/PlanDay";
 import { Request, Response } from "express";
 import Plan from "../models/Plan";
 import { Message } from "../enums/Message";
@@ -104,7 +104,7 @@ const getPlanDays = async(req: Request<Params>, res: Response<PlanDayVm[] | Resp
     }
 };
 
-const getPlanDaysTypes = async(req: Request<Params>, res: Response<{_id:string,name:string}[] | ResponseMessage>) => {
+const getPlanDaysTypes = async(req: Request<Params>, res: Response<PlanDayChoose[] | ResponseMessage>) => {
     const id = req.params.id;
     const user = await User.findById(id);
     if(!user || !Object.keys(user).length) return res.status(404).send({msg: Message.DidntFind});   
