@@ -23,7 +23,9 @@ const measurements = require("./routes/measurements");
 const mainRecords = require("./routes/mainRecords");
 const exercise = require("./routes/exercise");
 const planDay = require("./routes/planDay");
+const eloRegistry = require("./routes/eloRegistry");
 const mongoose = require("mongoose");
+const exerciseScores = require("./routes/exerciseScores");
 const gym_1 = __importDefault(require("./routes/gym"));
 // Mongoose connection
 mongoose.set("strictQuery", false);
@@ -52,6 +54,8 @@ app.use("/api", mainRecords);
 app.use("/api", exercise);
 app.use("/api", planDay);
 app.use("/api", gym_1.default);
+app.use("/api", eloRegistry);
+app.use("/api", exerciseScores);
 module.exports = app;
 // Server
 const server = require('./server');
