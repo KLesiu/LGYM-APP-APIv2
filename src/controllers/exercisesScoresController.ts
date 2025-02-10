@@ -1,5 +1,5 @@
 import {
-  ExerciseScoresBpDlSqChartData,
+  ExerciseScoresChartData,
   ExerciseScoresForm,
 } from "../interfaces/ExercisesScores";
 import Params from "../interfaces/Params";
@@ -21,37 +21,27 @@ const updateExercisesScores = async (form: ExerciseScoresForm) => {
   return { exerciseScoreId: result._id as string };
 };
 
-const getBpDlSqChartData = async (
-    req: Request<Params>,
-    res: Response<ExerciseScoresBpDlSqChartData[] | ResponseMessage>
+const getExerciseScoresChartData = async (
+    req: Request<Params,{},{exerciseId:string}>,
+    res: Response<ExerciseScoresChartData[] | ResponseMessage>
   ) => {
-    const allowedExercises = ["Squat", "Deadlift", "Bench Press"];
-  
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).send({ msg: Message.DidntFind });
     }
-  
-    const exercises = await Exercise.find({ name: { $in: allowedExercises },user:undefined });
-  
-    if (exercises.length === 0) {
-      return res.status(404).send({ msg: "No exercises found" });
-    }
-  
-    const exerciseIds = exercises.map(exercise => exercise._id);
-  
     const exerciseScores = await ExerciseScores.find({
       user: req.params.id, 
-      exercise: { $in: exerciseIds },
+      exercise: req.body.exerciseId,
     })
       .sort({ createdAt: 1 }) 
       .populate("training", "createdAt") 
       .populate("exercise", "name"); 
-  
+      const options: Intl.DateTimeFormatOptions = { month: "2-digit", day: "2-digit" };
+
     const result = exerciseScores.map((score: any) => ({
       _id: score._id,
       value: score.weight,
-      date: score.training.createdAt,
+      date: new Intl.DateTimeFormat("en-US", options).format(new Date(score.training.createdAt)), 
       exerciseName: score.exercise.name, 
       exerciseId: score.exercise._id, 
     }));
@@ -60,4 +50,4 @@ const getBpDlSqChartData = async (
   };
   
 
-export { addExercisesScores, updateExercisesScores,getBpDlSqChartData };
+export { addExercisesScores, updateExercisesScores,getExerciseScoresChartData };

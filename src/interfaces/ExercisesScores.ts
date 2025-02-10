@@ -18,7 +18,7 @@ interface ExerciseScoresForm extends ExerciseScoresTrainingForm{
 
 
 
-interface ExerciseScoresBpDlSqChartData{
+interface ExerciseScoresChartData{
     _id: string;
     value: number;
     date: string;
@@ -26,4 +26,4 @@ interface ExerciseScoresBpDlSqChartData{
     exerciseId: string;
 }
 
-export {ExerciseScoresTrainingForm,ExerciseScoresForm,ExerciseScoresBpDlSqChartData}
+export {ExerciseScoresTrainingForm,ExerciseScoresForm,ExerciseScoresChartData}

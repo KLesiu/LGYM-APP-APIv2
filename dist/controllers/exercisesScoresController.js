@@ -12,11 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBpDlSqChartData = exports.updateExercisesScores = exports.addExercisesScores = void 0;
+exports.getExerciseScoresChartData = exports.updateExercisesScores = exports.addExercisesScores = void 0;
 const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
-const Exercise_1 = __importDefault(require("../models/Exercise"));
 const addExercisesScores = (form) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield ExerciseScores_1.default.create(form);
     return { exerciseScoreId: result._id };
@@ -29,31 +28,26 @@ const updateExercisesScores = (form) => __awaiter(void 0, void 0, void 0, functi
     return { exerciseScoreId: result._id };
 });
 exports.updateExercisesScores = updateExercisesScores;
-const getBpDlSqChartData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const allowedExercises = ["Squat", "Deadlift", "Bench Press"];
+const getExerciseScoresChartData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.default.findById(req.params.id);
     if (!user) {
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     }
-    const exercises = yield Exercise_1.default.find({ name: { $in: allowedExercises }, user: undefined });
-    if (exercises.length === 0) {
-        return res.status(404).send({ msg: "No exercises found" });
-    }
-    const exerciseIds = exercises.map(exercise => exercise._id);
     const exerciseScores = yield ExerciseScores_1.default.find({
         user: req.params.id,
-        exercise: { $in: exerciseIds },
+        exercise: req.body.exerciseId,
     })
         .sort({ createdAt: 1 })
         .populate("training", "createdAt")
         .populate("exercise", "name");
+    const options = { month: "2-digit", day: "2-digit" };
     const result = exerciseScores.map((score) => ({
         _id: score._id,
         value: score.weight,
-        date: score.training.createdAt,
+        date: new Intl.DateTimeFormat("en-US", options).format(new Date(score.training.createdAt)),
         exerciseName: score.exercise.name,
         exerciseId: score.exercise._id,
     }));
     return res.status(200).send(result);
 });
-exports.getBpDlSqChartData = getBpDlSqChartData;
+exports.getExerciseScoresChartData = getExerciseScoresChartData;
