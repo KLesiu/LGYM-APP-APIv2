@@ -16,6 +16,7 @@ exports.getExerciseScoresChartData = exports.updateExercisesScores = exports.add
 const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
+const OneRepMaxHelper_1 = __importDefault(require("../helpers/OneRepMaxHelper"));
 const addExercisesScores = (form) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield ExerciseScores_1.default.create(form);
     return { exerciseScoreId: result._id };
@@ -40,13 +41,30 @@ const getExerciseScoresChartData = (req, res) => __awaiter(void 0, void 0, void 
         .sort({ createdAt: 1 })
         .populate("training", "createdAt")
         .populate("exercise", "name");
-    const options = { month: "2-digit", day: "2-digit" };
-    const result = exerciseScores.map((score) => ({
-        _id: score._id,
-        value: score.weight,
-        date: new Intl.DateTimeFormat("en-US", options).format(new Date(score.training.createdAt)),
-        exerciseName: score.exercise.name,
-        exerciseId: score.exercise._id,
+    const bestSeries = {};
+    exerciseScores.forEach((score) => {
+        const key = `${score.exercise._id}-${score.training._id}`;
+        const oneRepMax = (0, OneRepMaxHelper_1.default)(score.reps, score.weight);
+        const trainingDate = new Intl.DateTimeFormat("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+        }).format(new Date(score.training.createdAt));
+        if (!bestSeries[key] || oneRepMax > bestSeries[key].oneRepMax) {
+            bestSeries[key] = {
+                reps: score.reps,
+                weight: score.weight,
+                oneRepMax,
+                exerciseName: score.exercise.name,
+                trainingDate,
+            };
+        }
+    });
+    const result = Object.entries(bestSeries).map(([key, best]) => ({
+        _id: key,
+        value: best.oneRepMax,
+        date: best.trainingDate,
+        exerciseName: best.exerciseName,
+        exerciseId: key.split("-")[0],
     }));
     return res.status(200).send(result);
 });
