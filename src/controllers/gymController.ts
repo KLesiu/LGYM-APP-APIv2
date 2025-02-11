@@ -1,4 +1,4 @@
-import { GymForm } from "../interfaces/Gym";
+import { GymChoiceInfo, GymForm, LastTrainingGymInfo } from "../interfaces/Gym";
 import Params from "../interfaces/Params";
 import ResponseMessage from "../interfaces/ResponseMessage";
 import Gym, { GymEntity } from "../models/Gym";
@@ -26,20 +26,27 @@ const deleteGym = async (req:Request<Params,{},{}>,res:Response<ResponseMessage>
     return res.status(200).send({msg: Message.Deleted});
 }
 
-const getGyms = async (req:Request<Params,{}>,res:Response<GymForm[] | ResponseMessage>)=>{
+const getGyms = async (req:Request<Params,{}>,res:Response<GymChoiceInfo[] | ResponseMessage>)=>{
     const user = await User.findById(req.params.id);
     if(!user || !Object.keys(user).length) return res.status(404).send({msg: Message.DidntFind});
     const gyms = await Gym.find({user: user._id,isDeleted: false});
 
-    const gymsWithotUser = gyms.map(gym=>{
-        return{
-            _id: gym._id,
-            name: gym.name,
-            address: gym.address
-        }
-    })
-    
-    return res.status(200).send(gymsWithotUser);
+    const gymsWithTrainingData = await Promise.all(
+        gyms.map(async (gym) => {
+            const lastTraining = await Training.findOne({ gym: gym._id })
+                .sort({ createdAt: -1 })
+                .populate("type", "name")
+                .select("createdAt type") as LastTrainingGymInfo; 
+
+            return {
+                _id: gym._id,
+                name: gym.name,
+                address: gym.address,
+                lastTrainingInfo:lastTraining
+            };
+        })
+    );
+    return res.status(200).send(gymsWithTrainingData);
 }
 
 const getGym = async (req:Request<Params,{},{}>,res:Response<GymForm | ResponseMessage>)=>{

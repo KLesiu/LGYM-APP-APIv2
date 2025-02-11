@@ -9,7 +9,9 @@ const measurements = require("./routes/measurements")
 const mainRecords = require("./routes/mainRecords")
 const exercise = require("./routes/exercise")
 const planDay = require("./routes/planDay")
+const eloRegistry = require("./routes/eloRegistry")
 const mongoose = require("mongoose")
+const exerciseScores = require("./routes/exerciseScores")
 import gym from "./routes/gym"
 
 // Mongoose connection
@@ -41,6 +43,8 @@ app.use("/api",mainRecords)
 app.use("/api",exercise)
 app.use("/api",planDay)
 app.use("/api",gym)
+app.use("/api",eloRegistry)
+app.use("/api",exerciseScores)
 
 
 module.exports = app

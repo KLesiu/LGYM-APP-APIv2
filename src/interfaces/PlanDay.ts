@@ -23,6 +23,11 @@ interface LastScoresPlanDayVm extends PlanDayVm {
   gym:string; 
 }
 
+interface PlanDayChoose{
+  _id: string;
+  name: string;
+}
+
 interface PlanDayExercise{
   series: number;
   reps: string;
@@ -31,4 +36,4 @@ interface PlanDayExercise{
 }
 
 
-export {PlanDayExercise, PlanDayForm, PlanDayVm,LastScoresPlanDayVm};
+export {PlanDayExercise, PlanDayForm, PlanDayVm,LastScoresPlanDayVm,PlanDayChoose};

@@ -16,6 +16,7 @@ exports.editGym = exports.getGym = exports.getGyms = exports.deleteGym = exports
 const Gym_1 = __importDefault(require("../models/Gym"));
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
+const Training_1 = __importDefault(require("../models/Training"));
 const addGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.default.findById(req.params.id);
     if (!user || !Object.keys(user).length)
@@ -37,14 +38,19 @@ const getGyms = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user || !Object.keys(user).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const gyms = yield Gym_1.default.find({ user: user._id, isDeleted: false });
-    const gymsWithotUser = gyms.map(gym => {
+    const gymsWithTrainingData = yield Promise.all(gyms.map((gym) => __awaiter(void 0, void 0, void 0, function* () {
+        const lastTraining = yield Training_1.default.findOne({ gym: gym._id })
+            .sort({ createdAt: -1 })
+            .populate("type", "name")
+            .select("createdAt type");
         return {
             _id: gym._id,
             name: gym.name,
-            address: gym.address
+            address: gym.address,
+            lastTrainingInfo: lastTraining
         };
-    });
-    return res.status(200).send(gymsWithotUser);
+    })));
+    return res.status(200).send(gymsWithTrainingData);
 });
 exports.getGyms = getGyms;
 const getGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {

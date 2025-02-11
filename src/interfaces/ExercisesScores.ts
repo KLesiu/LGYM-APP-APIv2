@@ -16,4 +16,14 @@ interface ExerciseScoresForm extends ExerciseScoresTrainingForm{
     date:Date
 }
 
-export {ExerciseScoresTrainingForm,ExerciseScoresForm}
+
+
+interface ExerciseScoresChartData{
+    _id: string;
+    value: number;
+    date: string;
+    exerciseName: string;
+    exerciseId: string;
+}
+
+export {ExerciseScoresTrainingForm,ExerciseScoresForm,ExerciseScoresChartData}
