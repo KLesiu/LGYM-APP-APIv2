@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePlanDay = exports.getPlanDaysTypes = exports.getPlanDays = exports.getPlanDay = exports.updatePlanDay = exports.createPlanDay = void 0;
+exports.getPlanDaysInfo = exports.deletePlanDay = exports.getPlanDaysTypes = exports.getPlanDays = exports.getPlanDay = exports.updatePlanDay = exports.createPlanDay = void 0;
 const Plan_1 = __importDefault(require("../models/Plan"));
 const Message_1 = require("../enums/Message");
 const PlanDay_1 = __importDefault(require("../models/PlanDay"));
 const User_1 = __importDefault(require("../models/User"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
+const Training_1 = __importDefault(require("../models/Training"));
 const createPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findPlan = yield Plan_1.default.findById(id);
@@ -31,7 +32,7 @@ const createPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         plan: findPlan,
         name: name,
         exercises: exercises,
-        isDeleted: false
+        isDeleted: false,
     });
     return res.status(200).send({ msg: Message_1.Message.Created });
 });
@@ -61,58 +62,70 @@ const getPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         return {
             series: exercise.series,
             reps: exercise.reps,
-            exercise: findExercise
+            exercise: findExercise,
         };
     })));
     const planDay = {
         _id: findPlanDay._id,
         name: findPlanDay.name,
-        exercises: exercises
+        exercises: exercises,
     };
     return res.status(200).send(planDay);
 });
 exports.getPlanDay = getPlanDay;
 const getPlanDays = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const id = req.params.id;
-        // Znalezienie planu
-        const findPlan = yield Plan_1.default.findById(id);
-        if (!findPlan || !Object.keys(findPlan).length) {
-            return res.status(404).send({ msg: Message_1.Message.DidntFind });
-        }
-        // Znalezienie dni planu
-        const findPlanDays = yield PlanDay_1.default.find({ plan: findPlan, isDeleted: false });
-        if (!findPlanDays || !findPlanDays.length) {
-            return res.status(404).send({ msg: Message_1.Message.DidntFind });
-        }
-        // Mapowanie przez dni planu
-        const planDays = yield Promise.all(findPlanDays.map((planDay) => __awaiter(void 0, void 0, void 0, function* () {
-            // Mapowanie przez ćwiczenia
-            const exercises = yield Promise.all(planDay.exercises.map((exercise) => __awaiter(void 0, void 0, void 0, function* () {
-                const findExercise = yield Exercise_1.default.findById(exercise.exercise);
-                // Zwrot ćwiczenia po znalezieniu
-                return {
-                    series: exercise.series,
-                    reps: exercise.reps,
-                    exercise: findExercise, // Tutaj masz cały obiekt ćwiczenia
-                };
-            })));
-            // Zwrot pojedynczego dnia planu z pełnymi danymi o ćwiczeniach
+    const id = req.params.id;
+    const findPlan = yield Plan_1.default.findById(id);
+    if (!findPlan || !Object.keys(findPlan).length) {
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    }
+    const findPlanDays = yield PlanDay_1.default.find({ plan: findPlan, isDeleted: false });
+    if (!findPlanDays || !findPlanDays.length) {
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    }
+    const planDays = yield Promise.all(findPlanDays.map((planDay) => __awaiter(void 0, void 0, void 0, function* () {
+        const exercises = yield Promise.all(planDay.exercises.map((exercise) => __awaiter(void 0, void 0, void 0, function* () {
+            const findExercise = yield Exercise_1.default.findById(exercise.exercise);
             return {
-                _id: planDay._id,
-                name: planDay.name,
-                exercises: exercises,
+                series: exercise.series,
+                reps: exercise.reps,
+                exercise: findExercise,
             };
         })));
-        // Zwrot poprawnych danych z planem dni
-        return res.status(200).send(planDays);
-    }
-    catch (error) {
-        console.error(error);
-        return res.status(500).send({ msg: 'Server error' });
-    }
+        return {
+            _id: planDay._id,
+            name: planDay.name,
+            exercises: exercises,
+        };
+    })));
+    return res.status(200).send(planDays);
 });
 exports.getPlanDays = getPlanDays;
+const getPlanDaysInfo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const findPlan = yield Plan_1.default.findById(id);
+    if (!findPlan || !Object.keys(findPlan).length) {
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    }
+    const findPlanDays = yield PlanDay_1.default.find({ plan: findPlan, isDeleted: false });
+    if (!findPlanDays || !findPlanDays.length) {
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    }
+    const planDaysWithTrainingDate = (yield Promise.all(findPlanDays.map((planDay) => __awaiter(void 0, void 0, void 0, function* () {
+        const lastTraining = yield Training_1.default.findOne({ type: planDay._id })
+            .sort({ createdAt: -1 })
+            .select("createdAt");
+        return {
+            _id: planDay._id,
+            name: planDay.name,
+            lastTrainingDate: lastTraining === null || lastTraining === void 0 ? void 0 : lastTraining.createdAt,
+            totalNumberOfSeries: planDay.exercises.reduce((acc, curr) => acc + curr.series, 0),
+            totalNumberOfExercises: planDay.exercises.length,
+        };
+    }))));
+    return res.status(200).send(planDaysWithTrainingDate);
+});
+exports.getPlanDaysInfo = getPlanDaysInfo;
 const getPlanDaysTypes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const user = yield User_1.default.findById(id);
@@ -121,7 +134,7 @@ const getPlanDaysTypes = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const plan = yield Plan_1.default.find({ user: user });
     if (!plan || !plan.length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const planDaysTypes = yield PlanDay_1.default.find({ plan: plan, isDeleted: false }, '_id name');
+    const planDaysTypes = yield PlanDay_1.default.find({ plan: plan, isDeleted: false }, "_id name");
     return res.status(200).send(planDaysTypes);
 });
 exports.getPlanDaysTypes = getPlanDaysTypes;

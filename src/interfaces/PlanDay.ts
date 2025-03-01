@@ -9,6 +9,14 @@ interface PlanDayForm {
   }[];
 }
 
+interface PlanDayBaseInfoVm{
+  _id:string,
+  name:string,
+  lastTrainingDate?:Date,
+  totalNumberOfSeries:number,
+  totalNumberOfExercises:number
+}
+
 interface PlanDayVm {
   _id: string;
   name: string;
@@ -36,4 +44,4 @@ interface PlanDayExercise{
 }
 
 
-export {PlanDayExercise, PlanDayForm, PlanDayVm,LastScoresPlanDayVm,PlanDayChoose};
+export {PlanDayExercise, PlanDayForm, PlanDayVm,LastScoresPlanDayVm,PlanDayChoose,PlanDayBaseInfoVm};

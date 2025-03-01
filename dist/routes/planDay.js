@@ -11,4 +11,5 @@ configRouter_1.default.get("/planDay/:id/getPlanDay", planDayController_1.getPla
 configRouter_1.default.get("/planDay/:id/getPlanDays", planDayController_1.getPlanDays);
 configRouter_1.default.get("/planDay/:id/getPlanDaysTypes", planDayController_1.getPlanDaysTypes);
 configRouter_1.default.get("/planDay/:id/deletePlanDay", planDayController_1.deletePlanDay);
+configRouter_1.default.get("/planDay/:id/getPlanDaysInfo", planDayController_1.getPlanDaysInfo);
 module.exports = configRouter_1.default;
