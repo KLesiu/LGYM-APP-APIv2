@@ -6,6 +6,7 @@ import {
   PlanDayExercise,
   PlanDayChoose,
   PlanDayBaseInfoVm,
+  PlanDayExercisesFormVm,
 } from "../interfaces/PlanDay";
 import { Request, Response } from "express";
 import Plan from "../models/Plan";
@@ -56,7 +57,7 @@ const updatePlanDay = async (
 
 const getPlanDay = async (
   req: Request<Params>,
-  res: Response<PlanDayForm | ResponseMessage>
+  res: Response<PlanDayVm | ResponseMessage>
 ) => {
   const id = req.params.id;
   const findPlanDay = await PlanDay.findById(id);
@@ -68,7 +69,7 @@ const getPlanDay = async (
       return {
         series: exercise.series,
         reps: exercise.reps,
-        exercise: findExercise,
+        exercise: findExercise as ExerciseForm,
       };
     })
   );
@@ -76,7 +77,7 @@ const getPlanDay = async (
   const planDay = {
     _id: findPlanDay._id,
     name: findPlanDay.name,
-    exercises: exercises,
+    exercises: exercises.length ? exercises : [] as PlanDayExercisesFormVm[],
   };
   return res.status(200).send(planDay);
 };

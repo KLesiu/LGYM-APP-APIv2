@@ -68,7 +68,7 @@ const getPlanDay = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const planDay = {
         _id: findPlanDay._id,
         name: findPlanDay.name,
-        exercises: exercises,
+        exercises: exercises.length ? exercises : [],
     };
     return res.status(200).send(planDay);
 });

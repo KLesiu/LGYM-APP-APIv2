@@ -20,11 +20,14 @@ interface PlanDayBaseInfoVm{
 interface PlanDayVm {
   _id: string;
   name: string;
-  exercises: {
-    series: number;
-    reps: string;
-    exercise: ExerciseForm;
-  }[] ;
+  exercises:PlanDayExercisesFormVm[] ;
+}
+
+
+interface PlanDayExercisesFormVm{
+  series: number;
+  reps: string;
+  exercise: ExerciseForm;
 }
 
 interface LastScoresPlanDayVm extends PlanDayVm {
@@ -44,4 +47,4 @@ interface PlanDayExercise{
 }
 
 
-export {PlanDayExercise, PlanDayForm, PlanDayVm,LastScoresPlanDayVm,PlanDayChoose,PlanDayBaseInfoVm};
+export {PlanDayExercise, PlanDayForm, PlanDayVm,LastScoresPlanDayVm,PlanDayChoose,PlanDayBaseInfoVm,PlanDayExercisesFormVm};
