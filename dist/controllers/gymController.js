@@ -22,6 +22,8 @@ const addGym = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user || !Object.keys(user).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const gym = Object.assign(Object.assign({}, req.body), { user: user._id });
+    if (!gym.name)
+        return res.status(400).send({ msg: Message_1.Message.FieldRequired });
     yield Gym_1.default.create(gym);
     return res.status(200).send({ msg: Message_1.Message.Created });
 });

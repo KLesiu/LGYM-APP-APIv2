@@ -16,6 +16,7 @@ const addGym = async (req:Request<Params,{},GymForm>,res:Response<ResponseMessag
         ...req.body,
         user: user._id
     }
+    if(!gym.name) return res.status(400).send({msg: Message.FieldRequired});
     await Gym.create(gym);
     return res.status(200).send({msg: Message.Created});
 }
