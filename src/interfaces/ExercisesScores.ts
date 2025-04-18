@@ -1,4 +1,5 @@
 import { WeightUnits } from "../enums/Units";
+import { PlanDayExercise, PlanDayExercisesFormVm } from "./PlanDay";
 
 interface ExerciseScoresTrainingForm{
     _id?: string;
@@ -26,4 +27,9 @@ interface ExerciseScoresChartData{
     exerciseId: string;
 }
 
-export {ExerciseScoresTrainingForm,ExerciseScoresForm,ExerciseScoresChartData}
+
+interface LastExerciseScoresQuery extends PlanDayExercise{
+    gym?:string;
+}
+
+export {ExerciseScoresTrainingForm,ExerciseScoresForm,ExerciseScoresChartData,LastExerciseScoresQuery}

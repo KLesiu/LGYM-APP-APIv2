@@ -1,15 +1,16 @@
 import Params from "../interfaces/Params";
 import ResponseMessage from "../interfaces/ResponseMessage";
 import { Request, Response } from "express";
-import { ExerciseForm, LastExerciseScores } from "../interfaces/Exercise";
+import { ExerciseForm, LastExerciseScoresWithGym } from "../interfaces/Exercise";
 import Exercise from "../models/Exercise";
 import { Message } from "../enums/Message";
 import { BodyParts } from "../enums/BodyParts";
 import User from "../models/User";
-import { LastScoresPlanDayVm, PlanDayVm } from "../interfaces/PlanDay";
+import {  PlanDayVm } from "../interfaces/PlanDay";
 import { ObjectId } from "mongodb";
 import ExerciseScores from "../models/ExerciseScores";
 import Training from "../models/Training";
+import { LastExerciseScoresQuery } from "../interfaces/ExercisesScores";
 
 const addExercise = async (
   req: Request<{}, {}, ExerciseForm>,
@@ -134,49 +135,72 @@ const getExercise = async(req:Request<Params>, res:Response<ExerciseForm | Respo
   return res.status(200).send(exercise);
 }
 
-
-
-const getLastExerciseScores = async(req:Request<Params,{},LastScoresPlanDayVm>, res:Response<LastExerciseScores[] | null>) => {
+const getLastExerciseScores = async(req:Request<Params,{},LastExerciseScoresQuery>,res:Response<LastExerciseScoresWithGym | null>) => {
   const userId = req.params.id;
-  const planDay: LastScoresPlanDayVm = req.body;
-
-  const results = await Promise.all(
-    planDay.exercises.map(async (exerciseItem) => {
-      const { series, exercise } = exerciseItem;
-      const seriesScores = await Promise.all(
-        Array.from({ length: series }).map(async (_, seriesIndex) => {
-          const seriesNumber = seriesIndex + 1;
-          const latestScore = exercise?._id ? await findLatestExerciseScore(userId, exercise._id, seriesNumber,planDay.gym) : 0;
-
-          return {
-            series: seriesNumber,
-            score: latestScore || null, 
-          };
-        })
-      );
+  const {series,exerciseId,gym} = req.body
+  const seriesScores = await Promise.all(
+    Array.from({ length: series }).map(async (_, seriesIndex) => {
+      const seriesNumber = seriesIndex + 1;
+      let latestScore;
+      if(gym)latestScore = exerciseId ? await findLatestExerciseScore(userId, exerciseId, seriesNumber,gym) : 0;
+      else latestScore = exerciseId ? await findLatestExerciseScore(userId, exerciseId, seriesNumber) : 0;
 
       return {
-        exerciseId:`${ exercise?._id}`,
-        name: `${exercise?.name}`,
-        seriesScores,
+        series: seriesNumber,
+        score: latestScore || null, 
       };
     })
   );
-
-  res.json(results);
+  const result = {
+    exerciseId:`${ exerciseId}`,
+    seriesScores,
+  } as LastExerciseScoresWithGym;
+  res.json(result);
 }
-const findLatestExerciseScore = async(userId: string, exerciseId: string, seriesNumber: number,gym:string) =>{
-  return await ExerciseScores.findOne({
+
+
+const findLatestExerciseScore = async (
+  userId: string,
+  exerciseId: string,
+  seriesNumber: number,
+  gym?: string
+) => {
+  const match: any = {
     user: new ObjectId(userId),
     exercise: new ObjectId(exerciseId),
     series: seriesNumber,
-    training: {
-      $in: await Training.find({ gym }).select('_id'), 
-  },
-  },"createdAt reps weight unit  _id")
+  };
+
+  if (gym) {
+    const trainings = await Training.find({ gym }).select("_id");
+    match.training = { $in: trainings.map((t) => t._id) };
+  }
+
+
+  const result = await ExerciseScores.findOne(match, "reps weight unit _id training")
     .sort({ createdAt: -1 })
+    .populate({
+      path: "training",
+      select: "gym",
+      populate: {
+        path: "gym",
+        select: "name"
+      }
+    })
     .exec();
-}
+
+  if (!result) return null;
+
+  const gymName = (result.training as any)?.gym?.name ?? null;
+
+  return {
+    reps: result.reps,
+    weight: result.weight,
+    unit: result.unit,
+    _id: result._id,
+    gymName,
+  };
+};
 
 export {
   addExercise,

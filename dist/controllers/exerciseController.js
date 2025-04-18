@@ -139,35 +139,56 @@ const getExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getExercise = getExercise;
 const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
-    const planDay = req.body;
-    const results = yield Promise.all(planDay.exercises.map((exerciseItem) => __awaiter(void 0, void 0, void 0, function* () {
-        const { series, exercise } = exerciseItem;
-        const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
-            const seriesNumber = seriesIndex + 1;
-            const latestScore = (exercise === null || exercise === void 0 ? void 0 : exercise._id) ? yield findLatestExerciseScore(userId, exercise._id, seriesNumber, planDay.gym) : 0;
-            return {
-                series: seriesNumber,
-                score: latestScore || null,
-            };
-        })));
+    const { series, exerciseId, gym } = req.body;
+    const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
+        const seriesNumber = seriesIndex + 1;
+        let latestScore;
+        if (gym)
+            latestScore = exerciseId ? yield findLatestExerciseScore(userId, exerciseId, seriesNumber, gym) : 0;
+        else
+            latestScore = exerciseId ? yield findLatestExerciseScore(userId, exerciseId, seriesNumber) : 0;
         return {
-            exerciseId: `${exercise === null || exercise === void 0 ? void 0 : exercise._id}`,
-            name: `${exercise === null || exercise === void 0 ? void 0 : exercise.name}`,
-            seriesScores,
+            series: seriesNumber,
+            score: latestScore || null,
         };
     })));
-    res.json(results);
+    const result = {
+        exerciseId: `${exerciseId}`,
+        seriesScores,
+    };
+    res.json(result);
 });
 exports.getLastExerciseScores = getLastExerciseScores;
 const findLatestExerciseScore = (userId, exerciseId, seriesNumber, gym) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield ExerciseScores_1.default.findOne({
+    var _a, _b, _c;
+    const match = {
         user: new mongodb_1.ObjectId(userId),
         exercise: new mongodb_1.ObjectId(exerciseId),
         series: seriesNumber,
-        training: {
-            $in: yield Training_1.default.find({ gym }).select('_id'),
-        },
-    }, "createdAt reps weight unit  _id")
+    };
+    if (gym) {
+        const trainings = yield Training_1.default.find({ gym }).select("_id");
+        match.training = { $in: trainings.map((t) => t._id) };
+    }
+    const result = yield ExerciseScores_1.default.findOne(match, "reps weight unit _id training")
         .sort({ createdAt: -1 })
+        .populate({
+        path: "training",
+        select: "gym",
+        populate: {
+            path: "gym",
+            select: "name"
+        }
+    })
         .exec();
+    if (!result)
+        return null;
+    const gymName = (_c = (_b = (_a = result.training) === null || _a === void 0 ? void 0 : _a.gym) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : null;
+    return {
+        reps: result.reps,
+        weight: result.weight,
+        unit: result.unit,
+        _id: result._id,
+        gymName,
+    };
 });
