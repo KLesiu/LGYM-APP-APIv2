@@ -102,7 +102,7 @@ const compareExerciseProgress = (lastExerciseScores, exerciseScoresTrainingForm)
                         const totalChange = calculateTotalChange(repsDiff, weightDiff);
                         if (totalChange > maxProgressValue) {
                             maxProgressValue = totalChange;
-                            results.bestProgress.exercise = lastExercise.name;
+                            results.bestProgress.exercise = lastExercise.exerciseName;
                             results.bestProgress.series = currentSeriesScore.series;
                             results.bestProgress.repsScore = repsDiff;
                             results.bestProgress.weightScore = weightDiff;
@@ -113,7 +113,7 @@ const compareExerciseProgress = (lastExerciseScores, exerciseScoresTrainingForm)
                         const totalChange = calculateTotalChange(repsDiff, weightDiff);
                         if (totalChange < maxRegressValue) {
                             maxRegressValue = totalChange;
-                            results.worseRegress.exercise = lastExercise.name;
+                            results.worseRegress.exercise = lastExercise.exerciseName;
                             results.worseRegress.series = currentSeriesScore.series;
                             results.worseRegress.repsScore = repsDiff;
                             results.worseRegress.weightScore = weightDiff;

@@ -30,6 +30,7 @@ interface LastExerciseScores{
 
 interface LastExerciseScoresWithGym{
     exerciseId:string,
+    exerciseName:string,
     seriesScores:SeriesScoreWithGym[] 
 }
 

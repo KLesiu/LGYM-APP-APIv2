@@ -4,11 +4,9 @@ import Training from "../models/Training";
 import Params from "../interfaces/Params";
 import {
   LastTrainingInfo,
-  TrainingHistoryQuery,
   TrainingByDate,
   TrainingByDateDetails,
   TrainingSummary,
-  TrainingBase,
   EnrichedExercise
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
@@ -20,7 +18,7 @@ import { ExerciseScoresForm } from "../interfaces/ExercisesScores";
 import ExerciseScores from "../models/ExerciseScores";
 import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
-import { LastExerciseScores, SeriesScore } from "../interfaces/Exercise";
+import {  LastExerciseScoresWithGym, SeriesScore } from "../interfaces/Exercise";
 import {updateUserElo} from "./userController"
 import EloRegistry from "../models/EloRegistry";
 import Gym from "../models/Gym";
@@ -88,7 +86,7 @@ const addTraining = async (
 
 
 const compareExerciseProgress = (
-  lastExerciseScores: LastExerciseScores[],
+  lastExerciseScores: LastExerciseScoresWithGym[],
   exerciseScoresTrainingForm: ExerciseScoresTrainingForm[]
 ) => {
   // Zmienna wynikowa
@@ -130,7 +128,7 @@ const compareExerciseProgress = (
             const totalChange = calculateTotalChange(repsDiff, weightDiff);
             if (totalChange > maxProgressValue) {
               maxProgressValue = totalChange;
-              results.bestProgress.exercise = lastExercise.name;
+              results.bestProgress.exercise = lastExercise.exerciseName;
               results.bestProgress.series = currentSeriesScore.series;
               results.bestProgress.repsScore = repsDiff;
               results.bestProgress.weightScore = weightDiff;
@@ -142,7 +140,7 @@ const compareExerciseProgress = (
             const totalChange = calculateTotalChange(repsDiff, weightDiff);
             if (totalChange < maxRegressValue) {
               maxRegressValue = totalChange;
-              results.worseRegress.exercise = lastExercise.name;
+              results.worseRegress.exercise = lastExercise.exerciseName;
               results.worseRegress.series = currentSeriesScore.series;
               results.worseRegress.repsScore = repsDiff;
               results.worseRegress.weightScore = weightDiff;

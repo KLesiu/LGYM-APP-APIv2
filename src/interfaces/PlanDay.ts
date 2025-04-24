@@ -34,6 +34,7 @@ interface PlanDayExercise{
   series:number,
   reps:string,
   exerciseId:string,
+  exerciseName:string,
 }
 
 

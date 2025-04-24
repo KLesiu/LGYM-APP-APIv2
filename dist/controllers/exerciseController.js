@@ -139,7 +139,7 @@ const getExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getExercise = getExercise;
 const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
-    const { series, exerciseId, gym } = req.body;
+    const { series, exerciseId, gym, exerciseName } = req.body;
     const seriesScores = yield Promise.all(Array.from({ length: series }).map((_, seriesIndex) => __awaiter(void 0, void 0, void 0, function* () {
         const seriesNumber = seriesIndex + 1;
         let latestScore;
@@ -154,6 +154,7 @@ const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, fu
     })));
     const result = {
         exerciseId: `${exerciseId}`,
+        exerciseName: `${exerciseName}`,
         seriesScores,
     };
     res.json(result);

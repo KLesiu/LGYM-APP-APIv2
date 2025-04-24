@@ -137,7 +137,7 @@ const getExercise = async(req:Request<Params>, res:Response<ExerciseForm | Respo
 
 const getLastExerciseScores = async(req:Request<Params,{},LastExerciseScoresQuery>,res:Response<LastExerciseScoresWithGym | null>) => {
   const userId = req.params.id;
-  const {series,exerciseId,gym} = req.body
+  const {series,exerciseId,gym,exerciseName} = req.body
   const seriesScores = await Promise.all(
     Array.from({ length: series }).map(async (_, seriesIndex) => {
       const seriesNumber = seriesIndex + 1;
@@ -153,6 +153,7 @@ const getLastExerciseScores = async(req:Request<Params,{},LastExerciseScoresQuer
   );
   const result = {
     exerciseId:`${ exerciseId}`,
+    exerciseName: `${exerciseName}`,
     seriesScores,
   } as LastExerciseScoresWithGym;
   res.json(result);
