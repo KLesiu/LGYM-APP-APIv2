@@ -16,4 +16,5 @@ export enum Message {
   UserWithThatName = "We have user with that name",
   UserWithThatEmail = "We have user with that email",
   Unauthorized = "Unauthorized",
+  Forbidden = "Forbidden",
 }
