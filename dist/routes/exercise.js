@@ -7,7 +7,7 @@ const configRouter_1 = __importDefault(require("./configRouter"));
 const exerciseController_1 = require("../controllers/exerciseController");
 configRouter_1.default.post("/exercise/addExercise", exerciseController_1.addExercise);
 configRouter_1.default.post("/exercise/:id/addUserExercise", exerciseController_1.addUserExercise);
-configRouter_1.default.delete("/exercise/deleteExercise", exerciseController_1.deleteExercise);
+configRouter_1.default.post("/exercise/:id/deleteExercise", exerciseController_1.deleteExercise);
 configRouter_1.default.post("/exercise/updateExercise", exerciseController_1.updateExercise);
 configRouter_1.default.get("/exercise/:id/getAllExercises", exerciseController_1.getAllExercises);
 configRouter_1.default.post("/exercise/:id/getExerciseByBodyPart", exerciseController_1.getExerciseByBodyPart);

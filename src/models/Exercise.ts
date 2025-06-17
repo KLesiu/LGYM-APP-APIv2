@@ -9,6 +9,7 @@ export interface ExerciseEntity extends Document {
     image?:string;
     user?:string;
     _id:string;
+    isDeleted:boolean;
 }
 
 const ExerciseSchema = new Schema({
@@ -21,7 +22,9 @@ const ExerciseSchema = new Schema({
     // Zdjęcie ćwiczenia
     image:{type:String,required:false},
     // Użytkownik, który dodał ćwiczenie. jeśli brak pola user to oznacza, że jest to ćwiczenie globalne widoczne dla wszystkich użytkowników jeśli nie to jest to ćwiczenie prywatne dla użytkownika, który je dodał
-    user:{type:Schema.Types.ObjectId,ref:'User',required:false}
+    user:{type:Schema.Types.ObjectId,ref:'User',required:false},
+
+    isDeleted:{type:Boolean,default:false}
 })
 
 const Exercise = mongoose.model<ExerciseEntity>('Exercise',ExerciseSchema)

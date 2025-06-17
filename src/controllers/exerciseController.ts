@@ -6,7 +6,6 @@ import Exercise from "../models/Exercise";
 import { Message } from "../enums/Message";
 import { BodyParts } from "../enums/BodyParts";
 import User from "../models/User";
-import {  PlanDayVm } from "../interfaces/PlanDay";
 import { ObjectId } from "mongodb";
 import ExerciseScores from "../models/ExerciseScores";
 import Training from "../models/Training";
@@ -31,6 +30,7 @@ const addExercise = async (
   if (exercise) return res.status(200).send({ msg: Message.Created });
   else return res.status(400).send({ msg: Message.TryAgain });
 };
+
 const addUserExercise = async (
   req: Request<Params, {}, ExerciseForm>,
   res: Response<ResponseMessage>
@@ -56,11 +56,23 @@ const addUserExercise = async (
 };
 
 const deleteExercise = async (
-  req: Request<{}, {}, { id: string }>,
+  req: Request<Params, {}, { id: string }>,
   res: Response<ResponseMessage>
 ) => {
   if (!req.body.id) return res.status(400).send({ msg: Message.FieldRequired });
-  await Exercise.findByIdAndDelete(req.body.id).exec();
+  const user = await User.findById(req.params.id);
+  if(!user) return res.status(404).send({ msg: Message.DidntFind });
+  const exercise = await Exercise.findById(req.body.id);
+  if(!exercise) return res.status(404).send({ msg: Message.DidntFind });
+  if(user.admin){
+    exercise.isDeleted = true;
+    await exercise.save()
+  }else{
+    if(!exercise.user) return res.status(400).send({ msg: Message.Forbidden });
+    if(exercise.user.toString() !== user._id.toString()) return res.status(403).send({ msg: Message.Forbidden });
+    exercise.isDeleted = true;
+    await exercise.save();
+  }
   return res.status(200).send({ msg: Message.Deleted });
 };
 
@@ -96,14 +108,14 @@ const getAllUserExercises = async ( req: Request<Params, {}, {}>,
   const findUser = await User.findById(req.params.id);
   if (!findUser || !Object.keys(findUser).length)
     return res.status(404).send({ msg: Message.DidntFind });
-  const exercises = await Exercise.find({user: findUser._id});
+  const exercises = await Exercise.find({user: findUser._id,isDeleted:false});
   if (exercises.length > 0) return res.status(200).send(exercises);
   else return res.status(404).send({ msg: Message.DidntFind });
 };
 
 const getAllGlobalExercises = async ( req: Request<{}, {}, {}>,
   res: Response<ExerciseForm[] | ResponseMessage>)=> {
-  const exercises = await Exercise.find({user: null});
+  const exercises = await Exercise.find({user: null,isDeleted:false});
   if (exercises.length > 0) return res.status(200).send(exercises);
   else return res.status(404).send({ msg: Message.DidntFind });
 };
@@ -119,6 +131,7 @@ const getExerciseByBodyPart = async (
   const bodyPart = req.body.bodyPart;
   const exercises = await Exercise.find({
     bodyPart: bodyPart, 
+    isDeleted: false,
     $or: [
       { user: findUser._id },
       { user: { $exists: false } },

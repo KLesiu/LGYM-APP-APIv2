@@ -64,7 +64,24 @@ exports.addUserExercise = addUserExercise;
 const deleteExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.body.id)
         return res.status(400).send({ msg: Message_1.Message.FieldRequired });
-    yield Exercise_1.default.findByIdAndDelete(req.body.id).exec();
+    const user = yield User_1.default.findById(req.params.id);
+    if (!user)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    const exercise = yield Exercise_1.default.findById(req.body.id);
+    if (!exercise)
+        return res.status(404).send({ msg: Message_1.Message.DidntFind });
+    if (user.admin) {
+        exercise.isDeleted = true;
+        yield exercise.save();
+    }
+    else {
+        if (!exercise.user)
+            return res.status(400).send({ msg: Message_1.Message.Forbidden });
+        if (exercise.user.toString() !== user._id.toString())
+            return res.status(403).send({ msg: Message_1.Message.Forbidden });
+        exercise.isDeleted = true;
+        yield exercise.save();
+    }
     return res.status(200).send({ msg: Message_1.Message.Deleted });
 });
 exports.deleteExercise = deleteExercise;
@@ -96,7 +113,7 @@ const getAllUserExercises = (req, res) => __awaiter(void 0, void 0, void 0, func
     const findUser = yield User_1.default.findById(req.params.id);
     if (!findUser || !Object.keys(findUser).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const exercises = yield Exercise_1.default.find({ user: findUser._id });
+    const exercises = yield Exercise_1.default.find({ user: findUser._id, isDeleted: false });
     if (exercises.length > 0)
         return res.status(200).send(exercises);
     else
@@ -104,7 +121,7 @@ const getAllUserExercises = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.getAllUserExercises = getAllUserExercises;
 const getAllGlobalExercises = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const exercises = yield Exercise_1.default.find({ user: null });
+    const exercises = yield Exercise_1.default.find({ user: null, isDeleted: false });
     if (exercises.length > 0)
         return res.status(200).send(exercises);
     else
@@ -118,6 +135,7 @@ const getExerciseByBodyPart = (req, res) => __awaiter(void 0, void 0, void 0, fu
     const bodyPart = req.body.bodyPart;
     const exercises = yield Exercise_1.default.find({
         bodyPart: bodyPart,
+        isDeleted: false,
         $or: [
             { user: findUser._id },
             { user: { $exists: false } },

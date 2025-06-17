@@ -15,7 +15,8 @@ const ExerciseSchema = new configModels_1.default({
     // Zdjęcie ćwiczenia
     image: { type: String, required: false },
     // Użytkownik, który dodał ćwiczenie. jeśli brak pola user to oznacza, że jest to ćwiczenie globalne widoczne dla wszystkich użytkowników jeśli nie to jest to ćwiczenie prywatne dla użytkownika, który je dodał
-    user: { type: configModels_1.default.Types.ObjectId, ref: 'User', required: false }
+    user: { type: configModels_1.default.Types.ObjectId, ref: 'User', required: false },
+    isDeleted: { type: Boolean, default: false }
 });
 const Exercise = mongoose_1.default.model('Exercise', ExerciseSchema);
 exports.default = Exercise;
