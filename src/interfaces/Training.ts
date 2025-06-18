@@ -1,5 +1,5 @@
 import { ExerciseScoresTrainingForm } from "./ExercisesScores"
-import { ExerciseForm, LastExerciseScores } from "./Exercise";
+import { ExerciseForm, LastExerciseScores, LastExerciseScoresWithGym } from "./Exercise";
 import { ExerciseTrainingHistoryDetails } from "./Exercise";
 import { Message } from "../enums/Message";
 import { Rank } from "./User";
@@ -9,7 +9,7 @@ interface TrainingBase{
     exercises:ExerciseScoresTrainingForm[],
 }
 interface TrainingForm extends TrainingBase{
-    lastExercisesScores:LastExerciseScores[],
+    lastExercisesScores:LastExerciseScoresWithGym[],
     gym:string
 }
 

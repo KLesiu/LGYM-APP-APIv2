@@ -28,16 +28,31 @@ interface LastExerciseScores{
    seriesScores:SeriesScore[] 
 }
 
- interface SeriesScore{
-   series:number,
-   score:{
-    createdAt:Date,
-    reps:number,
-    weight:number,
-    unit:string,
-    _id:string
-   } | null
+interface LastExerciseScoresWithGym{
+    exerciseId:string,
+    exerciseName:string,
+    seriesScores:SeriesScoreWithGym[] 
 }
 
-export {ExerciseForm,ExerciseTrainingHistoryDetails,ExerciseForPlanDay,LastExerciseScores,SeriesScore}
+interface Score {
+    reps: number;
+    weight: number;
+    unit: string;
+    _id: string;
+  }
+  
+  interface ScoreWithGym extends Score {
+    gymName: string;
+  }
+  
+  interface SeriesScore {
+    series: number;
+    score: Score | null;
+  }
+  
+  interface SeriesScoreWithGym extends SeriesScore {
+    score: ScoreWithGym; 
+  }
+
+export {ExerciseForm,ExerciseTrainingHistoryDetails,ExerciseForPlanDay,LastExerciseScores,SeriesScore,LastExerciseScoresWithGym,SeriesScoreWithGym}
 

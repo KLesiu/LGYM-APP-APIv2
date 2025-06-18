@@ -19,4 +19,6 @@ var Message;
     Message["SamePassword"] = "Passwords need to be same";
     Message["UserWithThatName"] = "We have user with that name";
     Message["UserWithThatEmail"] = "We have user with that email";
+    Message["Unauthorized"] = "Unauthorized";
+    Message["Forbidden"] = "Forbidden";
 })(Message || (exports.Message = Message = {}));

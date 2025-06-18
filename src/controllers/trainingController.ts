@@ -4,12 +4,10 @@ import Training from "../models/Training";
 import Params from "../interfaces/Params";
 import {
   LastTrainingInfo,
-  TrainingHistoryQuery,
   TrainingByDate,
   TrainingByDateDetails,
   TrainingSummary,
-  TrainingBase,
-  EnrichedExercise
+  EnrichedExercise,
 } from "../interfaces/Training";
 import ResponseMessage from "./../interfaces/ResponseMessage";
 import User from "./../models/User";
@@ -20,75 +18,103 @@ import { ExerciseScoresForm } from "../interfaces/ExercisesScores";
 import ExerciseScores from "../models/ExerciseScores";
 import Exercise from "../models/Exercise";
 import { ExerciseScoresTrainingForm } from "../interfaces/ExercisesScores";
-import { LastExerciseScores, SeriesScore } from "../interfaces/Exercise";
-import {updateUserElo} from "./userController"
+import { LastExerciseScoresWithGym, SeriesScore } from "../interfaces/Exercise";
+import { updateUserElo } from "./userController";
 import EloRegistry from "../models/EloRegistry";
 import Gym from "../models/Gym";
 const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
   res: Response<ResponseMessage | TrainingSummary>
 ) => {
- 
-    const userId = req.params.id;
-    const planDay = req.body.type;
-    const createdAt = req.body.createdAt;
-    const gymId = req.body.gym;
-    
+  const userId = req.params.id;
+  const planDay = req.body.type;
+  const createdAt = req.body.createdAt;
+  const gymId = req.body.gym;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).send({ msg: Message.DidntFind });
-    const gym = await Gym.findById(gymId)
-    if(!gym)return res.status(404).send({msg:Message.DidntFind})
-    // Tworzenie rekordu treningu
-    const response = await Training.create({
-      user: userId,
-      type: planDay,
-      createdAt: createdAt,
-      gym: req.body.gym
-    });
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).send({ msg: Message.DidntFind });
+  const gym = await Gym.findById(gymId);
+  if (!gym) return res.status(404).send({ msg: Message.DidntFind });
+  // Tworzenie rekordu treningu
+  const response = await Training.create({
+    user: userId,
+    type: planDay,
+    createdAt: createdAt,
+    gym: req.body.gym,
+  });
 
-    if (!response) return res.status(404).send({ msg: Message.TryAgain });
+  if (!response) return res.status(404).send({ msg: Message.TryAgain });
 
-    // Pobieranie ćwiczeń i dodawanie wyników dla każdego z nich
-    const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
-      return { ...ele, training: response._id, user: userId, date: createdAt };
-    });
+  // Pobieranie ćwiczeń i dodawanie wyników dla każdego z nich
+  const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
+    return { ...ele, training: response._id, user: userId, date: createdAt };
+  });
 
-    // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
-    const result= await Promise.all(
-      exercises.map(async (ele) => {
+  // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
+  const result = await Promise.all(
+    exercises.map(async (ele) => {
+      const findLastExercise = req.body.lastExercisesScores.filter(
+        (element) => element.exerciseId === ele.exercise
+      );
+      if (!findLastExercise || !findLastExercise.length) return;
+      const lastExerciseScores =
+        findLastExercise[0].seriesScores[ele.series - 1];
+      // Obliczanie ELO dla każdego ćwiczenia
+      const elo = await calculateEloPerExercise(ele, lastExerciseScores);
 
-        const findLastExercise = req.body.lastExercisesScores.filter(element => element.exerciseId === ele.exercise)
-        const lastExerciseScores = findLastExercise[0].seriesScores[ele.series-1]
-        // Obliczanie ELO dla każdego ćwiczenia
-        const elo = await calculateEloPerExercise(ele,lastExerciseScores);
+      // Dodanie wyniku ćwiczenia z obliczonym ELO
+      const exerciseScoreId = await addExercisesScores(ele);
 
-        // Dodanie wyniku ćwiczenia z obliczonym ELO
-        const exerciseScoreId = await addExercisesScores(ele);
-        
-        return { exerciseScoreId, elo };
-      })
-    );
-    let elo = 0
-    result.forEach((ele:{elo:number,exerciseScoreId:{exerciseScoreId:string}})=>{
-      elo += ele.elo
+      return { exerciseScoreId, elo };
     })
+  );
+  let elo = 0;
+  result.forEach(
+    (
+      ele:
+        | { elo: number; exerciseScoreId: { exerciseScoreId: string } }
+        | undefined
+    ) => {
+      if (!ele) return;
+      elo += ele.elo;
+    }
+  );
 
-    // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
-    const progressObject = compareExerciseProgress(req.body.lastExercisesScores, req.body.exercises);
+  // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
+  const progressObject = compareExerciseProgress(
+    req.body.lastExercisesScores,
+    req.body.exercises
+  );
 
-    const exercisesScoresArray = result.map((ele) => ele.exerciseScoreId);
-    // Aktualizacja rekordu treningu z wynikami ćwiczeń
-    await response.updateOne({ exercises: exercisesScoresArray });
-    const currentUserElo = await EloRegistry.findOne({user:userId}).sort({date:-1}).limit(1)
-    if(!currentUserElo)return res.status(404).send({msg:Message.DidntFind})
-    const userRankStatus = await updateUserElo(elo,currentUserElo.elo, user,response._id);
-    return res.status(200).send({ progress:progressObject,gainElo:elo,userOldElo:currentUserElo.elo ,profileRank:userRankStatus.currentRank,nextRank:userRankStatus.nextRank,msg:Message.Created});
+  const exercisesScoresArray = result.map((ele) => {
+    if (ele && ele.exerciseScoreId !== undefined) return ele.exerciseScoreId;
+  });
+  // Aktualizacja rekordu treningu z wynikami ćwiczeń
+  await response.updateOne({ exercises: exercisesScoresArray });
+  const currentUserElo = await EloRegistry.findOne({ user: userId })
+    .sort({ date: -1 })
+    .limit(1);
+  if (!currentUserElo) return res.status(404).send({ msg: Message.DidntFind });
+  const userRankStatus = await updateUserElo(
+    elo,
+    currentUserElo.elo,
+    user,
+    response._id
+  );
+  return res
+    .status(200)
+    .send({
+      progress: progressObject,
+      gainElo: elo,
+      userOldElo: currentUserElo.elo,
+      profileRank: userRankStatus.currentRank,
+      nextRank: userRankStatus.nextRank,
+      msg: Message.Created,
+    });
 };
 
-
 const compareExerciseProgress = (
-  lastExerciseScores: LastExerciseScores[],
+  lastExerciseScores: LastExerciseScoresWithGym[],
   exerciseScoresTrainingForm: ExerciseScoresTrainingForm[]
 ) => {
   // Zmienna wynikowa
@@ -123,14 +149,15 @@ const compareExerciseProgress = (
           const repsDiff = currentSeriesScore.reps - lastSeriesScore.score.reps;
 
           // Porównanie weight
-          const weightDiff = currentSeriesScore.weight - lastSeriesScore.score.weight;
+          const weightDiff =
+            currentSeriesScore.weight - lastSeriesScore.score.weight;
 
           // Sprawdzenie najlepszego progresu
           if (repsDiff > 0 || weightDiff > 0) {
             const totalChange = calculateTotalChange(repsDiff, weightDiff);
             if (totalChange > maxProgressValue) {
               maxProgressValue = totalChange;
-              results.bestProgress.exercise = lastExercise.name;
+              results.bestProgress.exercise = lastExercise.exerciseName;
               results.bestProgress.series = currentSeriesScore.series;
               results.bestProgress.repsScore = repsDiff;
               results.bestProgress.weightScore = weightDiff;
@@ -142,7 +169,7 @@ const compareExerciseProgress = (
             const totalChange = calculateTotalChange(repsDiff, weightDiff);
             if (totalChange < maxRegressValue) {
               maxRegressValue = totalChange;
-              results.worseRegress.exercise = lastExercise.name;
+              results.worseRegress.exercise = lastExercise.exerciseName;
               results.worseRegress.series = currentSeriesScore.series;
               results.worseRegress.repsScore = repsDiff;
               results.worseRegress.weightScore = weightDiff;
@@ -156,8 +183,6 @@ const compareExerciseProgress = (
   // Zwrócenie wyników
   return results;
 };
-
-
 
 const getLastTraining = async (
   req: Request<Params>,
@@ -199,7 +224,6 @@ const getLastTraining = async (
   if (!training) return res.status(404).send({ msg: Message.DidntFind });
   return res.status(200).send(training[0]);
 };
-
 
 const getTrainingByDate = async (
   req: Request<Params, {}, { createdAt: Date }>,
@@ -276,7 +300,8 @@ const getTrainingByDate = async (
               exercise.exerciseScoreId,
               "exercise reps series weight unit"
             );
-            if(!scoreDetails)return res.status(404).send({msg:Message.DidntFind})
+            if (!scoreDetails)
+              return res.status(404).send({ msg: Message.DidntFind });
             const exerciseDetails = await Exercise.findById(
               scoreDetails.exercise,
               "name bodyPart"
@@ -309,12 +334,13 @@ const getTrainingByDate = async (
       );
 
       // Konwersja obiektu na tablicę
-      const exercisesArray:EnrichedExercise[] = Object.values(groupedExercises);
+      const exercisesArray: EnrichedExercise[] =
+        Object.values(groupedExercises);
 
       return { ...training, exercises: exercisesArray };
     })
   );
-  
+
   return res.status(200).send(enrichedTrainings);
 };
 
@@ -334,16 +360,17 @@ const getTrainingDates = async (
 
 const calculateEloPerExercise = async (
   currentExerciseScore: ExerciseScoresForm,
-  lastExerciseScore: SeriesScore,
+  lastExerciseScore: SeriesScore
 ): Promise<number> => {
-  let elo:number;
-  if (!lastExerciseScore || !lastExerciseScore.score) elo = 0
-  else elo = partElo(
-    lastExerciseScore.score.weight,
-    lastExerciseScore.score.reps,
-    currentExerciseScore.weight,
-    currentExerciseScore.reps,
-  );
+  let elo: number;
+  if (!lastExerciseScore || !lastExerciseScore.score) elo = 0;
+  else
+    elo = partElo(
+      lastExerciseScore.score.weight,
+      lastExerciseScore.score.reps,
+      currentExerciseScore.weight,
+      currentExerciseScore.reps
+    );
   return elo;
 };
 
@@ -351,43 +378,41 @@ const partElo = (
   prev_weight: number,
   prev_reps: number,
   acc_weight: number,
-  acc_reps: number,
+  acc_reps: number
 ): number => {
   const K = 32;
 
   const getWeightedScore = (weight: number, reps: number): number => {
     if (weight <= 15) {
-      return (weight * 0.3) + (reps * 0.7); 
+      return weight * 0.3 + reps * 0.7;
     } else if (weight <= 80) {
-      return (weight * 0.5) + (reps * 0.5);
+      return weight * 0.5 + reps * 0.5;
     } else {
-      return (weight * 0.7) + (reps * 0.3);
+      return weight * 0.7 + reps * 0.3;
     }
   };
 
   const prev_score = getWeightedScore(prev_weight, prev_reps);
   const acc_score = getWeightedScore(acc_weight, acc_reps);
 
-  const toleranceThreshold = prev_weight > 80 ? 0.1 * prev_score : 0.05 * prev_score;
+  const toleranceThreshold =
+    prev_weight > 80 ? 0.1 * prev_score : 0.05 * prev_score;
 
   let expectedScore;
   if (Math.abs(acc_score - prev_score) <= toleranceThreshold) {
-    expectedScore = 0.5; 
+    expectedScore = 0.5;
   } else {
     expectedScore = prev_score / (prev_score + acc_score);
   }
 
   const actualScore = acc_score >= prev_score ? 1 : 0;
 
-  const scoreDifference = (actualScore - expectedScore) * (Math.abs(acc_score - prev_score) < toleranceThreshold ? 0.5 : 1);
-  const points =  K * scoreDifference;
+  const scoreDifference =
+    (actualScore - expectedScore) *
+    (Math.abs(acc_score - prev_score) < toleranceThreshold ? 0.5 : 1);
+  const points = K * scoreDifference;
 
   return Math.round(points);
 };
 
-export {
-  addTraining,
-  getLastTraining,
-  getTrainingByDate,
-  getTrainingDates,
-};
+export { addTraining, getLastTraining, getTrainingByDate, getTrainingDates };
