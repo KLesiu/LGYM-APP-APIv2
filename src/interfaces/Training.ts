@@ -9,7 +9,6 @@ interface TrainingBase{
     exercises:ExerciseScoresTrainingForm[],
 }
 interface TrainingForm extends TrainingBase{
-    lastExercisesScores:LastExerciseScoresWithGym[],
     gym:string
 }
 
