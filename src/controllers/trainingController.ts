@@ -26,6 +26,7 @@ const addTraining = async (
   req: Request<Params, {}, TrainingForm>,
   res: Response<ResponseMessage | TrainingSummary>
 ) => {
+
   const userId = req.params.id;
   const planDay = req.body.type;
   const createdAt = req.body.createdAt;
@@ -296,6 +297,7 @@ const getTrainingByDate = async (
       const enrichedExercises = await Promise.all(
         training.exercises.map(
           async (exercise: { exerciseScoreId: string }) => {
+            if(!exercise || !exercise.exerciseScoreId)return;
             const scoreDetails = await ExerciseScores.findById(
               exercise.exerciseScoreId,
               "exercise reps series weight unit"
@@ -319,6 +321,7 @@ const getTrainingByDate = async (
       // Grupa scoreDetails po exercise
       const groupedExercises = enrichedExercises.reduce(
         (acc: any, curr: any) => {
+          if(!curr || !curr.scoreDetails) return acc;
           const exerciseId = curr.scoreDetails.exercise;
           if (!acc[exerciseId]) {
             acc[exerciseId] = {

@@ -243,6 +243,8 @@ const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
     const enrichedTrainings = yield Promise.all(trainings.map((training) => __awaiter(void 0, void 0, void 0, function* () {
         const enrichedExercises = yield Promise.all(training.exercises.map((exercise) => __awaiter(void 0, void 0, void 0, function* () {
+            if (!exercise || !exercise.exerciseScoreId)
+                return;
             const scoreDetails = yield ExerciseScores_1.default.findById(exercise.exerciseScoreId, "exercise reps series weight unit");
             if (!scoreDetails)
                 return res.status(404).send({ msg: Message_1.Message.DidntFind });
@@ -255,6 +257,8 @@ const getTrainingByDate = (req, res) => __awaiter(void 0, void 0, void 0, functi
         })));
         // Grupa scoreDetails po exercise
         const groupedExercises = enrichedExercises.reduce((acc, curr) => {
+            if (!curr || !curr.scoreDetails)
+                return acc;
             const exerciseId = curr.scoreDetails.exercise;
             if (!acc[exerciseId]) {
                 acc[exerciseId] = {

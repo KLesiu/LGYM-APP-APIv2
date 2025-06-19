@@ -47,17 +47,17 @@ app.use(cors());
 const passport = require("./config/passport").passportConfig;
 passport();
 // Routes
-app.use('', auth);
-app.use('', plan);
-app.use('', training);
-app.use("", measurements);
-app.use("", mainRecords);
-app.use("", exercise);
-app.use("", planDay);
-app.use("", gym_1.default);
-app.use("", eloRegistry);
-app.use("", exerciseScores);
-app.use("", appConfig);
+app.use('/api', auth);
+app.use('/api', plan);
+app.use('/api', training);
+app.use("/api", measurements);
+app.use("/api", mainRecords);
+app.use("/api", exercise);
+app.use("/api", planDay);
+app.use("/api", gym_1.default);
+app.use("/api", eloRegistry);
+app.use("/api", exerciseScores);
+app.use("/api", appConfig);
 module.exports = app;
 // Server
 const server = require('./server');
