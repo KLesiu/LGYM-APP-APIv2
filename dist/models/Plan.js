@@ -10,8 +10,8 @@ const PlanSchema = new configModels_1.default({
     user: { type: configModels_1.default.Types.ObjectId, ref: "User", required: true },
     // Nazwa planu
     name: { type: String, required: true },
-    // Ilość dni treningowych w planie TODO:(do kasacji)
-    trainingDays: { type: Number, required: true }
+    /// Czy plan jest aktywny
+    isActive: { type: Boolean, required: true, default: true },
 });
 const Plan = mongoose_1.default.model('Plan', PlanSchema);
 exports.default = Plan;

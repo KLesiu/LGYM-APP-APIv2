@@ -166,8 +166,8 @@ const getPlanDaysTypes = async (
   const user = await User.findById(id);
   if (!user || !Object.keys(user).length)
     return res.status(404).send({ msg: Message.DidntFind });
-  const plan = await Plan.find({ user: user });
-  if (!plan || !plan.length)
+  const plan = await Plan.findOne({ user: user, isActive: true });
+  if (!plan)
     return res.status(404).send({ msg: Message.DidntFind });
   const planDaysTypes = await PlanDay.find(
     { plan: plan, isDeleted: false },

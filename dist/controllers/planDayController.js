@@ -131,8 +131,8 @@ const getPlanDaysTypes = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const user = yield User_1.default.findById(id);
     if (!user || !Object.keys(user).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const plan = yield Plan_1.default.find({ user: user });
-    if (!plan || !plan.length)
+    const plan = yield Plan_1.default.findOne({ user: user, isActive: true });
+    if (!plan)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const planDaysTypes = yield PlanDay_1.default.find({ plan: plan, isDeleted: false }, "_id name");
     return res.status(200).send(planDaysTypes);

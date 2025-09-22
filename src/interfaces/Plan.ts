@@ -1,7 +1,7 @@
  interface PlanForm{
     _id?:string,
     name:string,
-    trainingDays:number,
+    isActive?:boolean
 }
 
 
