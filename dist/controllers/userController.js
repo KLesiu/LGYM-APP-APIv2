@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserElo = exports.getUsersRanking = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
+exports.deleteAccount = exports.updateUserElo = exports.getUsersRanking = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
@@ -88,6 +88,20 @@ const login = function (req, res) {
     });
 };
 exports.login = login;
+const deleteAccount = function (req, res) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        yield User_1.default.updateOne({ _id: (_a = req.user) === null || _a === void 0 ? void 0 : _a._id }, {
+            $set: {
+                email: `tester3@gmail.com`,
+                name: "tester3",
+                isDeleted: true,
+            },
+        });
+        return res.status(200).send({ msg: Message_1.Message.Deleted });
+    });
+};
+exports.deleteAccount = deleteAccount;
 const isAdmin = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const admin = yield User_1.default.findById(req.params.id);

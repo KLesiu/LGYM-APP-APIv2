@@ -1,4 +1,4 @@
-import User, { UserEntity } from "../models/User";
+import User, { UserEntity, UserEntityStatics } from "../models/User";
 import {
   RegisterUser,
   Rank,
@@ -104,6 +104,23 @@ const login = async function (
   return res.status(200).send({ token: token, req: userInfo });
 };
 
+const deleteAccount = async function (
+  req: Request,
+  res: Response<ResponseMessage>
+) {
+  await User.updateOne(
+    { _id: req.user?._id },
+    {
+      $set: {
+        email: `anonymized_${req.user?._id}@example.com`,
+        name: "anonymized_user_" + req.user?._id,
+        isDeleted: true,
+      },
+    }
+  );
+  return res.status(200).send({ msg: Message.Deleted });
+};
+
 const isAdmin = async function (
   req: Request<Params, {}, {}>,
   res: Response<boolean>
@@ -140,7 +157,7 @@ const getUsersRanking = async function (
   req: Request,
   res: Response<UserBaseInfo[] | ResponseMessage>
 ) {
-  const users:UserBaseInfo[] = await User.aggregate([
+  const users: UserBaseInfo[] = await User.aggregate([
     {
       $lookup: {
         from: "eloregistries", // Nazwa kolekcji EloRegistry
@@ -238,4 +255,5 @@ export {
   getUserElo,
   getUsersRanking,
   updateUserElo,
+  deleteAccount,
 };

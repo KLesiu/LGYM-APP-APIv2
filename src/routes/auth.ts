@@ -1,4 +1,3 @@
-import { checkJwtToken } from "./../middlewares/auth";
 import { Request, Response } from "express";
 import {
   register,
@@ -7,11 +6,13 @@ import {
   getUserInfo,
   getUserElo,
   getUsersRanking,
+  deleteAccount,
 } from "../controllers/userController";
-const passport = require("passport");
 import Router from "./configRouter";
-import { UserEntityStatics } from "./../models/User";
+import { UserEntity } from "./../models/User";
+import { middlewareAuth } from "../middlewares/auth";
 import { Message } from "../enums/Message";
+const passport = require("passport");
 Router.post("/register", register);
 Router.post("/login", (req: any, res: any, next: any) => {
   passport.authenticate("local", { session: false }, (err: any, user: any) => {
@@ -27,15 +28,15 @@ Router.get("/:id/isAdmin", isAdmin);
 Router.get("/:id/getUserInfo", getUserInfo);
 Router.get(
   "/checkToken",
-  checkJwtToken,
+  middlewareAuth,
   (
     req: Request,
-    res: Response<{ isValid: boolean; user: UserEntityStatics | undefined }>
+    res: Response<{ isValid: boolean; user: UserEntity | undefined }>
   ) => {
     return res.json({ isValid: true, user: req.user });
   }
 );
 Router.get("/getUsersRanking", getUsersRanking);
 Router.get("/userInfo/:id/getUserEloPoints", getUserElo);
-
+Router.get("/deleteAccount", middlewareAuth, deleteAccount);
 module.exports = Router;

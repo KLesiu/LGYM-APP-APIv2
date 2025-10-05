@@ -11,7 +11,7 @@ export interface UserEntity extends Document {
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
-  _id: string;
+  isDeleted: boolean;
 }
 export interface UserEntityStatics extends Model<UserEntity> {
   register(user: UserEntity, password: string): Promise<UserEntity>;
@@ -36,6 +36,7 @@ const UserSchema: SchemaType<UserEntity> = new Schema(
     profileRank: { type: String, required: false },
     // Avatar użytkownika
     avatar: { type: String, required: false },
+    isDeleted: { type: Boolean, default: false }
   },
   {
     timestamps: true,
