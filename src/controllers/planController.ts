@@ -6,6 +6,7 @@ import { PlanForm } from "../interfaces/Plan";
 import User from "../models/User";
 import { Message } from "../enums/Message";
 import { Types } from "mongoose";
+import PlanDay from "../models/PlanDay";
 
 require("dotenv").config();
 
@@ -66,8 +67,10 @@ const checkIsUserHavePlan = async (
   const findUser = await User.findById(id);
   if (!findUser || !Object.keys(findUser).length)
     return res.status(404).send(false);
-  const plan = await Plan.find({ user: findUser });
-  if (!plan || !plan.length) return res.status(200).send(false);
+  const plan = await Plan.findOne({ user: findUser ,isActive:true});
+  if (!plan ) return res.status(200).send(false);
+  const planDay = await PlanDay.findOne({plan:plan._id,isDeleted:false})
+  if(!planDay) return res.status(200).send(false)
   return res.status(200).send(true);
 };
 

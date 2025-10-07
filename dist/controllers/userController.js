@@ -90,6 +90,8 @@ const login = function (req, res) {
             updatedAt: req.user.updatedAt,
             elo: elo || 1000,
             nextRank: getNextRank(req.user.profileRank),
+            isDeleted: req.user.isDeleted,
+            isTester: req.user.isTester || false,
         };
         return res.status(200).send({ token: token, req: userInfo });
     });
@@ -151,6 +153,11 @@ const getUsersRanking = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const users = yield User_1.default.aggregate([
             {
+                $match: {
+                    isTester: { $ne: true }, // pominięcie użytkowników-testerów
+                },
+            },
+            {
                 $lookup: {
                     from: "eloregistries", // Nazwa kolekcji EloRegistry
                     let: { userId: "$_id" }, // Definicja zmiennej `userId` z `_id` użytkownika
@@ -180,10 +187,9 @@ const getUsersRanking = function (req, res) {
                 },
             },
         ]);
-        const filteredUsers = users.filter((user) => user.name !== "tester2");
         // Zwrócenie listy użytkowników lub komunikat błędu
         if (users.length)
-            return res.status(200).send(filteredUsers);
+            return res.status(200).send(users);
         else
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
     });

@@ -6,7 +6,9 @@ interface UserBaseInfo{
     profileRank:string
     elo:number,
     createdAt:Date,
-    updatedAt:Date
+    updatedAt:Date,
+    isDeleted:boolean,
+    isTester:boolean,
 }
 interface Rank{
     name:string,

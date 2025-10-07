@@ -16,6 +16,7 @@ exports.setNewActivePlan = exports.getPlansList = exports.checkIsUserHavePlan = 
 const Plan_1 = __importDefault(require("../models/Plan"));
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
+const PlanDay_1 = __importDefault(require("../models/PlanDay"));
 require("dotenv").config();
 const createPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
@@ -64,8 +65,11 @@ const checkIsUserHavePlan = (req, res) => __awaiter(void 0, void 0, void 0, func
     const findUser = yield User_1.default.findById(id);
     if (!findUser || !Object.keys(findUser).length)
         return res.status(404).send(false);
-    const plan = yield Plan_1.default.find({ user: findUser });
-    if (!plan || !plan.length)
+    const plan = yield Plan_1.default.findOne({ user: findUser, isActive: true });
+    if (!plan)
+        return res.status(200).send(false);
+    const planDay = yield PlanDay_1.default.findOne({ plan: plan._id, isDeleted: false });
+    if (!planDay)
         return res.status(200).send(false);
     return res.status(200).send(true);
 });

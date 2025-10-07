@@ -9,6 +9,7 @@ import {
 } from "../controllers/userController";
 import Router from "./configRouter";
 import { middlewareAuth,middlewareAuthLocal } from "../middlewares/auth";
+import User from "../models/User";
 
 
 Router.post("/register", register);

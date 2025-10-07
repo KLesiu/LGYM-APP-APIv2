@@ -12,6 +12,7 @@ export interface UserEntity extends Document {
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
+  isTester?: boolean;
   _id:string;
 }
 export interface UserEntityStatics extends Model<UserEntity> {
@@ -37,7 +38,8 @@ const UserSchema: SchemaType<UserEntity> = new Schema(
     profileRank: { type: String, required: true },
     // Avatar użytkownika
     avatar: { type: String, required: false },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    isTester: { type: Boolean, default: false }
   },
   {
     timestamps: true,

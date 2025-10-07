@@ -3,7 +3,6 @@ import {
   RegisterUser,
   Rank,
   UserElo,
-  UserLoginInfo,
   UserInfo,
   UserBaseInfo,
 } from "./../interfaces/User";
@@ -11,9 +10,6 @@ import ResponseMessage from "./../interfaces/ResponseMessage";
 import { Request, Response } from "express";
 import Params from "../interfaces/Params";
 import { Message } from "../enums/Message";
-import Training from "../models/Training";
-import Measurements from "../models/Measurements";
-import Plan from "../models/Plan";
 import EloRegistry from "../models/EloRegistry";
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
@@ -107,6 +103,8 @@ const login = async function (
     updatedAt: req.user.updatedAt,
     elo: elo || 1000,
     nextRank: getNextRank(req.user.profileRank),
+    isDeleted: req.user.isDeleted,
+    isTester: req.user.isTester || false,
   } as UserInfo;
   return res.status(200).send({ token: token, req: userInfo });
 };
@@ -176,6 +174,11 @@ const getUsersRanking = async function (
   res: Response<UserBaseInfo[] | ResponseMessage>
 ) {
   const users: UserBaseInfo[] = await User.aggregate([
+     {
+        $match: {
+          isTester: { $ne: true }, // pominięcie użytkowników-testerów
+        },
+      },
     {
       $lookup: {
         from: "eloregistries", // Nazwa kolekcji EloRegistry
@@ -207,12 +210,11 @@ const getUsersRanking = async function (
     },
   ]);
 
-  const filteredUsers = users.filter((user) => user.name !== "tester2");
-
   // Zwrócenie listy użytkowników lub komunikat błędu
-  if (users.length) return res.status(200).send(filteredUsers);
+  if (users.length) return res.status(200).send(users);
   else return res.status(404).send({ msg: Message.DidntFind });
 };
+
 
 const getUserElo = async function (
   req: Request<Params, {}, {}>,
