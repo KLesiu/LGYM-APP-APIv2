@@ -78,23 +78,30 @@ const login = function (req, res) {
         const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
             expiresIn: "30d",
         });
+        const elo = yield getInformationAboutElo(req.user._id);
         const userInfo = {
             name: req.user.name,
             _id: `${req.user._id}`,
             email: req.user.email,
             avatar: req.user.avatar,
+            admin: req.user.admin,
+            profileRank: req.user.profileRank,
+            createdAt: req.user.createdAt,
+            updatedAt: req.user.updatedAt,
+            elo: elo || 1000,
+            nextRank: getNextRank(req.user.profileRank),
         };
         return res.status(200).send({ token: token, req: userInfo });
     });
 };
 exports.login = login;
 const deleteAccount = function (req, res) {
-    var _a;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         yield User_1.default.updateOne({ _id: (_a = req.user) === null || _a === void 0 ? void 0 : _a._id }, {
             $set: {
-                email: `tester3@gmail.com`,
-                name: "tester3",
+                email: `anonymized_${(_b = req.user) === null || _b === void 0 ? void 0 : _b._id}@example.com`,
+                name: "anonymized_user_" + ((_c = req.user) === null || _c === void 0 ? void 0 : _c._id),
                 isDeleted: true,
             },
         });
@@ -111,25 +118,35 @@ const isAdmin = function (req, res) {
 };
 exports.isAdmin = isAdmin;
 const getUserInfo = function (req, res) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const id = req.params.id;
-        const UserInfo = yield User_1.default.findById(id);
+        const UserInfo = req.user;
         if (!UserInfo)
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
-        let nextRank = exports.ranks[0];
-        exports.ranks.forEach((rank, index) => {
-            if (rank.name === UserInfo.profileRank) {
-                nextRank = exports.ranks[index + 1];
-            }
-        });
-        const userElo = yield EloRegistry_1.default.findOne({ user: id }).sort({ date: -1 });
-        const userInfoWithRank = Object.assign(Object.assign({}, UserInfo.toObject()), { nextRank: nextRank || null, elo: userElo && userElo.elo ? userElo.elo : 1000 });
+        const nextRank = getNextRank(UserInfo.profileRank);
+        const elo = (_a = (yield getInformationAboutElo(UserInfo._id))) !== null && _a !== void 0 ? _a : 1000;
+        const userInfoWithRank = Object.assign(Object.assign({}, UserInfo.toObject()), { nextRank: nextRank || null, elo: elo });
         if (UserInfo)
             return res.status(200).send(userInfoWithRank);
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     });
 };
 exports.getUserInfo = getUserInfo;
+const getNextRank = (currentRank) => {
+    let nextRank = exports.ranks[0];
+    exports.ranks.forEach((rank, index) => {
+        if (rank.name === currentRank) {
+            nextRank = exports.ranks[index + 1];
+        }
+    });
+    return nextRank;
+};
+const getInformationAboutElo = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const userElo = yield EloRegistry_1.default.findOne({ user: userId }).sort({
+        date: -1,
+    });
+    return (userElo === null || userElo === void 0 ? void 0 : userElo.elo) || null;
+});
 const getUsersRanking = function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const users = yield User_1.default.aggregate([

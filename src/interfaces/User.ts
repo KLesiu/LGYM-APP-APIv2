@@ -3,11 +3,10 @@ interface UserBaseInfo{
     name:string,
     admin?:boolean,
     email:string,
-    profileRank?:string
+    profileRank:string
     elo:number,
     createdAt:Date,
     updatedAt:Date
-    plan?:string
 }
 interface Rank{
     name:string,

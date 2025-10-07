@@ -16,7 +16,7 @@ const UserSchema = new configModels_1.default({
     // Plan głowny użytkownika
     plan: { type: configModels_1.default.Types.ObjectId, ref: "Plan", required: false },
     // Ranga użytkownika
-    profileRank: { type: String, required: false },
+    profileRank: { type: String, required: true },
     // Avatar użytkownika
     avatar: { type: String, required: false },
     isDeleted: { type: Boolean, default: false }

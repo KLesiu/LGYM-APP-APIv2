@@ -90,17 +90,24 @@ const register = [
 
 const login = async function (
   req: { user: UserEntity },
-  res: Response<{ token: string; req: UserLoginInfo }>
+  res: Response<{ token: string; req: UserInfo }>
 ) {
   const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
+  const elo = await getInformationAboutElo(req.user._id);
   const userInfo = {
     name: req.user.name,
     _id: `${req.user._id}`,
     email: req.user.email,
     avatar: req.user.avatar,
-  };
+    admin: req.user.admin,
+    profileRank: req.user.profileRank,
+    createdAt: req.user.createdAt,
+    updatedAt: req.user.updatedAt,
+    elo: elo || 1000,
+    nextRank: getNextRank(req.user.profileRank),
+  } as UserInfo;
   return res.status(200).send({ token: token, req: userInfo });
 };
 
@@ -131,26 +138,37 @@ const isAdmin = async function (
 };
 
 const getUserInfo = async function (
-  req: Request<Params>,
+  req: Request,
   res: Response<UserInfo | ResponseMessage>
 ) {
-  const id = req.params.id;
-  const UserInfo = await User.findById(id);
+  const UserInfo = req.user;
   if (!UserInfo) return res.status(404).send({ msg: Message.DidntFind });
-  let nextRank: Rank = ranks[0];
-  ranks.forEach((rank, index) => {
-    if (rank.name === UserInfo.profileRank) {
-      nextRank = ranks[index + 1];
-    }
-  });
-  const userElo = await EloRegistry.findOne({ user: id }).sort({ date: -1 });
+  const nextRank = getNextRank(UserInfo.profileRank)
+  const elo = (await getInformationAboutElo(UserInfo._id)) ?? 1000;
   const userInfoWithRank = {
     ...UserInfo.toObject(),
     nextRank: nextRank || null,
-    elo: userElo && userElo.elo ? userElo.elo : 1000,
+    elo: elo,
   };
   if (UserInfo) return res.status(200).send(userInfoWithRank);
   return res.status(404).send({ msg: Message.DidntFind });
+};
+
+const getNextRank = (currentRank: string) => {
+  let nextRank: Rank = ranks[0];
+  ranks.forEach((rank, index) => {
+    if (rank.name === currentRank) {
+      nextRank = ranks[index + 1];
+    }
+  });
+  return nextRank;
+};
+
+const getInformationAboutElo = async (userId: string) => {
+  const userElo = await EloRegistry.findOne({ user: userId }).sort({
+    date: -1,
+  });
+  return userElo?.elo || null;
 };
 
 const getUsersRanking = async function (
