@@ -7,11 +7,13 @@ export interface UserEntity extends Document {
   admin?: boolean;
   email: string;
   plan?: string;
-  profileRank?: string;
+  profileRank: string;
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
-  _id: string;
+  isDeleted: boolean;
+  isTester?: boolean;
+  _id:string;
 }
 export interface UserEntityStatics extends Model<UserEntity> {
   register(user: UserEntity, password: string): Promise<UserEntity>;
@@ -33,9 +35,11 @@ const UserSchema: SchemaType<UserEntity> = new Schema(
     // Plan głowny użytkownika
     plan: { type: Schema.Types.ObjectId, ref: "Plan", required: false },
     // Ranga użytkownika
-    profileRank: { type: String, required: false },
+    profileRank: { type: String, required: true },
     // Avatar użytkownika
     avatar: { type: String, required: false },
+    isDeleted: { type: Boolean, default: false },
+    isTester: { type: Boolean, default: false }
   },
   {
     timestamps: true,

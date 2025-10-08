@@ -1,9 +1,8 @@
-import User, { UserEntity } from "../models/User";
+import User, { UserEntity, UserEntityStatics } from "../models/User";
 import {
   RegisterUser,
   Rank,
   UserElo,
-  UserLoginInfo,
   UserInfo,
   UserBaseInfo,
 } from "./../interfaces/User";
@@ -11,9 +10,6 @@ import ResponseMessage from "./../interfaces/ResponseMessage";
 import { Request, Response } from "express";
 import Params from "../interfaces/Params";
 import { Message } from "../enums/Message";
-import Training from "../models/Training";
-import Measurements from "../models/Measurements";
-import Plan from "../models/Plan";
 import EloRegistry from "../models/EloRegistry";
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
@@ -90,18 +86,44 @@ const register = [
 
 const login = async function (
   req: { user: UserEntity },
-  res: Response<{ token: string; req: UserLoginInfo }>
+  res: Response<{ token: string; req: UserInfo }>
 ) {
   const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
+  const elo = await getInformationAboutElo(req.user._id);
   const userInfo = {
     name: req.user.name,
     _id: `${req.user._id}`,
     email: req.user.email,
     avatar: req.user.avatar,
-  };
+    admin: req.user.admin,
+    profileRank: req.user.profileRank,
+    createdAt: req.user.createdAt,
+    updatedAt: req.user.updatedAt,
+    elo: elo || 1000,
+    nextRank: getNextRank(req.user.profileRank),
+    isDeleted: req.user.isDeleted,
+    isTester: req.user.isTester || false,
+  } as UserInfo;
   return res.status(200).send({ token: token, req: userInfo });
+};
+
+const deleteAccount = async function (
+  req: Request,
+  res: Response<ResponseMessage>
+) {
+  await User.updateOne(
+    { _id: req.user?._id },
+    {
+      $set: {
+        email: `anonymized_${req.user?._id}@example.com`,
+        name: "anonymized_user_" + req.user?._id,
+        isDeleted: true,
+      },
+    }
+  );
+  return res.status(200).send({ msg: Message.Deleted });
 };
 
 const isAdmin = async function (
@@ -114,33 +136,49 @@ const isAdmin = async function (
 };
 
 const getUserInfo = async function (
-  req: Request<Params>,
+  req: Request,
   res: Response<UserInfo | ResponseMessage>
 ) {
-  const id = req.params.id;
-  const UserInfo = await User.findById(id);
+  const UserInfo = req.user;
   if (!UserInfo) return res.status(404).send({ msg: Message.DidntFind });
-  let nextRank: Rank = ranks[0];
-  ranks.forEach((rank, index) => {
-    if (rank.name === UserInfo.profileRank) {
-      nextRank = ranks[index + 1];
-    }
-  });
-  const userElo = await EloRegistry.findOne({ user: id }).sort({ date: -1 });
+  const nextRank = getNextRank(UserInfo.profileRank)
+  const elo = (await getInformationAboutElo(UserInfo._id)) ?? 1000;
   const userInfoWithRank = {
     ...UserInfo.toObject(),
     nextRank: nextRank || null,
-    elo: userElo && userElo.elo ? userElo.elo : 1000,
+    elo: elo,
   };
   if (UserInfo) return res.status(200).send(userInfoWithRank);
   return res.status(404).send({ msg: Message.DidntFind });
+};
+
+const getNextRank = (currentRank: string) => {
+  let nextRank: Rank = ranks[0];
+  ranks.forEach((rank, index) => {
+    if (rank.name === currentRank) {
+      nextRank = ranks[index + 1];
+    }
+  });
+  return nextRank;
+};
+
+const getInformationAboutElo = async (userId: string) => {
+  const userElo = await EloRegistry.findOne({ user: userId }).sort({
+    date: -1,
+  });
+  return userElo?.elo || null;
 };
 
 const getUsersRanking = async function (
   req: Request,
   res: Response<UserBaseInfo[] | ResponseMessage>
 ) {
-  const users:UserBaseInfo[] = await User.aggregate([
+  const users: UserBaseInfo[] = await User.aggregate([
+     {
+        $match: {
+          isTester: { $ne: true }, // pominięcie użytkowników-testerów
+        },
+      },
     {
       $lookup: {
         from: "eloregistries", // Nazwa kolekcji EloRegistry
@@ -172,12 +210,11 @@ const getUsersRanking = async function (
     },
   ]);
 
-  const filteredUsers = users.filter((user) => user.name !== "tester2");
-
   // Zwrócenie listy użytkowników lub komunikat błędu
-  if (users.length) return res.status(200).send(filteredUsers);
+  if (users.length) return res.status(200).send(users);
   else return res.status(404).send({ msg: Message.DidntFind });
 };
+
 
 const getUserElo = async function (
   req: Request<Params, {}, {}>,
@@ -238,4 +275,5 @@ export {
   getUserElo,
   getUsersRanking,
   updateUserElo,
+  deleteAccount,
 };

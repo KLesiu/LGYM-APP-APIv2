@@ -1,16 +1,19 @@
-//@ts-nocheck
 const passport = require('passport')
 const jwt = require("jsonwebtoken")
 import { Message } from "../enums/Message";
 import { NextFunction } from "express";
+import { UserEntity } from "../models/User";
+import { Response,Request } from "express";
 
-exports.middlewareAuth = (req:any,res:any,next:any)=>passport.authenticate("jwt",{session:false})(req,res,next)
-export const checkJwtToken = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('jwt', { session: false }, (err, user) => {
+export const middlewareAuth = (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('jwt', { session: false }, (err:Error, user:UserEntity) => {
       if (err || !user) {
         return res.status(401).json({ message: Message.InvalidToken });
       }
-      jwt.verify(req.headers.authorization!.split(' ')[1], process.env.JWT_SECRET, (verifyErr) => {
+      if(user.isDeleted){
+        return res.status(401).json({ message: Message.Unauthorized });
+      }
+      jwt.verify(req.headers.authorization!.split(' ')[1], process.env.JWT_SECRET, (verifyErr:Error) => {
         if (verifyErr) {
           return res.status(401).json({ message: Message.ExpiredToken });
         }
@@ -20,3 +23,14 @@ export const checkJwtToken = (req: Request, res: Response, next: NextFunction) =
       });
     })(req, res, next);
   };
+  
+
+export const middlewareAuthLocal = (req: Request, res: Response, next: NextFunction) => {
+   passport.authenticate("local", { session: false }, (err: Error, user: UserEntity) => {
+    if (err || !user) {
+      return res.status(401).json({ msg: Message.Unauthorized });
+    }
+    req.user = user;
+    return next();
+  })(req, res, next);
+}

@@ -1,15 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkJwtToken = void 0;
-//@ts-nocheck
+exports.middlewareAuthLocal = exports.middlewareAuth = void 0;
 const passport = require('passport');
 const jwt = require("jsonwebtoken");
 const Message_1 = require("../enums/Message");
-exports.middlewareAuth = (req, res, next) => passport.authenticate("jwt", { session: false })(req, res, next);
-const checkJwtToken = (req, res, next) => {
+const middlewareAuth = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
         if (err || !user) {
             return res.status(401).json({ message: Message_1.Message.InvalidToken });
+        }
+        if (user.isDeleted) {
+            return res.status(401).json({ message: Message_1.Message.Unauthorized });
         }
         jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET, (verifyErr) => {
             if (verifyErr) {
@@ -20,4 +21,14 @@ const checkJwtToken = (req, res, next) => {
         });
     })(req, res, next);
 };
-exports.checkJwtToken = checkJwtToken;
+exports.middlewareAuth = middlewareAuth;
+const middlewareAuthLocal = (req, res, next) => {
+    passport.authenticate("local", { session: false }, (err, user) => {
+        if (err || !user) {
+            return res.status(401).json({ msg: Message_1.Message.Unauthorized });
+        }
+        req.user = user;
+        return next();
+    })(req, res, next);
+};
+exports.middlewareAuthLocal = middlewareAuthLocal;
