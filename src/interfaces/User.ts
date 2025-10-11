@@ -9,6 +9,7 @@ interface UserBaseInfo{
     updatedAt:Date,
     isDeleted:boolean,
     isTester:boolean,
+    isVisibleInRanking:boolean
 }
 interface Rank{
     name:string,
@@ -23,7 +24,8 @@ interface LoginUser {
 }
 interface RegisterUser extends LoginUser{
     email:string,
-    cpassword:string
+    cpassword:string,
+    isVisibleInRanking:boolean
 }
 interface UserElo{
     elo: number

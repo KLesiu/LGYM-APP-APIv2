@@ -13,4 +13,5 @@ configRouter_1.default.get("/checkToken", auth_1.middlewareAuth, userController_
 configRouter_1.default.get("/getUsersRanking", userController_1.getUsersRanking);
 configRouter_1.default.get("/userInfo/:id/getUserEloPoints", userController_1.getUserElo);
 configRouter_1.default.get("/deleteAccount", auth_1.middlewareAuth, userController_1.deleteAccount);
+configRouter_1.default.post("/changeVisibilityInRanking", auth_1.middlewareAuth, userController_1.changeVisibilityInRanking);
 module.exports = configRouter_1.default;

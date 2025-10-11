@@ -56,6 +56,7 @@ const register = [
       const admin = false;
       const email = req.body.email;
       const password = req.body.password;
+      const isVisibleInRanking = req.body.isVisibleInRanking ?? true;
 
       const existingUser = await User.findOne({
         $or: [{ name: name }, { email: email }],
@@ -75,6 +76,7 @@ const register = [
         name: name,
         admin: admin,
         email: email,
+        isVisibleInRanking: isVisibleInRanking,
         profileRank: "Junior 1",
       });
       await User.register(user, password);
@@ -105,6 +107,7 @@ const login = async function (
     nextRank: getNextRank(req.user.profileRank),
     isDeleted: req.user.isDeleted,
     isTester: req.user.isTester || false,
+    isVisibleInRanking: req.user.isVisibleInRanking,
   } as UserInfo;
   return res.status(200).send({ token: token, req: userInfo });
 };
@@ -176,7 +179,9 @@ const getUsersRanking = async function (
   const users: UserBaseInfo[] = await User.aggregate([
      {
         $match: {
-          isTester: { $ne: true }, // pominięcie użytkowników-testerów
+          isTester: { $ne: true },
+          isDeleted:  { $ne: true },
+          isVisibleInRanking: { $ne: false }
         },
       },
     {
@@ -267,6 +272,21 @@ const updateUserElo = async (
   };
 };
 
+
+const changeVisibilityInRanking = async function (
+  req: Request<{}, {}, { isVisibleInRanking: boolean }>,
+  res: Response<ResponseMessage>
+) {
+  const { isVisibleInRanking } = req.body;
+  const userId = req.user?._id;
+
+  if (!userId) return res.status(400).send({ msg: Message.DidntFind });
+
+  await User.updateOne({ _id: userId }, { isVisibleInRanking });
+
+  return res.status(200).send({msg:Message.Updated});
+};
+
 export {
   register,
   login,
@@ -276,4 +296,5 @@ export {
   getUsersRanking,
   updateUserElo,
   deleteAccount,
+  changeVisibilityInRanking
 };

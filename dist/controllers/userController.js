@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAccount = exports.updateUserElo = exports.getUsersRanking = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
+exports.changeVisibilityInRanking = exports.deleteAccount = exports.updateUserElo = exports.getUsersRanking = exports.getUserElo = exports.getUserInfo = exports.isAdmin = exports.login = exports.register = exports.ranks = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
@@ -40,6 +40,7 @@ const register = [
         .custom((value, { req }) => value === req.body.password)
         .withMessage(Message_1.Message.SamePassword),
     asyncHandler((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(404).send({
@@ -50,6 +51,7 @@ const register = [
         const admin = false;
         const email = req.body.email;
         const password = req.body.password;
+        const isVisibleInRanking = (_a = req.body.isVisibleInRanking) !== null && _a !== void 0 ? _a : true;
         const existingUser = yield User_1.default.findOne({
             $or: [{ name: name }, { email: email }],
         }).exec();
@@ -65,6 +67,7 @@ const register = [
             name: name,
             admin: admin,
             email: email,
+            isVisibleInRanking: isVisibleInRanking,
             profileRank: "Junior 1",
         });
         yield User_1.default.register(user, password);
@@ -92,6 +95,7 @@ const login = function (req, res) {
             nextRank: getNextRank(req.user.profileRank),
             isDeleted: req.user.isDeleted,
             isTester: req.user.isTester || false,
+            isVisibleInRanking: req.user.isVisibleInRanking,
         };
         return res.status(200).send({ token: token, req: userInfo });
     });
@@ -154,7 +158,9 @@ const getUsersRanking = function (req, res) {
         const users = yield User_1.default.aggregate([
             {
                 $match: {
-                    isTester: { $ne: true }, // pominięcie użytkowników-testerów
+                    isTester: { $ne: true },
+                    isDeleted: { $ne: true },
+                    isVisibleInRanking: { $ne: false }
                 },
             },
             {
@@ -236,3 +242,15 @@ const updateUserElo = (gainElo, currentElo, user, trainingId) => __awaiter(void 
     };
 });
 exports.updateUserElo = updateUserElo;
+const changeVisibilityInRanking = function (req, res) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const { isVisibleInRanking } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        if (!userId)
+            return res.status(400).send({ msg: Message_1.Message.DidntFind });
+        yield User_1.default.updateOne({ _id: userId }, { isVisibleInRanking });
+        return res.status(200).send({ msg: Message_1.Message.Updated });
+    });
+};
+exports.changeVisibilityInRanking = changeVisibilityInRanking;

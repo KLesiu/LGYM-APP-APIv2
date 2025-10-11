@@ -6,10 +6,10 @@ import {
   getUserElo,
   getUsersRanking,
   deleteAccount,
+  changeVisibilityInRanking,
 } from "../controllers/userController";
 import Router from "./configRouter";
 import { middlewareAuth,middlewareAuthLocal } from "../middlewares/auth";
-import User from "../models/User";
 
 
 Router.post("/register", register);
@@ -19,4 +19,5 @@ Router.get("/checkToken",middlewareAuth,getUserInfo);
 Router.get("/getUsersRanking", getUsersRanking);
 Router.get("/userInfo/:id/getUserEloPoints", getUserElo);
 Router.get("/deleteAccount", middlewareAuth, deleteAccount);
+Router.post("/changeVisibilityInRanking", middlewareAuth, changeVisibilityInRanking);
 module.exports = Router;

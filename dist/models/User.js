@@ -20,7 +20,8 @@ const UserSchema = new configModels_1.default({
     // Avatar użytkownika
     avatar: { type: String, required: false },
     isDeleted: { type: Boolean, default: false },
-    isTester: { type: Boolean, default: false }
+    isTester: { type: Boolean, default: false },
+    isVisibleInRanking: { type: Boolean, default: true },
 }, {
     timestamps: true,
 });

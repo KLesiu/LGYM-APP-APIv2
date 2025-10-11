@@ -14,8 +14,5 @@ var BodyParts;
     BodyParts["Hamstrings"] = "Hamstrings";
     BodyParts["Calves"] = "Calves";
     BodyParts["Glutes"] = "Glutes";
-    BodyParts["Traps"] = "Traps";
-    BodyParts["Lats"] = "Lats";
     BodyParts["Neck"] = "Neck";
-    BodyParts["Legs"] = "Legs";
 })(BodyParts || (exports.BodyParts = BodyParts = {}));
