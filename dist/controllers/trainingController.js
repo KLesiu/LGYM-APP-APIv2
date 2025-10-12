@@ -23,149 +23,52 @@ const Exercise_1 = __importDefault(require("../models/Exercise"));
 const userController_1 = require("./userController");
 const EloRegistry_1 = __importDefault(require("../models/EloRegistry"));
 const Gym_1 = __importDefault(require("../models/Gym"));
-const ExerciseScoresService_1 = require("../services/ExerciseScoresService");
+const mongoose_1 = __importDefault(require("mongoose"));
 const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.params.id;
-    const planDay = req.body.type;
-    const createdAt = req.body.createdAt;
-    const gymId = req.body.gym;
-    const user = yield User_1.default.findById(userId);
-    if (!user)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const gym = yield Gym_1.default.findById(gymId);
-    if (!gym)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    // Tworzenie rekordu treningu
-    const response = yield Training_1.default.create({
-        user: userId,
-        type: planDay,
-        createdAt: createdAt,
-        gym: req.body.gym,
-    });
-    if (!response)
-        return res.status(404).send({ msg: Message_1.Message.TryAgain });
-    const exercisesNames = [];
-    for (const exercise of req.body.exercises) {
-        if (exercisesNames.find((ele) => ele.exerciseId === exercise.exercise))
-            continue;
-        const exerciseDetails = yield Exercise_1.default.findById(exercise.exercise);
-        if (!exerciseDetails) {
+    try {
+        const userId = req.params.id;
+        const { type, createdAt, gym: gymId, exercises: currentExercises, } = req.body;
+        const user = yield User_1.default.findById(userId);
+        if (!user)
             return res.status(404).send({ msg: Message_1.Message.DidntFind });
-        }
-        exercisesNames.push({
-            exerciseName: exerciseDetails.name,
-            exerciseId: exerciseDetails._id.toString(),
+        const gym = yield Gym_1.default.findById(gymId);
+        if (!gym)
+            return res.status(404).send({ msg: Message_1.Message.DidntFind });
+        const trainingRecord = yield Training_1.default.create({
+            user: userId,
+            type,
+            createdAt,
+            gym: gymId,
+        });
+        if (!trainingRecord)
+            return res.status(404).send({ msg: Message_1.Message.TryAgain });
+        const uniqueExerciseIds = [
+            ...new Set(currentExercises.map((e) => e.exercise)),
+        ];
+        const [exerciseDetailsMap, previousScoresMap] = yield Promise.all([
+            fetchExerciseDetails(uniqueExerciseIds),
+            fetchPreviousScores(userId, gymId, uniqueExerciseIds),
+        ]);
+        const exercisesToSave = currentExercises.map((e) => (Object.assign(Object.assign({}, e), { training: trainingRecord._id, user: userId, date: createdAt })));
+        const { totalElo, savedScoreIds } = yield processAndSaveScores(exercisesToSave, previousScoresMap);
+        yield trainingRecord.updateOne({ exercises: savedScoreIds });
+        const { rankStatus, oldElo } = yield updateUserRankAndElo(userId, user, totalElo, trainingRecord._id);
+        const comparison = buildComparisonReport(currentExercises, previousScoresMap, exerciseDetailsMap);
+        return res.status(200).send({
+            comparison,
+            gainElo: totalElo,
+            userOldElo: oldElo,
+            profileRank: rankStatus.currentRank,
+            nextRank: rankStatus.nextRank,
+            msg: Message_1.Message.Created,
         });
     }
-    // Pobieranie ćwiczeń i dodawanie wyników dla każdego z nich
-    const exercises = req.body.exercises.map((ele) => {
-        return Object.assign(Object.assign({}, ele), { training: response._id, user: userId, date: createdAt });
-    });
-    const findLastExercisesScoresArray = [];
-    // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
-    const result = yield Promise.all(exercises.map((ele) => __awaiter(void 0, void 0, void 0, function* () {
-        const findLastExerciseSeriesScore = yield (0, ExerciseScoresService_1.findExerciseScore)(gymId, userId, ele.exercise, ele.series);
-        let elo = 0;
-        if (findLastExerciseSeriesScore) {
-            findLastExercisesScoresArray.push(findLastExerciseSeriesScore);
-            // Obliczanie ELO dla każdego ćwiczenia
-            const lastExerciseScores = {
-                series: findLastExerciseSeriesScore.series,
-                score: {
-                    reps: findLastExerciseSeriesScore.reps,
-                    weight: findLastExerciseSeriesScore.weight,
-                    unit: findLastExerciseSeriesScore.unit,
-                    _id: findLastExerciseSeriesScore._id.toString(),
-                },
-            };
-            elo = yield calculateEloPerExercise(ele, lastExerciseScores);
-        }
-        // Dodanie wyniku ćwiczenia z obliczonym ELO
-        const exerciseScoreId = yield (0, exercisesScoresController_1.addExercisesScores)(ele);
-        return { exerciseScoreId, elo };
-    })));
-    let elo = 0;
-    result.forEach((ele) => {
-        if (!ele)
-            return;
-        elo += ele.elo;
-    });
-    // Porównanie progresu (jeśli to potrzebne do innych funkcjonalności)
-    const progressObject = compareExerciseProgress(findLastExercisesScoresArray, req.body.exercises, exercisesNames);
-    const exercisesScoresArray = result.map((ele) => {
-        if (ele && ele.exerciseScoreId !== undefined)
-            return ele.exerciseScoreId;
-    });
-    // Aktualizacja rekordu treningu z wynikami ćwiczeń
-    yield response.updateOne({ exercises: exercisesScoresArray });
-    const currentUserElo = yield EloRegistry_1.default.findOne({ user: userId })
-        .sort({ date: -1 })
-        .limit(1);
-    if (!currentUserElo)
-        return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const userRankStatus = yield (0, userController_1.updateUserElo)(elo, currentUserElo.elo, user, response._id);
-    return res.status(200).send({
-        progress: progressObject,
-        gainElo: elo,
-        userOldElo: currentUserElo.elo,
-        profileRank: userRankStatus.currentRank,
-        nextRank: userRankStatus.nextRank,
-        msg: Message_1.Message.Created,
-    });
+    catch (error) {
+        console.error("Błąd podczas dodawania treningu:", error);
+        return res.status(500).send({ msg: Message_1.Message.TryAgain });
+    }
 });
 exports.addTraining = addTraining;
-const compareExerciseProgress = (lastExerciseScores, exerciseScoresTrainingForm, exercisesNames) => {
-    // Zmienna wynikowa
-    const results = {
-        bestProgress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
-        worseRegress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
-    };
-    // Zmienna śledząca maksymalne różnice dla progresu i regresu
-    let maxProgressValue = -Infinity;
-    let maxRegressValue = Infinity;
-    // Funkcja do liczenia sumarycznego progresu/regresu
-    const calculateTotalChange = (repsDiff, weightDiff) => {
-        return repsDiff + weightDiff;
-    };
-    // Porównywanie wyników
-    lastExerciseScores.forEach((lastExerciseScore) => {
-        var _a, _b;
-        const currentExerciseScores = exerciseScoresTrainingForm.find((exercise) => exercise.exercise === lastExerciseScore.exercise.toString() &&
-            exercise.series === lastExerciseScore.series);
-        if (!currentExerciseScores)
-            return;
-        // Porównanie reps
-        const repsDiff = currentExerciseScores.reps - lastExerciseScore.reps;
-        // Porównanie weight
-        const weightDiff = currentExerciseScores.weight - lastExerciseScore.weight;
-        // Sprawdzenie najlepszego progresu
-        if (repsDiff > 0 || weightDiff > 0) {
-            const totalChange = calculateTotalChange(repsDiff, weightDiff);
-            if (totalChange > maxProgressValue) {
-                maxProgressValue = totalChange;
-                results.bestProgress.exercise =
-                    ((_a = exercisesNames.find((e) => e.exerciseId === currentExerciseScores.exercise)) === null || _a === void 0 ? void 0 : _a.exerciseName) || "";
-                results.bestProgress.series = currentExerciseScores.series;
-                results.bestProgress.repsScore = repsDiff;
-                results.bestProgress.weightScore = weightDiff;
-            }
-        }
-        // Sprawdzenie najgorszego regresu
-        if (repsDiff < 0 || weightDiff < 0) {
-            const totalChange = calculateTotalChange(repsDiff, weightDiff);
-            if (totalChange < maxRegressValue) {
-                maxRegressValue = totalChange;
-                results.worseRegress.exercise =
-                    ((_b = exercisesNames.find((e) => e.exerciseId === currentExerciseScores.exercise)) === null || _b === void 0 ? void 0 : _b.exerciseName) || "";
-                results.worseRegress.series = currentExerciseScores.series;
-                results.worseRegress.repsScore = repsDiff;
-                results.worseRegress.weightScore = weightDiff;
-            }
-        }
-    });
-    // Zwrócenie wyników
-    return results;
-};
 const getLastTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const user = yield User_1.default.findById(id);
@@ -344,3 +247,112 @@ const partElo = (prev_weight, prev_reps, acc_weight, acc_reps) => {
     const points = K * scoreDifference;
     return Math.round(points);
 };
+const fetchExerciseDetails = (exerciseIds) => __awaiter(void 0, void 0, void 0, function* () {
+    const exercises = yield Exercise_1.default.find({ _id: { $in: exerciseIds } }).select("name");
+    return new Map(exercises.map((e) => [e._id.toString(), e.name]));
+});
+const fetchPreviousScores = (userId, gymId, exerciseIds) => __awaiter(void 0, void 0, void 0, function* () {
+    const scores = yield ExerciseScores_1.default.aggregate([
+        {
+            $lookup: {
+                from: "trainings",
+                localField: "training",
+                foreignField: "_id",
+                as: "trainingDetails",
+            },
+        },
+        {
+            $unwind: "$trainingDetails",
+        },
+        {
+            $match: {
+                user: new mongoose_1.default.Types.ObjectId(userId),
+                "trainingDetails.gym": new mongoose_1.default.Types.ObjectId(gymId),
+                exercise: {
+                    $in: exerciseIds.map((id) => new mongoose_1.default.Types.ObjectId(id)),
+                },
+            },
+        },
+        { $sort: { createdAt: -1 } },
+        {
+            $group: {
+                _id: { exercise: "$exercise", series: "$series" },
+                lastScore: { $first: "$$ROOT" },
+            },
+        },
+        {
+            $project: {
+                "lastScore.trainingDetails": 0,
+            },
+        },
+        { $replaceRoot: { newRoot: "$lastScore" } },
+    ]);
+    return new Map(scores.map((score) => [
+        `${score.exercise.toString()}-${score.series}`,
+        score,
+    ]));
+});
+const processAndSaveScores = (exercises, previousScoresMap) => __awaiter(void 0, void 0, void 0, function* () {
+    let totalElo = 0;
+    const savedScoreIds = [];
+    for (const exercise of exercises) {
+        const key = `${exercise.exercise}-${exercise.series}`;
+        const previousScore = previousScoresMap.get(key);
+        if (previousScore) {
+            const lastExerciseScores = {
+                series: previousScore.series,
+                score: {
+                    reps: previousScore.reps,
+                    weight: previousScore.weight,
+                    unit: previousScore.unit,
+                    _id: previousScore._id.toString(),
+                },
+            };
+            totalElo += yield calculateEloPerExercise(exercise, lastExerciseScores);
+        }
+        const savedScore = yield (0, exercisesScoresController_1.addExercisesScores)(exercise);
+        savedScoreIds.push(savedScore.exerciseScoreId);
+    }
+    return { totalElo, savedScoreIds };
+});
+const buildComparisonReport = (currentExercises, previousScoresMap, exerciseDetailsMap) => {
+    const comparisonMap = new Map();
+    for (const currentExercise of currentExercises) {
+        const exerciseId = currentExercise.exercise;
+        if (!comparisonMap.has(exerciseId)) {
+            const exerciseName = exerciseDetailsMap.get(exerciseId) || "Nieznane ćwiczenie";
+            comparisonMap.set(exerciseId, {
+                exerciseId: exerciseId,
+                exerciseName: exerciseName,
+                seriesComparisons: [],
+            });
+        }
+        const previousScore = previousScoresMap.get(`${exerciseId}-${currentExercise.series}`);
+        const seriesComparison = {
+            series: currentExercise.series,
+            currentResult: {
+                reps: currentExercise.reps,
+                weight: currentExercise.weight,
+                unit: currentExercise.unit,
+            },
+            previousResult: previousScore
+                ? {
+                    reps: previousScore.reps,
+                    weight: previousScore.weight,
+                    unit: previousScore.unit,
+                }
+                : null,
+        };
+        comparisonMap.get(exerciseId).seriesComparisons.push(seriesComparison);
+    }
+    return Array.from(comparisonMap.values());
+};
+const updateUserRankAndElo = (userId, user, eloGained, trainingId) => __awaiter(void 0, void 0, void 0, function* () {
+    const currentUserElo = yield EloRegistry_1.default.findOne({ user: userId }).sort({
+        date: -1,
+    });
+    if (!currentUserElo)
+        throw new Error("Nie znaleziono rekordu ELO użytkownika.");
+    const rankStatus = yield (0, userController_1.updateUserElo)(eloGained, currentUserElo.elo, user, trainingId);
+    return { rankStatus, oldElo: currentUserElo.elo };
+});
