@@ -368,7 +368,6 @@ const getTrainingByDate = async (
         {}
       );
 
-      // Konwersja obiektu na tablicę
       const exercisesArray: EnrichedExercise[] =
         Object.values(groupedExercises);
 
