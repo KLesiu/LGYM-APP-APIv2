@@ -72,8 +72,12 @@ const addTraining = async (
       exercisesToSave,
       previousScoresMap
     );
-
-    await trainingRecord.updateOne({ exercises: savedScoreIds });
+    const exercisesToSaveAfterMap = savedScoreIds.map(ele=>{
+      return {
+        exerciseScoreId:ele
+      }
+    })
+    await trainingRecord.updateOne({ exercises: exercisesToSaveAfterMap });
     const { rankStatus, oldElo } = await updateUserRankAndElo(
       userId,
       user,

@@ -51,7 +51,12 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         ]);
         const exercisesToSave = currentExercises.map((e) => (Object.assign(Object.assign({}, e), { training: trainingRecord._id, user: userId, date: createdAt })));
         const { totalElo, savedScoreIds } = yield processAndSaveScores(exercisesToSave, previousScoresMap);
-        yield trainingRecord.updateOne({ exercises: savedScoreIds });
+        const exercisesToSaveAfterMap = savedScoreIds.map(ele => {
+            return {
+                exerciseScoreId: ele
+            };
+        });
+        yield trainingRecord.updateOne({ exercises: exercisesToSaveAfterMap });
         const { rankStatus, oldElo } = yield updateUserRankAndElo(userId, user, totalElo, trainingRecord._id);
         const comparison = buildComparisonReport(currentExercises, previousScoresMap, exerciseDetailsMap);
         //// TODO DELETE After ios relase 4.0.7  <start>
