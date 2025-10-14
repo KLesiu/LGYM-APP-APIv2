@@ -86,6 +86,171 @@ const addTraining = async (
       exerciseDetailsMap
     );
 
+    //// TODO DELETE After ios relase 4.0.7  <start>
+    const exercisesNames = [] as { exerciseName: string; exerciseId: string }[];
+
+    for (const exercise of req.body.exercises) {
+      if (exercisesNames.find((ele) => ele.exerciseId === exercise.exercise))
+        continue;
+      const exerciseDetails = await Exercise.findById(exercise.exercise);
+      if (!exerciseDetails) {
+        return res.status(404).send({ msg: Message.DidntFind });
+      }
+      exercisesNames.push({
+        exerciseName: exerciseDetails.name,
+        exerciseId: exerciseDetails._id.toString(),
+      });
+    }
+
+    const findExerciseScore = async (
+      gymId: string,
+      userId: string,
+      exerciseId: string,
+      seriesNumber: number
+    ): Promise<ExerciseScoresEntity | null> => {
+      try {
+        const trainings = await Training.find({
+          user: userId,
+          gym: gymId,
+        }).select("_id");
+
+        const trainingIds = trainings.map((t) => t._id);
+
+        const exerciseScore = await ExerciseScores.findOne({
+          user: userId,
+          exercise: exerciseId,
+          series: seriesNumber,
+          training: { $in: trainingIds },
+        })
+          .sort({ createdAt: -1 })
+          .exec();
+
+        return exerciseScore || null;
+      } catch (error) {
+        console.error("Error in findExerciseScore:", error);
+        return null;
+      }
+    };
+
+    const exercises: ExerciseScoresForm[] = req.body.exercises.map((ele) => {
+      return { ...ele, training: trainingRecord._id, user: userId, date: createdAt };
+    });
+
+    const findLastExercisesScoresArray: ExerciseScoresEntity[] = [];
+
+    // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
+    const result = await Promise.all(
+      exercises.map(async (ele) => {
+        const findLastExerciseSeriesScore = await findExerciseScore(
+          gymId,
+          userId,
+          ele.exercise,
+          ele.series
+        );
+        let elo = 0;
+        if (findLastExerciseSeriesScore) {
+          findLastExercisesScoresArray.push(findLastExerciseSeriesScore);
+          // Obliczanie ELO dla każdego ćwiczenia
+          const lastExerciseScores: SeriesScore | undefined = {
+            series: findLastExerciseSeriesScore.series,
+            score: {
+              reps: findLastExerciseSeriesScore.reps,
+              weight: findLastExerciseSeriesScore.weight,
+              unit: findLastExerciseSeriesScore.unit,
+              _id: findLastExerciseSeriesScore._id.toString(),
+            },
+          };
+          elo = await calculateEloPerExercise(ele, lastExerciseScores);
+        }
+        // Dodanie wyniku ćwiczenia z obliczonym ELO
+        const exerciseScoreId = await addExercisesScores(ele);
+
+        return { exerciseScoreId, elo };
+      })
+    );
+
+    const compareExerciseProgress = (
+      lastExerciseScores: ExerciseScoresEntity[],
+      exerciseScoresTrainingForm: ExerciseScoresTrainingForm[],
+      exercisesNames: { exerciseName: string; exerciseId: string }[]
+    ) => {
+      // Zmienna wynikowa
+      const results = {
+        bestProgress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
+        worseRegress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
+      };
+
+      // Zmienna śledząca maksymalne różnice dla progresu i regresu
+      let maxProgressValue = -Infinity;
+      let maxRegressValue = Infinity;
+
+      // Funkcja do liczenia sumarycznego progresu/regresu
+      const calculateTotalChange = (repsDiff: number, weightDiff: number) => {
+        return repsDiff + weightDiff;
+      };
+
+      // Porównywanie wyników
+      lastExerciseScores.forEach((lastExerciseScore) => {
+        const currentExerciseScores = exerciseScoresTrainingForm.find(
+          (exercise) =>
+            exercise.exercise === lastExerciseScore.exercise.toString() &&
+            exercise.series === lastExerciseScore.series
+        );
+
+        if (!currentExerciseScores) return;
+
+        // Porównanie reps
+        const repsDiff = currentExerciseScores.reps - lastExerciseScore.reps;
+
+        // Porównanie weight
+        const weightDiff =
+          currentExerciseScores.weight - lastExerciseScore.weight;
+
+        // Sprawdzenie najlepszego progresu
+        if (repsDiff > 0 || weightDiff > 0) {
+          const totalChange = calculateTotalChange(repsDiff, weightDiff);
+          if (totalChange > maxProgressValue) {
+            maxProgressValue = totalChange;
+            results.bestProgress.exercise =
+              exercisesNames.find(
+                (e) => e.exerciseId === currentExerciseScores.exercise
+              )?.exerciseName || "";
+            results.bestProgress.series = currentExerciseScores.series;
+            results.bestProgress.repsScore = repsDiff;
+            results.bestProgress.weightScore = weightDiff;
+          }
+        }
+
+        // Sprawdzenie najgorszego regresu
+        if (repsDiff < 0 || weightDiff < 0) {
+          const totalChange = calculateTotalChange(repsDiff, weightDiff);
+          if (totalChange < maxRegressValue) {
+            maxRegressValue = totalChange;
+            results.worseRegress.exercise =
+              exercisesNames.find(
+                (e) => e.exerciseId === currentExerciseScores.exercise
+              )?.exerciseName || "";
+            results.worseRegress.series = currentExerciseScores.series;
+            results.worseRegress.repsScore = repsDiff;
+            results.worseRegress.weightScore = weightDiff;
+          }
+        }
+      });
+
+      // Zwrócenie wyników
+      return results;
+    };
+
+    const progressObject = compareExerciseProgress(
+      findLastExercisesScoresArray,
+      req.body.exercises,
+      exercisesNames
+    );
+
+
+//// TODO DELETE After ios relase 4.0.7  </end>
+
+
     return res.status(200).send({
       comparison,
       gainElo: totalElo,
@@ -93,6 +258,7 @@ const addTraining = async (
       profileRank: rankStatus.currentRank,
       nextRank: rankStatus.nextRank,
       msg: Message.Created,
+      progress: progressObject,
     });
   } catch (error) {
     console.error("Błąd podczas dodawania treningu:", error);
