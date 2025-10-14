@@ -45,32 +45,38 @@ interface TrainingHistoryQuery{
     startDt:Date,
     endDt:Date
 }
-interface TrainingSummary{
-    progress:{
-        bestProgress:{
-            exercise:string,
-            series:number,
-            repsScore:number,
-            weightScore:number
-        },
-        worseRegress:{
-            exercise:string,
-            series:number,
-            repsScore:number,
-            weightScore:number
-        }
-    },
-    gainElo:number,
-    userOldElo:number,
-    profileRank:Rank,
-    nextRank:Rank | null,
-    msg: Message
 
+interface SeriesComparison {
+  series: number;
+  currentResult: {
+    reps: number;
+    weight: number;
+    unit: string;
+  };
+  previousResult: {
+    reps: number;
+    weight: number;
+    unit: string;
+  } | null;
+}
 
+interface GroupedExerciseComparison {
+  exerciseId: string;
+  exerciseName: string;
+  seriesComparisons: SeriesComparison[];
+}
+
+interface TrainingSummary {
+  comparison: GroupedExerciseComparison[];
+  gainElo: number;
+  userOldElo: number;
+  profileRank: Rank;
+  nextRank: Rank | null;
+  msg: Message;
 }
 
 interface MarkedDates  {
     date:Date | string
     dots: {color:string,selectedColor?:string}[]
 }
-export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise,TrainingSummary,MarkedDates,TrainingBase}
+export {TrainingForm,LastTrainingInfo,TrainingHistoryQuery,TrainingByDate,TrainingByDateDetails,TrainingSessionScores,EnrichedExercise,TrainingSummary,MarkedDates,TrainingBase,SeriesComparison,GroupedExerciseComparison}
