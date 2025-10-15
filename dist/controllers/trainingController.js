@@ -59,122 +59,6 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         yield trainingRecord.updateOne({ exercises: exercisesToSaveAfterMap });
         const { rankStatus, oldElo } = yield updateUserRankAndElo(userId, user, totalElo, trainingRecord._id);
         const comparison = buildComparisonReport(currentExercises, previousScoresMap, exerciseDetailsMap);
-        //// TODO DELETE After ios relase 4.0.7  <start>
-        const exercisesNames = [];
-        for (const exercise of req.body.exercises) {
-            if (exercisesNames.find((ele) => ele.exerciseId === exercise.exercise))
-                continue;
-            const exerciseDetails = yield Exercise_1.default.findById(exercise.exercise);
-            if (!exerciseDetails) {
-                return res.status(404).send({ msg: Message_1.Message.DidntFind });
-            }
-            exercisesNames.push({
-                exerciseName: exerciseDetails.name,
-                exerciseId: exerciseDetails._id.toString(),
-            });
-        }
-        const findExerciseScore = (gymId, userId, exerciseId, seriesNumber) => __awaiter(void 0, void 0, void 0, function* () {
-            try {
-                const trainings = yield Training_1.default.find({
-                    user: userId,
-                    gym: gymId,
-                }).select("_id");
-                const trainingIds = trainings.map((t) => t._id);
-                const exerciseScore = yield ExerciseScores_1.default.findOne({
-                    user: userId,
-                    exercise: exerciseId,
-                    series: seriesNumber,
-                    training: { $in: trainingIds },
-                })
-                    .sort({ createdAt: -1 })
-                    .exec();
-                return exerciseScore || null;
-            }
-            catch (error) {
-                console.error("Error in findExerciseScore:", error);
-                return null;
-            }
-        });
-        const exercises = req.body.exercises.map((ele) => {
-            return Object.assign(Object.assign({}, ele), { training: trainingRecord._id, user: userId, date: createdAt });
-        });
-        const findLastExercisesScoresArray = [];
-        // Tworzymy tablicę na wyniki ćwiczeń wraz z obliczonym ELO
-        const result = yield Promise.all(exercises.map((ele) => __awaiter(void 0, void 0, void 0, function* () {
-            const findLastExerciseSeriesScore = yield findExerciseScore(gymId, userId, ele.exercise, ele.series);
-            let elo = 0;
-            if (findLastExerciseSeriesScore) {
-                findLastExercisesScoresArray.push(findLastExerciseSeriesScore);
-                // Obliczanie ELO dla każdego ćwiczenia
-                const lastExerciseScores = {
-                    series: findLastExerciseSeriesScore.series,
-                    score: {
-                        reps: findLastExerciseSeriesScore.reps,
-                        weight: findLastExerciseSeriesScore.weight,
-                        unit: findLastExerciseSeriesScore.unit,
-                        _id: findLastExerciseSeriesScore._id.toString(),
-                    },
-                };
-                elo = yield calculateEloPerExercise(ele, lastExerciseScores);
-            }
-            // Dodanie wyniku ćwiczenia z obliczonym ELO
-            const exerciseScoreId = yield (0, exercisesScoresController_1.addExercisesScores)(ele);
-            return { exerciseScoreId, elo };
-        })));
-        const compareExerciseProgress = (lastExerciseScores, exerciseScoresTrainingForm, exercisesNames) => {
-            // Zmienna wynikowa
-            const results = {
-                bestProgress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
-                worseRegress: { exercise: "", series: 0, repsScore: 0, weightScore: 0 },
-            };
-            // Zmienna śledząca maksymalne różnice dla progresu i regresu
-            let maxProgressValue = -Infinity;
-            let maxRegressValue = Infinity;
-            // Funkcja do liczenia sumarycznego progresu/regresu
-            const calculateTotalChange = (repsDiff, weightDiff) => {
-                return repsDiff + weightDiff;
-            };
-            // Porównywanie wyników
-            lastExerciseScores.forEach((lastExerciseScore) => {
-                var _a, _b;
-                const currentExerciseScores = exerciseScoresTrainingForm.find((exercise) => exercise.exercise === lastExerciseScore.exercise.toString() &&
-                    exercise.series === lastExerciseScore.series);
-                if (!currentExerciseScores)
-                    return;
-                // Porównanie reps
-                const repsDiff = currentExerciseScores.reps - lastExerciseScore.reps;
-                // Porównanie weight
-                const weightDiff = currentExerciseScores.weight - lastExerciseScore.weight;
-                // Sprawdzenie najlepszego progresu
-                if (repsDiff > 0 || weightDiff > 0) {
-                    const totalChange = calculateTotalChange(repsDiff, weightDiff);
-                    if (totalChange > maxProgressValue) {
-                        maxProgressValue = totalChange;
-                        results.bestProgress.exercise =
-                            ((_a = exercisesNames.find((e) => e.exerciseId === currentExerciseScores.exercise)) === null || _a === void 0 ? void 0 : _a.exerciseName) || "";
-                        results.bestProgress.series = currentExerciseScores.series;
-                        results.bestProgress.repsScore = repsDiff;
-                        results.bestProgress.weightScore = weightDiff;
-                    }
-                }
-                // Sprawdzenie najgorszego regresu
-                if (repsDiff < 0 || weightDiff < 0) {
-                    const totalChange = calculateTotalChange(repsDiff, weightDiff);
-                    if (totalChange < maxRegressValue) {
-                        maxRegressValue = totalChange;
-                        results.worseRegress.exercise =
-                            ((_b = exercisesNames.find((e) => e.exerciseId === currentExerciseScores.exercise)) === null || _b === void 0 ? void 0 : _b.exerciseName) || "";
-                        results.worseRegress.series = currentExerciseScores.series;
-                        results.worseRegress.repsScore = repsDiff;
-                        results.worseRegress.weightScore = weightDiff;
-                    }
-                }
-            });
-            // Zwrócenie wyników
-            return results;
-        };
-        const progressObject = compareExerciseProgress(findLastExercisesScoresArray, req.body.exercises, exercisesNames);
-        //// TODO DELETE After ios relase 4.0.7  </end>
         return res.status(200).send({
             comparison,
             gainElo: totalElo,
@@ -182,7 +66,6 @@ const addTraining = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             profileRank: rankStatus.currentRank,
             nextRank: rankStatus.nextRank,
             msg: Message_1.Message.Created,
-            progress: progressObject,
         });
     }
     catch (error) {

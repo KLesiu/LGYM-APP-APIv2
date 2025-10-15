@@ -68,21 +68,6 @@ interface GroupedExerciseComparison {
 
 interface TrainingSummary {
   comparison: GroupedExerciseComparison[];
-  /// DELETE AFTER 4.0.7 IOS Version relase
-  progress: {
-    bestProgress: {
-      exercise: string;
-      series: number;
-      repsScore: number;
-      weightScore: number;
-    },
-    worseRegress: {
-      exercise: string;
-      series: number;
-      repsScore: number;
-      weightScore: number;
-    }
-  },
   gainElo: number;
   userOldElo: number;
   profileRank: Rank;
