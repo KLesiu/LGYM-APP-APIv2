@@ -14,5 +14,12 @@ interface MainRecordsLast extends MainRecordsForm{
     exerciseDetails:ExerciseForm
 }
 
-export {MainRecordsForm,MainRecordsLast}
+interface PossibleRecordForExercise{
+    weight: number,
+    reps: number,
+    unit: WeightUnits,
+    date: Date
+}
+
+export {MainRecordsForm,MainRecordsLast,PossibleRecordForExercise}
 

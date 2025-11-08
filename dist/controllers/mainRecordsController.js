@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateMainRecords = exports.deleteMainRecords = exports.getLastMainRecords = exports.getMainRecordsHistory = exports.addNewRecords = void 0;
+exports.getRecordOrPossibleRecordInExercise = exports.updateMainRecords = exports.deleteMainRecords = exports.getLastMainRecords = exports.getMainRecordsHistory = exports.addNewRecords = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Message_1 = require("../enums/Message");
 const MainRecords_1 = __importDefault(require("../models/MainRecords"));
 const Exercise_1 = __importDefault(require("../models/Exercise"));
+const ExerciseScores_1 = __importDefault(require("../models/ExerciseScores"));
 const addNewRecords = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const findUser = yield User_1.default.findById(id);
@@ -103,3 +104,34 @@ const updateMainRecords = (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(404).send({ msg: Message_1.Message.TryAgain });
 });
 exports.updateMainRecords = updateMainRecords;
+const getRecordOrPossibleRecordInExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const user = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+    const exerciseId = req.body.exerciseId;
+    let record = null;
+    const findRecord = yield MainRecords_1.default.findOne({ user: user, exercise: exerciseId }).sort({ date: -1 });
+    if (!findRecord) {
+        const possibleRecord = yield ExerciseScores_1.default.findOne({ user: user, exercise: exerciseId }).sort({ weight: -1 });
+        if (possibleRecord) {
+            record = {
+                weight: possibleRecord.weight,
+                reps: possibleRecord.reps,
+                unit: possibleRecord.unit,
+                date: possibleRecord.createdAt
+            };
+        }
+        else {
+            return res.status(404).send({ msg: Message_1.Message.DidntFind });
+        }
+    }
+    else {
+        record = {
+            weight: findRecord.weight,
+            reps: 1,
+            unit: findRecord.unit,
+            date: findRecord.date
+        };
+    }
+    return res.status(200).send(record);
+});
+exports.getRecordOrPossibleRecordInExercise = getRecordOrPossibleRecordInExercise;
