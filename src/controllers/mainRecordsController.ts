@@ -98,7 +98,7 @@ const getRecordOrPossibleRecordInExercise = async(req:Request<{},{},{exerciseId:
     let record: PossibleRecordForExercise | null = null
     const findRecord = await MainRecords.findOne({user:user,exercise:exerciseId}).sort({date:-1})
     if(!findRecord){
-        const possibleRecord = await ExerciseScores.findOne({user:user,exercise:exerciseId}).sort({weight:-1})
+        const possibleRecord = await ExerciseScores.findOne({user:user,exercise:exerciseId}).sort({ weight: -1, reps: -1 })
         if(possibleRecord){
           record={
             weight: possibleRecord.weight,

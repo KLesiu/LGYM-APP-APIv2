@@ -111,7 +111,7 @@ const getRecordOrPossibleRecordInExercise = (req, res) => __awaiter(void 0, void
     let record = null;
     const findRecord = yield MainRecords_1.default.findOne({ user: user, exercise: exerciseId }).sort({ date: -1 });
     if (!findRecord) {
-        const possibleRecord = yield ExerciseScores_1.default.findOne({ user: user, exercise: exerciseId }).sort({ weight: -1 });
+        const possibleRecord = yield ExerciseScores_1.default.findOne({ user: user, exercise: exerciseId }).sort({ weight: -1, reps: -1 });
         if (possibleRecord) {
             record = {
                 weight: possibleRecord.weight,
