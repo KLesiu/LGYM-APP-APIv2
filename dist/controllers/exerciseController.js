@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLastExerciseScores = exports.getExercise = exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
+exports.getExerciseScoresFromTrainingByExercise = exports.getLastExerciseScores = exports.getExercise = exports.getAllGlobalExercises = exports.getAllUserExercises = exports.addUserExercise = exports.getExerciseByBodyPart = exports.getAllExercises = exports.updateExercise = exports.deleteExercise = exports.addExercise = void 0;
 const Exercise_1 = __importDefault(require("../models/Exercise"));
 const Message_1 = require("../enums/Message");
 const User_1 = __importDefault(require("../models/User"));
@@ -97,11 +97,7 @@ const getAllExercises = (req, res) => __awaiter(void 0, void 0, void 0, function
     if (!findUser || !Object.keys(findUser).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
     const exercises = yield Exercise_1.default.find({
-        $or: [
-            { user: findUser._id },
-            { user: { $exists: false } },
-            { user: null },
-        ],
+        $or: [{ user: findUser._id }, { user: { $exists: false } }, { user: null }],
     });
     if (exercises.length > 0)
         return res.status(200).send(exercises);
@@ -113,7 +109,10 @@ const getAllUserExercises = (req, res) => __awaiter(void 0, void 0, void 0, func
     const findUser = yield User_1.default.findById(req.params.id);
     if (!findUser || !Object.keys(findUser).length)
         return res.status(404).send({ msg: Message_1.Message.DidntFind });
-    const exercises = yield Exercise_1.default.find({ user: findUser._id, isDeleted: false });
+    const exercises = yield Exercise_1.default.find({
+        user: findUser._id,
+        isDeleted: false,
+    });
     if (exercises.length > 0)
         return res.status(200).send(exercises);
     else
@@ -136,11 +135,7 @@ const getExerciseByBodyPart = (req, res) => __awaiter(void 0, void 0, void 0, fu
     const exercises = yield Exercise_1.default.find({
         bodyPart: bodyPart,
         isDeleted: false,
-        $or: [
-            { user: findUser._id },
-            { user: { $exists: false } },
-            { user: null }
-        ]
+        $or: [{ user: findUser._id }, { user: { $exists: false } }, { user: null }],
     });
     if (exercises.length > 0)
         return res.status(200).send(exercises);
@@ -162,9 +157,13 @@ const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, fu
         const seriesNumber = seriesIndex + 1;
         let latestScore;
         if (gym)
-            latestScore = exerciseId ? yield findLatestExerciseScore(userId, exerciseId, seriesNumber, gym) : 0;
+            latestScore = exerciseId
+                ? yield findLatestExerciseScore(userId, exerciseId, seriesNumber, gym)
+                : 0;
         else
-            latestScore = exerciseId ? yield findLatestExerciseScore(userId, exerciseId, seriesNumber) : 0;
+            latestScore = exerciseId
+                ? yield findLatestExerciseScore(userId, exerciseId, seriesNumber)
+                : 0;
         return {
             series: seriesNumber,
             score: latestScore || null,
@@ -178,8 +177,115 @@ const getLastExerciseScores = (req, res) => __awaiter(void 0, void 0, void 0, fu
     res.json(result);
 });
 exports.getLastExerciseScores = getLastExerciseScores;
+const getExerciseScoresFromTrainingByExercise = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const user = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        const exerciseId = req.body.exerciseId;
+        if (!user || !exerciseId) {
+            return res.status(400).send({ msg: "Missing user or exerciseId" });
+        }
+        const exercisePromise = Exercise_1.default.findById(exerciseId, "name").lean().exec();
+        const scoresPromise = ExerciseScores_1.default.find({ user: new mongodb_1.ObjectId(user), exercise: new mongodb_1.ObjectId(exerciseId) }, "reps weight unit _id training series")
+            .sort({ createdAt: -1 })
+            .populate({
+            path: "training",
+            select: "gym createdAt type",
+            populate: [
+                {
+                    path: "gym",
+                    select: "name",
+                },
+                {
+                    path: "type",
+                    select: "name",
+                },
+            ],
+        })
+            .lean()
+            .exec();
+        const [exercise, scores] = yield Promise.all([
+            exercisePromise,
+            scoresPromise,
+        ]);
+        if (!exercise) {
+            return res.status(404).send({ msg: "Exercise not found" });
+        }
+        const tempTrainingsMap = new Map();
+        for (const score of scores) {
+            if (!score.training || !score.training.gym || !score.training.type) {
+                continue;
+            }
+            const trainingId = score.training._id.toString();
+            let trainingItem = tempTrainingsMap.get(trainingId);
+            if (!trainingItem) {
+                trainingItem = {
+                    _id: trainingId,
+                    date: score.training.createdAt,
+                    gymName: score.training.gym.name,
+                    trainingName: score.training.type.name,
+                    rawScores: [],
+                    maxSeries: 0,
+                };
+                tempTrainingsMap.set(trainingId, trainingItem);
+            }
+            trainingItem.rawScores.push({
+                _id: score._id.toString(),
+                reps: score.reps,
+                weight: score.weight,
+                unit: score.unit,
+                series: score.series,
+            });
+            trainingItem.maxSeries = Math.max(trainingItem.maxSeries, score.series);
+        }
+        const finalTrainings = [];
+        for (const tempTraining of tempTrainingsMap.values()) {
+            const { rawScores, maxSeries } = tempTraining;
+            const processedSeriesScores = [];
+            if (rawScores.length > 0) {
+                const scoreMap = new Map();
+                for (const rs of rawScores) {
+                    scoreMap.set(rs.series, rs);
+                }
+                for (let i = 1; i <= maxSeries; i++) {
+                    const matchingScore = scoreMap.get(i);
+                    if (matchingScore) {
+                        processedSeriesScores.push({
+                            series: i,
+                            score: {
+                                _id: matchingScore._id,
+                                reps: matchingScore.reps,
+                                weight: matchingScore.weight,
+                                unit: matchingScore.unit,
+                            },
+                        });
+                    }
+                    else {
+                        processedSeriesScores.push({
+                            series: i,
+                            score: null,
+                        });
+                    }
+                }
+            }
+            finalTrainings.push({
+                _id: tempTraining._id,
+                date: tempTraining.date,
+                gymName: tempTraining.gymName,
+                trainingName: tempTraining.trainingName,
+                seriesScores: processedSeriesScores,
+            });
+        }
+        return res.status(200).send(finalTrainings);
+    }
+    catch (error) {
+        console.error("Error fetching exercise history:", error);
+        return res.status(500).send({ msg: "Internal server error" });
+    }
+});
+exports.getExerciseScoresFromTrainingByExercise = getExerciseScoresFromTrainingByExercise;
 const findLatestExerciseScore = (userId, exerciseId, seriesNumber, gym) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _b, _c, _d;
     const match = {
         user: new mongodb_1.ObjectId(userId),
         exercise: new mongodb_1.ObjectId(exerciseId),
@@ -196,13 +302,13 @@ const findLatestExerciseScore = (userId, exerciseId, seriesNumber, gym) => __awa
         select: "gym",
         populate: {
             path: "gym",
-            select: "name"
-        }
+            select: "name",
+        },
     })
         .exec();
     if (!result)
         return null;
-    const gymName = (_c = (_b = (_a = result.training) === null || _a === void 0 ? void 0 : _a.gym) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : null;
+    const gymName = (_d = (_c = (_b = result.training) === null || _b === void 0 ? void 0 : _b.gym) === null || _c === void 0 ? void 0 : _c.name) !== null && _d !== void 0 ? _d : null;
     return {
         reps: result.reps,
         weight: result.weight,

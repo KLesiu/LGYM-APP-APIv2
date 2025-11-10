@@ -54,5 +54,19 @@ interface Score {
     score: ScoreWithGym; 
   }
 
-export {ExerciseForm,ExerciseTrainingHistoryDetails,ExerciseForPlanDay,LastExerciseScores,SeriesScore,LastExerciseScoresWithGym,SeriesScoreWithGym}
+
+  interface ExerciseHistoryDetails{
+    trainings: ExerciseTrainingHistoryItem[]
+
+  }
+
+  interface ExerciseTrainingHistoryItem{
+    _id:string,
+    date:Date,
+    gymName:string,
+    trainingName:string,
+    seriesScores: SeriesScore[]
+  }
+
+export {ExerciseForm,ExerciseTrainingHistoryDetails,ExerciseForPlanDay,LastExerciseScores,SeriesScore,LastExerciseScoresWithGym,SeriesScoreWithGym,ExerciseTrainingHistoryItem,ExerciseHistoryDetails}
 

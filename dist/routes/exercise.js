@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const configRouter_1 = __importDefault(require("./configRouter"));
 const exerciseController_1 = require("../controllers/exerciseController");
+const auth_1 = require("../middlewares/auth");
 configRouter_1.default.post("/exercise/addExercise", exerciseController_1.addExercise);
 configRouter_1.default.post("/exercise/:id/addUserExercise", exerciseController_1.addUserExercise);
 configRouter_1.default.post("/exercise/:id/deleteExercise", exerciseController_1.deleteExercise);
@@ -15,4 +16,5 @@ configRouter_1.default.get("/exercise/getAllGlobalExercises", exerciseController
 configRouter_1.default.get("/exercise/:id/getAllUserExercises", exerciseController_1.getAllUserExercises);
 configRouter_1.default.get("/exercise/:id/getExercise", exerciseController_1.getExercise);
 configRouter_1.default.post("/exercise/:id/getLastExerciseScores", exerciseController_1.getLastExerciseScores);
+configRouter_1.default.post("/exercise/getExerciseScoresFromTrainingByExercise", auth_1.middlewareAuth, exerciseController_1.getExerciseScoresFromTrainingByExercise);
 module.exports = configRouter_1.default;

@@ -10,5 +10,4 @@ export enum BodyParts{
     Hamstrings = "Hamstrings",
     Calves = "Calves",
     Glutes = "Glutes",
-    Neck = "Neck",
 }

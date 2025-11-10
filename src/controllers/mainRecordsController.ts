@@ -1,11 +1,12 @@
 import Params from "../interfaces/Params";
 import  { Request,Response } from "express";
 import ResponseMessage from "../interfaces/ResponseMessage";
-import { MainRecordsForm, MainRecordsLast } from "../interfaces/MainRecords";
+import { MainRecordsForm, MainRecordsLast, PossibleRecordForExercise } from "../interfaces/MainRecords";
 import User from "../models/User";
 import { Message } from "../enums/Message";
 import MainRecords from "../models/MainRecords";
 import Exercise from "../models/Exercise";
+import ExerciseScores from "../models/ExerciseScores";
 
 const addNewRecords = async(req:Request<Params,{},MainRecordsForm>,res:Response<ResponseMessage>)=>{
     const id = req.params.id
@@ -89,4 +90,35 @@ const updateMainRecords = async(req:Request<Params,{},MainRecordsForm>,res:Respo
     else return res.status(404).send({msg:Message.TryAgain})
 }
 
-export {addNewRecords,getMainRecordsHistory,getLastMainRecords,deleteMainRecords,updateMainRecords}
+
+
+const getRecordOrPossibleRecordInExercise = async(req:Request<{},{},{exerciseId:string}>,res:Response<PossibleRecordForExercise | ResponseMessage>)=>{
+    const user = req.user?._id
+    const exerciseId = req.body.exerciseId
+    let record: PossibleRecordForExercise | null = null
+    const findRecord = await MainRecords.findOne({user:user,exercise:exerciseId}).sort({date:-1})
+    if(!findRecord){
+        const possibleRecord = await ExerciseScores.findOne({user:user,exercise:exerciseId}).sort({ weight: -1, reps: -1 })
+        if(possibleRecord){
+          record={
+            weight: possibleRecord.weight,
+            reps: possibleRecord.reps,
+            unit: possibleRecord.unit,
+            date: possibleRecord.createdAt
+          }
+        }else{
+            return res.status(404).send({msg:Message.DidntFind});
+        }
+    }else{
+        record = {
+            weight:findRecord.weight,
+            reps:1,
+            unit:findRecord.unit,
+            date:findRecord.date
+        }
+    }
+    return res.status(200).send(record as PossibleRecordForExercise);
+
+}
+
+export {addNewRecords,getMainRecordsHistory,getLastMainRecords,deleteMainRecords,updateMainRecords,getRecordOrPossibleRecordInExercise}
