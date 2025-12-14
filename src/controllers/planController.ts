@@ -3,10 +3,13 @@ import Plan from "../models/Plan";
 import Params from "../interfaces/Params";
 import ResponseMessage from "../interfaces/ResponseMessage";
 import { PlanForm } from "../interfaces/Plan";
-import User from "../models/User";
+import User, { UserEntity } from "../models/User";
 import { Message } from "../enums/Message";
 import { Types } from "mongoose";
-import PlanDay from "../models/PlanDay";
+import PlanDay, { PlanDayEntity } from "../models/PlanDay";
+import Exercise, { ExerciseEntity } from "../models/Exercise";
+import { ExerciseForm, ExerciseToCopy } from "../interfaces/Exercise";
+import generateCode from "../config/nanoid";
 
 require("dotenv").config();
 
@@ -55,6 +58,7 @@ const getPlanConfig = async (
     _id: findPlan._id,
     name: findPlan.name,
     isActive: findPlan.isActive,
+    shareCode: findPlan.shareCode
   };
   return res.status(200).send(planConfig);
 };
@@ -113,11 +117,82 @@ const setNewActivePlan = async (
   return res.status(200).send({ msg: Message.Updated });
 };
 
+const copyPlan = async (
+  req: Request<{}, {}, { shareCode: string }>,
+  res: Response<ResponseMessage>)=>{
+    const userId = req.user?._id;
+    if(!userId) return res.status(401).send({msg:Message.Unauthorized});
+    const { shareCode } = req.body;
+
+    const planToCopy = await Plan.findOne({shareCode: shareCode});
+    if(!planToCopy) return res.status(404).send({msg: Message.DidntFind});
+    const planDaysToCopy = await PlanDay.find({plan: planToCopy._id, isDeleted: false});
+    const newPlan = new Plan({
+      user: req.user!.id,
+      name: planToCopy.name,
+      isActive: true,
+    })
+    const userExerciseToAdd = [] as ExerciseEntity[]
+    const planDaysToAdd = [] as PlanDayEntity[]
+    for(const planDay of planDaysToCopy){
+      const exercisesToPlanDay = []
+      for(const exercise of planDay.exercises){
+        const findExercise = await Exercise.findById(exercise.exercise);
+        if(findExercise && findExercise.user){
+          const exerciseToAdd = new Exercise({
+            name: findExercise.name,
+            user: req.user!.id,
+            bodyPart: findExercise.bodyPart,
+            description: findExercise.description,
+            image: findExercise.image
+          }) 
+          exercisesToPlanDay.push({
+            series: exercise.series,
+            reps: exercise.reps,
+            exercise: exerciseToAdd._id})
+          userExerciseToAdd.push(exerciseToAdd);
+        }else{
+          exercisesToPlanDay.push({
+            series: exercise.series,
+            reps: exercise.reps,
+            exercise: exercise.exercise})
+        }
+      }
+      const planDayToAdd = new PlanDay({
+        name: planDay.name,
+        plan: newPlan._id,
+        exercises: exercisesToPlanDay})
+      planDaysToAdd.push(planDayToAdd);
+    }
+    await newPlan.save();
+    await Exercise.create(userExerciseToAdd)
+    await PlanDay.create(planDaysToAdd);
+    return res.status(200).send({msg: Message.Created});      
+  }
+
+const generateShareCode = async (req:Request<{},{},{planId:string}>,res:Response<string | ResponseMessage>)=>{
+  const plansCodes = await Plan.find().select("shareCode")
+  const codesArray = plansCodes.map(plan=>plan.shareCode)
+  const regenerateCode = ():string => {
+      const newCode = generateCode()
+      if(codesArray.includes(newCode))return regenerateCode()
+      return newCode
+  }
+  const {planId} = req.body
+  const code = regenerateCode()
+  await Plan.updateOne({_id:planId},{shareCode:code})
+  return res.status(200).send(code)
+}
+
+
+
 export {
   createPlan,
   updatePlan,
   getPlanConfig,
   checkIsUserHavePlan,
   getPlansList,
-  setNewActivePlan
+  setNewActivePlan,
+  copyPlan,
+  generateShareCode
 };

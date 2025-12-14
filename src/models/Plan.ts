@@ -7,6 +7,7 @@ export interface PlanEntity extends Document {
     name: string;
     isActive: boolean;
     _id: string;
+    shareCode?:string;
 }
 
 const PlanSchema = new Schema({
@@ -16,6 +17,8 @@ const PlanSchema = new Schema({
     name:{type:String,required:true},
     /// Czy plan jest aktywny
     isActive:{type:Boolean,required:true,default:true},
+    /// Kod do udostępniania planu
+    shareCode:{type:String,required:false}
  
 })
 const Plan = mongoose.model<PlanEntity>('Plan',PlanSchema)

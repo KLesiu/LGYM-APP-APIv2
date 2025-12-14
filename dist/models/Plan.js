@@ -12,6 +12,8 @@ const PlanSchema = new configModels_1.default({
     name: { type: String, required: true },
     /// Czy plan jest aktywny
     isActive: { type: Boolean, required: true, default: true },
+    /// Kod do udostępniania planu
+    shareCode: { type: String, required: false }
 });
 const Plan = mongoose_1.default.model('Plan', PlanSchema);
 exports.default = Plan;
