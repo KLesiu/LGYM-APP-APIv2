@@ -8,4 +8,4 @@ const configRouter_1 = __importDefault(require("./configRouter"));
 configRouter_1.default.post("/measurements/add", measurementsController_1.addMeasurement);
 configRouter_1.default.get("/measurements:/:id/getMeasurementDetail", measurementsController_1.getMeasurementDetails);
 configRouter_1.default.get("/measurements/:id/getHistory", measurementsController_1.getMeasurementsHistory);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;

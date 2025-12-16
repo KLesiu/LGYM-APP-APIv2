@@ -8,4 +8,4 @@ Router.get("/mainRecords/:id/deleteMainRecord",deleteMainRecords)
 Router.post("/mainRecords/:id/updateMainRecords",updateMainRecords)
 Router.post("/mainRecords/getRecordOrPossibleRecordInExercise",middlewareAuth,getRecordOrPossibleRecordInExercise)
 
-module.exports = Router
+export default Router;

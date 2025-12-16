@@ -12,4 +12,4 @@ configRouter_1.default.get("/mainRecords/:id/getLastMainRecords", mainRecordsCon
 configRouter_1.default.get("/mainRecords/:id/deleteMainRecord", mainRecordsController_1.deleteMainRecords);
 configRouter_1.default.post("/mainRecords/:id/updateMainRecords", mainRecordsController_1.updateMainRecords);
 configRouter_1.default.post("/mainRecords/getRecordOrPossibleRecordInExercise", auth_1.middlewareAuth, mainRecordsController_1.getRecordOrPossibleRecordInExercise);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;

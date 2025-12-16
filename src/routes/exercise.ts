@@ -15,4 +15,4 @@ Router.post("/exercise/:id/getLastExerciseScores",getLastExerciseScores);
 Router.post("/exercise/getExerciseScoresFromTrainingByExercise",middlewareAuth,getExerciseScoresFromTrainingByExercise);
 
 
-module.exports = Router;
+export default Router;

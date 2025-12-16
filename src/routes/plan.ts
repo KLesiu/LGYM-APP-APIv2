@@ -8,4 +8,4 @@ Router.get("/:id/checkIsUserHavePlan",checkIsUserHavePlan)
 Router.get("/:id/getPlansList",getPlansList)
 Router.post("/:id/setNewActivePlan",setNewActivePlan)
 
-module.exports = Router
+export default Router;

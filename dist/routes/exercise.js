@@ -17,4 +17,4 @@ configRouter_1.default.get("/exercise/:id/getAllUserExercises", exerciseControll
 configRouter_1.default.get("/exercise/:id/getExercise", exerciseController_1.getExercise);
 configRouter_1.default.post("/exercise/:id/getLastExerciseScores", exerciseController_1.getLastExerciseScores);
 configRouter_1.default.post("/exercise/getExerciseScoresFromTrainingByExercise", auth_1.middlewareAuth, exerciseController_1.getExerciseScoresFromTrainingByExercise);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;

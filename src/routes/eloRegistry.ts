@@ -3,4 +3,4 @@ import Router from "./configRouter";
 
 Router.get("/eloRegistry/:id/getEloRegistryChart",getEloRegistry)
 
-module.exports = Router
+export default Router;

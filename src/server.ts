@@ -1,7 +1,13 @@
-const app = require("./index");
+import app from "./index";
 require("dotenv").config();
-let server;
+import { Server } from "http"; 
 
-server = app.listen(process.env.PORT || 4000, "0.0.0.0");
+let server: Server;
 
-module.exports = server;
+const PORT: number = process.env.PORT ? Number(process.env.PORT) : 4000;
+
+server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+export default server;
