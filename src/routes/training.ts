@@ -5,4 +5,4 @@ Router.get('/:id/getLastTraining',getLastTraining)
 Router.post("/:id/getTrainingByDate",getTrainingByDate)
 Router.get("/:id/getTrainingDates",getTrainingDates)
 
-module.exports = Router
+export default Router;

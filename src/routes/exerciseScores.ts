@@ -3,4 +3,4 @@ import Router from "./configRouter";
 
 Router.post("/exerciseScores/:id/getExerciseScoresChartData",getExerciseScoresChartData)
 
-module.exports = Router
+export default Router;

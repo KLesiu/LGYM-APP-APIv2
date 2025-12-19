@@ -6,4 +6,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const eloRegistryController_1 = require("../controllers/eloRegistryController");
 const configRouter_1 = __importDefault(require("./configRouter"));
 configRouter_1.default.get("/eloRegistry/:id/getEloRegistryChart", eloRegistryController_1.getEloRegistry);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;

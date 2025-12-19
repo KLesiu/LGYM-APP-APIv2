@@ -9,4 +9,4 @@ Router.get("/planDay/:id/getPlanDaysTypes",getPlanDaysTypes)
 Router.get("/planDay/:id/deletePlanDay",deletePlanDay)
 Router.get("/planDay/:id/getPlanDaysInfo",getPlanDaysInfo)
 
-module.exports = Router;
+export default Router;

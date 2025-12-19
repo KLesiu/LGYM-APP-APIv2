@@ -2,18 +2,23 @@ import express from 'express'
 const bodyParser = require("body-parser")
 require("dotenv").config()
 const cors = require("cors")
-const auth = require("./routes/auth")
-const plan = require('./routes/plan')
-const training = require("./routes/training")
-const measurements = require("./routes/measurements")
-const mainRecords = require("./routes/mainRecords")
-const exercise = require("./routes/exercise")
-const planDay = require("./routes/planDay")
-const eloRegistry = require("./routes/eloRegistry")
 const mongoose = require("mongoose")
-const exerciseScores = require("./routes/exerciseScores")
-const appConfig = require("./routes/appConfig")
 import gym from "./routes/gym"
+import appConfig from './routes/appConfig'
+import auth from './routes/auth'
+import eloRegistry from './routes/eloRegistry'
+import exercise from './routes/exercise'
+import exerciseScores from './routes/exerciseScores'
+import mainRecords from './routes/mainRecords'
+import measurements from './routes/measurements'
+import plan from './routes/plan'
+import planDay from './routes/planDay'
+import training from './routes/training'
+import { apiUserLimiter } from './middlewares/rateLimiters'
+import { middlewareAuth } from './middlewares/auth'
+import { Server } from "http"; 
+
+
 
 // Mongoose connection
 mongoose.set("strictQuery",false)
@@ -25,6 +30,7 @@ async function main(){
 
 // Config app
 const app=express()
+app.set('trust proxy', 1);
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(express.json())
@@ -36,24 +42,24 @@ passport()
 
 
 // Routes
-app.use('/api',auth)
-app.use('/api',plan)
-app.use('/api',training)
-app.use("/api",measurements)
-app.use("/api",mainRecords)
-app.use("/api",exercise)
-app.use("/api",planDay)
-app.use("/api",gym)
-app.use("/api",eloRegistry)
-app.use("/api",exerciseScores)
-app.use("/api",appConfig)
+app.use('/api',middlewareAuth,apiUserLimiter,auth)
+app.use('/api',middlewareAuth,apiUserLimiter,plan)
+app.use('/api',middlewareAuth,apiUserLimiter,training)
+app.use("/api",middlewareAuth,apiUserLimiter,measurements)
+app.use("/api",middlewareAuth,apiUserLimiter,mainRecords)
+app.use("/api",middlewareAuth,apiUserLimiter,exercise)
+app.use("/api",middlewareAuth,apiUserLimiter,planDay)
+app.use("/api",middlewareAuth,apiUserLimiter,gym)
+app.use("/api",middlewareAuth,apiUserLimiter,eloRegistry)
+app.use("/api",middlewareAuth,apiUserLimiter,exerciseScores)
+app.use("/api",middlewareAuth,apiUserLimiter,appConfig)
 
-
-module.exports = app
 
 // Server
-const server = require('./server')
-server
+const PORT: number = process.env.PORT ? Number(process.env.PORT) : 4000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 
 

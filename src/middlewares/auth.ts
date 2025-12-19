@@ -6,6 +6,9 @@ import { UserEntity } from "../models/User";
 import { Response,Request } from "express";
 
 export const middlewareAuth = (req: Request, res: Response, next: NextFunction) => {
+  if(req.originalUrl.includes("/login") || req.originalUrl.includes("/register")){
+    return next();
+  }
     passport.authenticate('jwt', { session: false }, (err:Error, user:UserEntity) => {
       if (err || !user) {
         return res.status(401).json({ message: Message.InvalidToken });

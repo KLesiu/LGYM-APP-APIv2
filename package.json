@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon --exec ts-node --files src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:dev": "npx tsc",
     "serve": "npm run build:dev && node dist/index.js",
@@ -14,12 +15,13 @@
       "ts.check",
       "build",
       "add-build"
-  ]
+    ]
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/express-rate-limit": "^5.1.3",
     "@types/node": "^20.11.20",
     "express": "^4.18.2",
     "nodemon": "^3.1.0",
@@ -31,6 +33,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",

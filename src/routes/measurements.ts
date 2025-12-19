@@ -4,4 +4,4 @@ Router.post("/measurements/add",addMeasurement)
 Router.get("/measurements:/:id/getMeasurementDetail",getMeasurementDetails)
 Router.get("/measurements/:id/getHistory",getMeasurementsHistory)
 
-module.exports = Router
+export default Router;
