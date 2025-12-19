@@ -12,7 +12,7 @@ Router.get("/exercise/getAllGlobalExercises",getAllGlobalExercises);
 Router.get("/exercise/:id/getAllUserExercises",getAllUserExercises);
 Router.get("/exercise/:id/getExercise",getExercise);
 Router.post("/exercise/:id/getLastExerciseScores",getLastExerciseScores);
-Router.post("/exercise/getExerciseScoresFromTrainingByExercise",middlewareAuth,getExerciseScoresFromTrainingByExercise);
+Router.post("/exercise/getExerciseScoresFromTrainingByExercise",getExerciseScoresFromTrainingByExercise);
 
 
 export default Router;

@@ -29,6 +29,7 @@ const plan_1 = __importDefault(require("./routes/plan"));
 const planDay_1 = __importDefault(require("./routes/planDay"));
 const training_1 = __importDefault(require("./routes/training"));
 const rateLimiters_1 = require("./middlewares/rateLimiters");
+const auth_2 = require("./middlewares/auth");
 // Mongoose connection
 mongoose.set("strictQuery", false);
 const mongoDB = process.env.MONGO_CONNECT;
@@ -62,6 +63,7 @@ app.use("/api", auth_2.middlewareAuth, rateLimiters_1.apiUserLimiter, exerciseSc
 app.use("/api", auth_2.middlewareAuth, rateLimiters_1.apiUserLimiter, appConfig_1.default);
 exports.default = app;
 // Server
-const server_1 = __importDefault(require("./server"));
-const auth_2 = require("./middlewares/auth");
-server_1.default;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+});

@@ -15,6 +15,10 @@ exports.authLimiter = (0, express_rate_limit_1.default)({
     max: 20, // Limit: 20 attempts per IP within the window
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    validate: {
+        ip: false,
+        trustProxy: false
+    },
     message: {
         status: 429,
         error: "Too many login/register attempts from this IP, please try again after 15 minutes."
@@ -30,8 +34,15 @@ exports.apiUserLimiter = (0, express_rate_limit_1.default)({
     max: 50, // Limit: 50 requests per user per minute
     standardHeaders: true,
     legacyHeaders: false,
+    validate: {
+        ip: false,
+        trustProxy: false
+    },
     skip: (req) => {
-        if (req.path === '/api/auth/login' || req.path === '/api/auth/register') {
+        if (req.method === 'OPTIONS')
+            return true;
+        const url = req.originalUrl || req.url;
+        if (url.includes('/auth/login') || url.includes('/auth/register')) {
             return true;
         }
         return false;

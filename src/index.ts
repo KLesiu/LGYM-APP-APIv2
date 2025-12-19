@@ -15,6 +15,10 @@ import plan from './routes/plan'
 import planDay from './routes/planDay'
 import training from './routes/training'
 import { apiUserLimiter } from './middlewares/rateLimiters'
+import { middlewareAuth } from './middlewares/auth'
+import { Server } from "http"; 
+
+
 
 // Mongoose connection
 mongoose.set("strictQuery",false)
@@ -51,12 +55,11 @@ app.use("/api",middlewareAuth,apiUserLimiter,exerciseScores)
 app.use("/api",middlewareAuth,apiUserLimiter,appConfig)
 
 
-export default app
-
 // Server
-import server from './server'
-import { middlewareAuth } from './middlewares/auth'
-server
+const PORT: number = process.env.PORT ? Number(process.env.PORT) : 4000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 
 

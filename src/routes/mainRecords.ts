@@ -6,6 +6,6 @@ Router.get("/mainRecords/:id/getMainRecordsHistory",getMainRecordsHistory)
 Router.get("/mainRecords/:id/getLastMainRecords",getLastMainRecords)
 Router.get("/mainRecords/:id/deleteMainRecord",deleteMainRecords)
 Router.post("/mainRecords/:id/updateMainRecords",updateMainRecords)
-Router.post("/mainRecords/getRecordOrPossibleRecordInExercise",middlewareAuth,getRecordOrPossibleRecordInExercise)
+Router.post("/mainRecords/getRecordOrPossibleRecordInExercise",getRecordOrPossibleRecordInExercise)
 
 export default Router;

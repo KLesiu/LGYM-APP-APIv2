@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import {rateLimit,ipKeyGenerator }from 'express-rate-limit';
 import { Request } from 'express';
 
 /**
@@ -11,6 +11,10 @@ export const authLimiter = rateLimit({
     max: 20, // Limit: 20 attempts per IP within the window
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    validate: {
+        ip: false,
+        trustProxy: false 
+    },
     message: { 
         status: 429, 
         error: "Too many login/register attempts from this IP, please try again after 15 minutes." 
@@ -24,11 +28,19 @@ export const authLimiter = rateLimit({
  */
 export const apiUserLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 50, // Limit: 50 requests per user per minute
+    max: 10, // Limit: 50 requests per user per minute
     standardHeaders: true,
     legacyHeaders: false,
+    validate: {
+        ip: false,
+        trustProxy: false 
+    },
     skip: (req: Request) => {
-        if(req.path === '/api/auth/login' || req.path === '/api/auth/register'){
+        if (req.method === 'OPTIONS') return true;
+
+        const url = req.originalUrl || req.url;
+
+        if (url.includes('/login') || url.includes('/register')) {
             return true; 
         }
         return false;
@@ -37,7 +49,7 @@ export const apiUserLimiter = rateLimit({
     // Custom key generator to throttle specific users instead of IPs
     keyGenerator: (req: Request) => {
         // Casting to 'any' or your custom UserRequest interface is often needed here
-        const user = (req as any).user;
+        const user = req.user;
 
         // IF LOGGED IN: Use User ID as the unique key
         if (user && user._id) {
@@ -45,7 +57,7 @@ export const apiUserLimiter = rateLimit({
         }
 
         // FALLBACK: Use IP if no user is found (safety net)
-        return req.ip || 'unknown-ip';
+        return ipKeyGenerator(req.ip!);
     },
     message: { 
         status: 429, 
