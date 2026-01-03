@@ -6,4 +6,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const exercisesScoresController_1 = require("../controllers/exercisesScoresController");
 const configRouter_1 = __importDefault(require("./configRouter"));
 configRouter_1.default.post("/exerciseScores/:id/getExerciseScoresChartData", exercisesScoresController_1.getExerciseScoresChartData);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;

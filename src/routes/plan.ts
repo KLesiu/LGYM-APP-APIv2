@@ -11,4 +11,4 @@ Router.post("/:id/setNewActivePlan",setNewActivePlan)
 Router.post("/copyPlan",middlewareAuth,copyPlan)
 Router.post("/generateShareCode",middlewareAuth,generateShareCode)
 
-module.exports = Router
+export default Router;

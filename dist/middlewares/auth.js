@@ -5,6 +5,9 @@ const passport = require('passport');
 const jwt = require("jsonwebtoken");
 const Message_1 = require("../enums/Message");
 const middlewareAuth = (req, res, next) => {
+    if (req.originalUrl.includes("/auth/login") || req.originalUrl.includes("/auth/register")) {
+        return next();
+    }
     passport.authenticate('jwt', { session: false }, (err, user) => {
         if (err || !user) {
             return res.status(401).json({ message: Message_1.Message.InvalidToken });

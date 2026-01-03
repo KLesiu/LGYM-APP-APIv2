@@ -7,4 +7,4 @@ const appVersionController_1 = require("../controllers/appVersionController");
 const configRouter_1 = __importDefault(require("./configRouter"));
 configRouter_1.default.post("/appConfig/getAppVersion", appVersionController_1.getAppVersion);
 configRouter_1.default.post("/appConfig/createNewAppVersion/:id", appVersionController_1.createNewAppVersion);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;
