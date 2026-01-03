@@ -61,7 +61,6 @@ app.use("/api", auth_2.middlewareAuth, rateLimiters_1.apiUserLimiter, gym_1.defa
 app.use("/api", auth_2.middlewareAuth, rateLimiters_1.apiUserLimiter, eloRegistry_1.default);
 app.use("/api", auth_2.middlewareAuth, rateLimiters_1.apiUserLimiter, exerciseScores_1.default);
 app.use("/api", auth_2.middlewareAuth, rateLimiters_1.apiUserLimiter, appConfig_1.default);
-exports.default = app;
 // Server
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 app.listen(PORT, "0.0.0.0", () => {
