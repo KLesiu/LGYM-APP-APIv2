@@ -161,6 +161,7 @@ const copyPlan = async (
       const planDayToAdd = new PlanDay({
         name: planDay.name,
         plan: newPlan._id,
+        isDeleted:false,
         exercises: exercisesToPlanDay})
       planDaysToAdd.push(planDayToAdd);
     }

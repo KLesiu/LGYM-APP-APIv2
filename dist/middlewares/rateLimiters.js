@@ -1,16 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.apiUserLimiter = exports.authLimiter = void 0;
-const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const express_rate_limit_1 = require("express-rate-limit");
 /**
  * 1. AUTH LIMITER (For unauthenticated users)
  * Protects /auth/login and /auth/register endpoints against brute-force attacks.
  * Blocks traffic based on the IP address.
  */
-exports.authLimiter = (0, express_rate_limit_1.default)({
+exports.authLimiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 20, // Limit: 20 attempts per IP within the window
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
@@ -29,9 +26,9 @@ exports.authLimiter = (0, express_rate_limit_1.default)({
  * Protects general API resources.
  * The throttling key is the User ID (req.user._id) to avoid blocking shared IPs (e.g., office WiFi).
  */
-exports.apiUserLimiter = (0, express_rate_limit_1.default)({
+exports.apiUserLimiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 60 * 1000, // 1 minute
-    max: 50, // Limit: 50 requests per user per minute
+    max: 10, // Limit: 50 requests per user per minute
     standardHeaders: true,
     legacyHeaders: false,
     validate: {
@@ -42,7 +39,7 @@ exports.apiUserLimiter = (0, express_rate_limit_1.default)({
         if (req.method === 'OPTIONS')
             return true;
         const url = req.originalUrl || req.url;
-        if (url.includes('/auth/login') || url.includes('/auth/register')) {
+        if (url.includes('/login') || url.includes('/register')) {
             return true;
         }
         return false;
@@ -56,7 +53,7 @@ exports.apiUserLimiter = (0, express_rate_limit_1.default)({
             return user._id.toString();
         }
         // FALLBACK: Use IP if no user is found (safety net)
-        return req.ip || 'unknown-ip';
+        return (0, express_rate_limit_1.ipKeyGenerator)(req.ip);
     },
     message: {
         status: 429,

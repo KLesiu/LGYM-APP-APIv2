@@ -14,4 +14,4 @@ configRouter_1.default.get("/:id/getPlansList", planController_1.getPlansList);
 configRouter_1.default.post("/:id/setNewActivePlan", planController_1.setNewActivePlan);
 configRouter_1.default.post("/copyPlan", auth_1.middlewareAuth, planController_1.copyPlan);
 configRouter_1.default.post("/generateShareCode", auth_1.middlewareAuth, planController_1.generateShareCode);
-module.exports = configRouter_1.default;
+exports.default = configRouter_1.default;

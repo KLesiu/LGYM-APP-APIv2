@@ -148,6 +148,7 @@ const copyPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const planDayToAdd = new PlanDay_1.default({
             name: planDay.name,
             plan: newPlan._id,
+            isDeleted: false,
             exercises: exercisesToPlanDay
         });
         planDaysToAdd.push(planDayToAdd);
