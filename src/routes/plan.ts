@@ -1,4 +1,4 @@
-import { createPlan, updatePlan,getPlanConfig ,checkIsUserHavePlan,getPlansList,setNewActivePlan,copyPlan, generateShareCode} from "../controllers/planController"
+import { createPlan, updatePlan,getPlanConfig ,checkIsUserHavePlan,getPlansList,setNewActivePlan,copyPlan, generateShareCode,deletePlan} from "../controllers/planController"
 import { middlewareAuth } from "../middlewares/auth"
 import Router from "./configRouter"
 
@@ -10,5 +10,6 @@ Router.get("/:id/getPlansList",getPlansList)
 Router.post("/:id/setNewActivePlan",setNewActivePlan)
 Router.post("/copyPlan",middlewareAuth,copyPlan)
 Router.post("/generateShareCode",middlewareAuth,generateShareCode)
+Router.post("/deletePlan",middlewareAuth,deletePlan)
 
 export default Router;

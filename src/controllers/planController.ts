@@ -86,7 +86,7 @@ const getPlansList = async (
   const findUser = await User.findById(userId);
   if (!findUser || !Object.keys(findUser).length)
     return res.status(404).send({ msg: Message.DidntFind });
-  const plans = await Plan.find({ user: findUser });
+  const plans = await Plan.find({ user: findUser,isDeleted:false });
   if (!plans || !plans.length)
     return res.status(404).send({ msg: Message.DidntFind });
   const plansList = plans.map((plan) => ({
@@ -185,6 +185,29 @@ const generateShareCode = async (req:Request<{},{},{planId:string}>,res:Response
   return res.status(200).send(code)
 }
 
+const deletePlan = async (
+  req: Request<{}, {}, { planId: string }>,
+  res: Response<ResponseMessage>
+) => {
+  const { planId } = req.body;
+  const userId = req.user!._id;
+
+  await Plan.updateOne({ _id: planId }, { isDeleted: true, isActive: false });
+
+  const replacementPlan = await Plan.findOne({ 
+      user: userId, 
+      isDeleted: false 
+  })
+  .select("_id")
+  .lean();
+
+  if (replacementPlan) {
+    await Plan.updateOne({ _id: replacementPlan._id }, { isActive: true });
+  }
+
+  return res.status(200).send({ msg: Message.Deleted });
+};
+
 
 
 export {
@@ -195,5 +218,6 @@ export {
   getPlansList,
   setNewActivePlan,
   copyPlan,
-  generateShareCode
+  generateShareCode,
+  deletePlan
 };

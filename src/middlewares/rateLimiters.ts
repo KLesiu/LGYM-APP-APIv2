@@ -28,7 +28,7 @@ export const authLimiter = rateLimit({
  */
 export const apiUserLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 10, // Limit: 50 requests per user per minute
+    max: 50, // Limit: 50 requests per user per minute
     standardHeaders: true,
     legacyHeaders: false,
     validate: {

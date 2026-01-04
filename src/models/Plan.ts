@@ -18,7 +18,8 @@ const PlanSchema = new Schema({
     /// Czy plan jest aktywny
     isActive:{type:Boolean,required:true,default:true},
     /// Kod do udostępniania planu
-    shareCode:{type:String,required:false}
+    shareCode:{type:String,required:false},
+    isDeleted:{type:Boolean,required:true,default:false}
  
 })
 const Plan = mongoose.model<PlanEntity>('Plan',PlanSchema)
