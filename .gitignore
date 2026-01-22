@@ -1,2 +1,16 @@
 node_modules
 .env
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+coverage/
+*.sarif
+*.log
