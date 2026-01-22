@@ -27,7 +27,7 @@ public sealed class AppConfigController : ControllerBase
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        if (!Enum.TryParse<Platforms>(platformRaw, out var platform))
+        if (!Enum.TryParse(platformRaw, true, out Platforms platform))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
@@ -68,7 +68,7 @@ public sealed class AppConfigController : ControllerBase
             return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }
 
-        if (!Enum.TryParse<Platforms>(form.Platform, out var platform))
+        if (!Enum.TryParse(form.Platform, true, out Platforms platform))
         {
             return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }

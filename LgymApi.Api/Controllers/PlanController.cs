@@ -1,4 +1,5 @@
 using LgymApi.Api.DTOs;
+using LgymApi.Api.Middleware;
 using LgymApi.Application.Repositories;
 using LgymApi.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -23,15 +24,15 @@ public sealed class PlanController : ControllerBase
     [HttpPost("{id}/createPlan")]
     public async Task<IActionResult> CreatePlan([FromRoute] string id, [FromBody] PlanFormDto form)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         var plan = new Domain.Entities.Plan
@@ -52,6 +53,17 @@ public sealed class PlanController : ControllerBase
     [HttpPost("{id}/updatePlan")]
     public async Task<IActionResult> UpdatePlan([FromRoute] string id, [FromBody] PlanFormDto form)
     {
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
+        if (user.Id != routeUserId)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
+        }
+
         if (string.IsNullOrWhiteSpace(form.Name))
         {
             return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
@@ -76,15 +88,15 @@ public sealed class PlanController : ControllerBase
     [HttpGet("{id}/getPlanConfig")]
     public async Task<IActionResult> GetPlanConfig([FromRoute] string id)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         var plan = await _planRepository.FindActiveByUserIdAsync(user.Id);
@@ -104,15 +116,15 @@ public sealed class PlanController : ControllerBase
     [HttpGet("{id}/checkIsUserHavePlan")]
     public async Task<IActionResult> CheckIsUserHavePlan([FromRoute] string id)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, false);
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, false);
+            return StatusCode(StatusCodes.Status403Forbidden, false);
         }
 
         var plan = await _planRepository.FindActiveByUserIdAsync(user.Id);
@@ -133,15 +145,15 @@ public sealed class PlanController : ControllerBase
     [HttpGet("{id}/getPlansList")]
     public async Task<IActionResult> GetPlansList([FromRoute] string id)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         var plans = await _planRepository.GetByUserIdAsync(user.Id);
@@ -163,12 +175,18 @@ public sealed class PlanController : ControllerBase
     [HttpPost("{id}/setNewActivePlan")]
     public async Task<IActionResult> SetNewActivePlan([FromRoute] string id, [FromBody] PlanFormDto form)
     {
-        if (!Guid.TryParse(id, out var userId) || !Guid.TryParse(form.Id, out var planId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId) || !Guid.TryParse(form.Id, out var planId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        await _planRepository.SetActivePlanAsync(userId, planId);
+        if (user.Id != routeUserId)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
+        }
+
+        await _planRepository.SetActivePlanAsync(user.Id, planId);
 
         return Ok(new ResponseMessageDto { Message = Message.Updated });
     }

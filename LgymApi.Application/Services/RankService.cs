@@ -33,16 +33,7 @@ public sealed class RankService : IRankService
 
     public RankDefinition GetCurrentRank(int elo)
     {
-        var current = Ranks[0];
-        foreach (var rank in Ranks)
-        {
-            if (elo >= rank.NeedElo)
-            {
-                current = rank;
-            }
-        }
-
-        return current;
+        return Ranks.Last(rank => elo >= rank.NeedElo);
     }
 
     public RankDefinition? GetNextRank(string currentRankName)

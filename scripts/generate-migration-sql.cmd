@@ -5,13 +5,15 @@ set "OUTPUT=%~1"
 set "FROM=%~2"
 set "TO=%~3"
 
-set "ARGS=ef migrations script --project "LgymApi.Infrastructure" --startup-project "LgymApi.Api""
+set "FROM_ARG="
+set "TO_ARG="
+set "OUTPUT_ARG="
 
-if not "%FROM%"=="" set "ARGS=%ARGS% --from %FROM%"
-if not "%TO%"=="" set "ARGS=%ARGS% --to %TO%"
-if not "%OUTPUT%"=="" set "ARGS=%ARGS% --output %OUTPUT%"
+if not "%FROM%"=="" set "FROM_ARG=--from "%FROM%""
+if not "%TO%"=="" set "TO_ARG=--to "%TO%""
+if not "%OUTPUT%"=="" set "OUTPUT_ARG=--output "%OUTPUT%""
 
-dotnet %ARGS%
+dotnet ef migrations script --project "LgymApi.Infrastructure" --startup-project "LgymApi.Api" %FROM_ARG% %TO_ARG% %OUTPUT_ARG%
 if errorlevel 1 exit /b %errorlevel%
 
 endlocal

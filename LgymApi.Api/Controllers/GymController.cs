@@ -1,4 +1,5 @@
 using LgymApi.Api.DTOs;
+using LgymApi.Api.Middleware;
 using LgymApi.Application.Repositories;
 using LgymApi.Domain.Entities;
 using LgymApi.Domain.Enums;
@@ -10,13 +11,11 @@ namespace LgymApi.Api.Controllers;
 [Route("api")]
 public sealed class GymController : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
     private readonly IGymRepository _gymRepository;
     private readonly ITrainingRepository _trainingRepository;
 
-    public GymController(IUserRepository userRepository, IGymRepository gymRepository, ITrainingRepository trainingRepository)
+    public GymController(IGymRepository gymRepository, ITrainingRepository trainingRepository)
     {
-        _userRepository = userRepository;
         _gymRepository = gymRepository;
         _trainingRepository = trainingRepository;
     }
@@ -24,15 +23,15 @@ public sealed class GymController : ControllerBase
     [HttpPost("gym/{id}/addGym")]
     public async Task<IActionResult> AddGym([FromRoute] string id, [FromBody] GymFormDto form)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         if (string.IsNullOrWhiteSpace(form.Name))
@@ -81,15 +80,15 @@ public sealed class GymController : ControllerBase
     [HttpGet("gym/{id}/getGyms")]
     public async Task<IActionResult> GetGyms([FromRoute] string id)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         var gyms = await _gymRepository.GetByUserIdAsync(user.Id);

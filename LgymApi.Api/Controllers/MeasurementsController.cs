@@ -1,4 +1,5 @@
 using LgymApi.Api.DTOs;
+using LgymApi.Api.Middleware;
 using LgymApi.Application.Repositories;
 using LgymApi.Domain.Entities;
 using LgymApi.Domain.Enums;
@@ -10,30 +11,23 @@ namespace LgymApi.Api.Controllers;
 [Route("api")]
 public sealed class MeasurementsController : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
     private readonly IMeasurementRepository _measurementRepository;
 
-    public MeasurementsController(IUserRepository userRepository, IMeasurementRepository measurementRepository)
+    public MeasurementsController(IMeasurementRepository measurementRepository)
     {
-        _userRepository = userRepository;
         _measurementRepository = measurementRepository;
     }
 
     [HttpPost("measurements/add")]
     public async Task<IActionResult> AddMeasurement([FromBody] MeasurementFormDto form)
     {
-        if (!Guid.TryParse(form.UserId, out var userId))
-        {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
-        }
-
-        var user = await _userRepository.FindByIdAsync(userId);
+        var user = HttpContext.GetCurrentUser();
         if (user == null)
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        if (!Enum.TryParse<BodyParts>(form.BodyPart, out var bodyPart))
+        if (!Enum.TryParse(form.BodyPart, true, out BodyParts bodyPart))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.TryAgain });
         }
@@ -78,17 +72,17 @@ public sealed class MeasurementsController : ControllerBase
     }
 
     [HttpGet("measurements/{id}/getHistory")]
-    public async Task<IActionResult> GetMeasurementsHistory([FromRoute] string id, [FromBody] MeasurementsHistoryRequestDto? request)
+    public async Task<IActionResult> GetMeasurementsHistory([FromRoute] string id, [FromQuery] MeasurementsHistoryRequestDto? request)
     {
-        if (!Guid.TryParse(id, out var userId))
+        var user = HttpContext.GetCurrentUser();
+        if (user == null || !Guid.TryParse(id, out var routeUserId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        var user = await _userRepository.FindByIdAsync(userId);
-        if (user == null)
+        if (user.Id != routeUserId)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         var measurements = await _measurementRepository.GetByUserAsync(user.Id, request?.BodyPart);

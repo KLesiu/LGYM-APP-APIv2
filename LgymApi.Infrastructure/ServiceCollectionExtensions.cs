@@ -12,7 +12,7 @@ namespace LgymApi.Infrastructure;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool enableSensitiveLogging)
     {
         services.AddDbContext<AppDbContext>((sp, options) =>
         {
@@ -20,9 +20,14 @@ public static class ServiceCollectionExtensions
 
             options
                 .UseLoggerFactory(loggerFactory)
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors()
                 .UseNpgsql(configuration.GetConnectionString("Postgres"));
+
+            if (enableSensitiveLogging)
+            {
+                options
+                    .EnableSensitiveDataLogging()
+                    .EnableDetailedErrors();
+            }
         });
 
         services.AddScoped<ITokenService, TokenService>();
