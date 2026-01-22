@@ -61,6 +61,12 @@ public sealed class GymController : ControllerBase
     [HttpPost("gym/{id}/deleteGym")]
     public async Task<IActionResult> DeleteGym([FromRoute] string id)
     {
+        var user = HttpContext.GetCurrentUser();
+        if (user == null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
         if (!Guid.TryParse(id, out var gymId))
         {
             return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
@@ -70,6 +76,11 @@ public sealed class GymController : ControllerBase
         if (gym == null)
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
+        if (gym.UserId != user.Id)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         gym.IsDeleted = true;
@@ -127,6 +138,12 @@ public sealed class GymController : ControllerBase
     [HttpGet("gym/{id}/getGym")]
     public async Task<IActionResult> GetGym([FromRoute] string id)
     {
+        var user = HttpContext.GetCurrentUser();
+        if (user == null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
         if (!Guid.TryParse(id, out var gymId))
         {
             return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
@@ -136,6 +153,11 @@ public sealed class GymController : ControllerBase
         if (gym == null)
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
+        if (gym.UserId != user.Id)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         return Ok(new GymFormDto
@@ -149,6 +171,12 @@ public sealed class GymController : ControllerBase
     [HttpPost("gym/editGym")]
     public async Task<IActionResult> EditGym([FromBody] GymFormDto form)
     {
+        var user = HttpContext.GetCurrentUser();
+        if (user == null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
         if (!Guid.TryParse(form.Id, out var gymId))
         {
             return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
@@ -158,6 +186,11 @@ public sealed class GymController : ControllerBase
         if (gym == null)
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
+        if (gym.UserId != user.Id)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         gym.Name = form.Name;

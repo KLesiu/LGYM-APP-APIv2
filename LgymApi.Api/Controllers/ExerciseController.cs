@@ -30,12 +30,12 @@ public sealed class ExerciseController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(form.Name) || string.IsNullOrWhiteSpace(form.BodyPart))
         {
-            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = "Name and body part are required!" });
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }
 
-        if (!Enum.TryParse<BodyParts>(form.BodyPart, out var bodyPart))
+        if (!Enum.TryParse(form.BodyPart, true, out BodyParts bodyPart))
         {
-            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = "Name and body part are required!" });
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }
 
         var exercise = new Exercise
@@ -57,7 +57,7 @@ public sealed class ExerciseController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(form.Name) || string.IsNullOrWhiteSpace(form.BodyPart))
         {
-            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = "Name and body part are required!" });
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }
 
         if (!Guid.TryParse(id, out var userId))
@@ -65,9 +65,9 @@ public sealed class ExerciseController : ControllerBase
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
-        if (!Enum.TryParse<BodyParts>(form.BodyPart, out var bodyPart))
+        if (!Enum.TryParse(form.BodyPart, true, out BodyParts bodyPart))
         {
-            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = "Name and body part are required!" });
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }
 
         var user = await _userRepository.FindByIdAsync(userId);
@@ -382,13 +382,13 @@ public sealed class ExerciseController : ControllerBase
         var userId = HttpContext.GetCurrentUser()?.Id;
         if (!userId.HasValue || !Guid.TryParse(request.ExerciseId, out var exerciseId))
         {
-            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = "Missing user or exerciseId" });
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseMessageDto { Message = Message.FieldRequired });
         }
 
         var exercise = await _exerciseRepository.FindByIdAsync(exerciseId);
         if (exercise == null)
         {
-            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = "Exercise not found" });
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
         }
 
         var scores = await _exerciseScoreRepository.GetByUserAndExerciseAsync(userId.Value, exerciseId);

@@ -29,7 +29,7 @@ public sealed class MeasurementRepository : IMeasurementRepository
     public Task<List<Measurement>> GetByUserAsync(Guid userId, string? bodyPart, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Measurements.Where(m => m.UserId == userId).AsQueryable();
-        if (!string.IsNullOrWhiteSpace(bodyPart) && Enum.TryParse<BodyParts>(bodyPart, out var parsed))
+        if (!string.IsNullOrWhiteSpace(bodyPart) && Enum.TryParse(bodyPart, true, out BodyParts parsed))
         {
             query = query.Where(m => m.BodyPart == parsed);
         }

@@ -32,23 +32,23 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<List<UserRankingEntry>> GetRankingAsync(CancellationToken cancellationToken = default)
     {
-        var users = await _dbContext.Users
+        var rankedUsers = await _dbContext.Users
             .Where(u => !u.IsTester && !u.IsDeleted && u.IsVisibleInRanking)
+            .Select(u => new
+            {
+                User = u,
+                Elo = _dbContext.EloRegistries
+                    .Where(e => e.UserId == u.Id)
+                    .OrderByDescending(e => e.Date)
+                    .Select(e => (int?)e.Elo)
+                    .FirstOrDefault()
+            })
             .ToListAsync(cancellationToken);
 
-        var result = new List<UserRankingEntry>();
-        foreach (var user in users)
-        {
-            var elo = await _dbContext.EloRegistries
-                .Where(e => e.UserId == user.Id)
-                .OrderByDescending(e => e.Date)
-                .Select(e => (int?)e.Elo)
-                .FirstOrDefaultAsync(cancellationToken) ?? 1000;
-
-            result.Add(new UserRankingEntry(user, elo));
-        }
-
-        return result.OrderByDescending(entry => entry.Elo).ToList();
+        return rankedUsers
+            .Select(entry => new UserRankingEntry(entry.User, entry.Elo ?? 1000))
+            .OrderByDescending(entry => entry.Elo)
+            .ToList();
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)

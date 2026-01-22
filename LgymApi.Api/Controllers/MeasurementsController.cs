@@ -49,6 +49,12 @@ public sealed class MeasurementsController : ControllerBase
     [HttpGet("measurements:/{id}/getMeasurementDetail")]
     public async Task<IActionResult> GetMeasurementDetail([FromRoute] string id)
     {
+        var user = HttpContext.GetCurrentUser();
+        if (user == null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
         if (!Guid.TryParse(id, out var measurementId))
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
@@ -58,6 +64,11 @@ public sealed class MeasurementsController : ControllerBase
         if (measurement == null)
         {
             return StatusCode(StatusCodes.Status404NotFound, new ResponseMessageDto { Message = Message.DidntFind });
+        }
+
+        if (measurement.UserId != user.Id)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ResponseMessageDto { Message = Message.Forbidden });
         }
 
         return Ok(new MeasurementFormDto
